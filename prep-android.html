@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Android &amp; Kotlin — Interview Notes · Shivam Tiwari</title>
+<meta name="description" content="Extensive Android & Kotlin interview questions with detailed answers and code — coroutines, Flow, Jetpack Compose, lifecycle, Hilt, memory, performance and architecture." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
+    <nav class="nav-links">
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a class="nav-cta" href="index.html">← Portfolio</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<section class="prep-hero">
+  <div class="wrap">
+    <a class="backlink" href="index.html#notes">← All interview notes</a>
+    <span class="eyebrow" style="margin-top:18px">01 — Android &amp; Kotlin</span>
+    <h1>Android &amp; Kotlin,<br>start to finish.</h1>
+    <p>Everything I keep sharp before an Android interview — language internals, structured concurrency, Compose, lifecycle, dependency injection, memory and build. Answers and code on one page. Use search, filter by topic, or expand all.</p>
+    <div class="prep-stats">
+      <span><b>51</b> questions</span>
+      <span><b>8</b> topics</span>
+      <span><b>Senior / Staff</b> depth</span>
+      <span>No redirects</span>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q-search" type="text" placeholder="Search 51 questions — e.g. StateFlow, recomposition, ANR, Hilt…" />
+      </div>
+      <div class="tool-btns">
+        <button class="tbtn" id="expand-all">Expand all</button>
+        <button class="tbtn" id="collapse-all">Collapse all</button>
+      </div>
+    </div>
+    <div class="chips-row">
+      <button class="fchip active" data-target="all">All</button>
+      <button class="fchip" data-target="kotlin">Kotlin</button>
+      <button class="fchip" data-target="coroutines">Coroutines &amp; Flow</button>
+      <button class="fchip" data-target="core">Core &amp; Lifecycle</button>
+      <button class="fchip" data-target="ui">Views &amp; Compose</button>
+      <button class="fchip" data-target="arch">Architecture</button>
+      <button class="fchip" data-target="di">DI</button>
+      <button class="fchip" data-target="perf">Memory &amp; Perf</button>
+      <button class="fchip" data-target="build">Data &amp; Build</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section" style="padding-top:20px">
+<div class="layout">
+  <aside class="toc">
+    <h5>On this page</h5>
+    <a href="#kotlin">Kotlin language</a>
+    <a href="#coroutines">Coroutines &amp; Flow</a>
+    <a href="#core">Core &amp; Lifecycle</a>
+    <a href="#ui">Views &amp; Compose</a>
+    <a href="#arch">Architecture</a>
+    <a href="#di">Dependency Injection</a>
+    <a href="#perf">Memory &amp; Performance</a>
+    <a href="#build">Data &amp; Build</a>
+  </aside>
+
+  <div>
+
+  <!-- ============ KOTLIN ============ -->
+  <section class="cat" id="kotlin" data-cat="kotlin">
+    <h2><span class="ix">01</span> Kotlin language</h2>
+    <p class="cat-sub">Language internals interviewers actually probe.</p>
+
+    <details class="qa" data-tags="val var immutable mutable reference">
+      <summary><span class="qix">Q01</span><span class="qtext">Does <code>val</code> guarantee immutability?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>No. <code>val</code> only makes the <b>reference</b> read-only — you can't reassign it. The object it points to can still mutate.</p>
+        <pre><code><span class="k">val</span> list = mutableListOf(<span class="s">"a"</span>)
+list.add(<span class="s">"b"</span>)   <span class="c">// fine — the list mutates</span>
+<span class="c">// list = mutableListOf()  // compile error — reassignment</span></code></pre>
+        <p>A <code>val</code> can even return different values if it's backed by a custom getter. True immutability needs an immutable type (e.g. <code>List</code> instead of <code>MutableList</code>, or a read-only <code>val</code> with no custom getter).</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="lateinit lazy initialization">
+      <summary><span class="qix">Q02</span><span class="qtext"><code>lateinit</code> vs <code>by lazy</code> — when each?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <table><tr><th></th><th>lateinit</th><th>by lazy</th></tr>
+        <tr><td>Mutability</td><td><code>var</code> only</td><td><code>val</code> only</td></tr>
+        <tr><td>Types</td><td>non-null, non-primitive</td><td>any</td></tr>
+        <tr><td>Init</td><td>you assign it later, manually</td><td>computed on first access</td></tr>
+        <tr><td>Thread-safe</td><td>no</td><td>yes by default (<code>SYNCHRONIZED</code>)</td></tr></table>
+        <p>Use <code>lateinit</code> for dependencies injected after construction (DI, <code>onCreate</code>). Use <code>lazy</code> for expensive values you may never need. Reading an uninitialized <code>lateinit</code> throws <code>UninitializedPropertyAccessException</code>; guard with <code>::prop.isInitialized</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="data class equals hashcode copy componentN destructuring">
+      <summary><span class="qix">Q03</span><span class="qtext">What does the compiler generate for a <code>data class</code>?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>For properties in the primary constructor it generates <code>equals()</code>, <code>hashCode()</code>, <code>toString()</code>, <code>copy()</code> and <code>componentN()</code> (for destructuring).</p>
+        <div class="callout">Gotcha: only <b>primary-constructor</b> properties are considered. A property declared in the body is excluded from <code>equals</code>/<code>hashCode</code>/<code>copy</code> — a common source of "why aren't these equal?" bugs. Also avoid <code>data class</code> for entities with identity (use a real id) since structural equality may not be what you want.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="sealed class enum interface exhaustive when polymorphism">
+      <summary><span class="qix">Q04</span><span class="qtext"><code>sealed class</code> vs <code>enum</code> — and what's a sealed interface?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>An <code>enum</code> is a fixed set of <b>singleton instances</b>, all the same shape. A <code>sealed class</code> is a closed set of <b>subtypes</b> that can each carry different data and have multiple instances.</p>
+        <pre><code><span class="k">sealed interface</span> UiState
+<span class="k">data object</span> Loading : UiState
+<span class="k">data class</span> Success(<span class="k">val</span> data: List&lt;Item&gt;) : UiState
+<span class="k">data class</span> Error(<span class="k">val</span> msg: String) : UiState</code></pre>
+        <p>Because the hierarchy is closed, <code>when</code> over a sealed type is <b>exhaustive</b> — no <code>else</code> needed, and adding a new subtype turns missed branches into compile errors. <code>sealed interface</code> (Kotlin 1.5+) lets a type participate in several sealed hierarchies and avoids forcing a class. Ideal for modeling UI state.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="inline noinline crossinline lambda performance reified">
+      <summary><span class="qix">Q05</span><span class="qtext">What does <code>inline</code> do, and why <code>crossinline</code> / <code>noinline</code>?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><code>inline</code> copies the function body — and its lambda bodies — into the call site at compile time. This removes the <code>Function</code> object allocation per lambda and enables non-local returns and <code>reified</code> generics. It's why <code>map</code>, <code>filter</code>, <code>let</code> are cheap.</p>
+        <ul>
+          <li><code>noinline</code> — keep a specific lambda <em>not</em> inlined (so you can store or pass it on).</li>
+          <li><code>crossinline</code> — still inlined, but forbids non-local returns (needed when the lambda is invoked from another execution context, e.g. inside a <code>Runnable</code>).</li>
+        </ul>
+        <p>Don't inline large functions — it bloats bytecode at every call site.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="reified generics type erasure">
+      <summary><span class="qix">Q06</span><span class="qtext">What problem do <code>reified</code> type parameters solve?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The JVM erases generics at runtime, so normally you can't do <code>T::class</code> or <code>is T</code>. In an <code>inline</code> function, marking the type <code>reified</code> makes the concrete type available at the call site.</p>
+        <pre><code><span class="k">inline fun</span> &lt;<span class="k">reified</span> T&gt; Gson.fromJson(json: String): T =
+    fromJson(json, T::<span class="k">class</span>.java)
+
+<span class="k">val</span> user: User = gson.fromJson(body)  <span class="c">// no .class needed</span></code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="extension function static resolution receiver">
+      <summary><span class="qix">Q07</span><span class="qtext">How are extension functions resolved — statically or dynamically?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Statically</b>, by the <em>declared</em> type, not the runtime type. They compile to static methods taking the receiver as the first argument — they don't actually modify the class or participate in virtual dispatch.</p>
+        <pre><code><span class="k">open class</span> A; <span class="k">class</span> B : A()
+<span class="k">fun</span> A.name() = <span class="s">"A"</span>
+<span class="k">fun</span> B.name() = <span class="s">"B"</span>
+<span class="k">val</span> a: A = B()
+a.name()  <span class="c">// "A" — resolved by declared type A</span></code></pre>
+        <p>If a member function and an extension have the same signature, the <b>member wins</b>.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="scope functions let run with apply also">
+      <summary><span class="qix">Q08</span><span class="qtext">Differentiate <code>let</code>, <code>run</code>, <code>with</code>, <code>apply</code>, <code>also</code>.</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <table><tr><th>Fn</th><th>Receiver as</th><th>Returns</th><th>Typical use</th></tr>
+        <tr><td><code>let</code></td><td><code>it</code></td><td>lambda result</td><td>null-safe transforms</td></tr>
+        <tr><td><code>run</code></td><td><code>this</code></td><td>lambda result</td><td>compute + scope</td></tr>
+        <tr><td><code>with</code></td><td><code>this</code></td><td>lambda result</td><td>operate on an object</td></tr>
+        <tr><td><code>apply</code></td><td><code>this</code></td><td>the object</td><td>configure &amp; return it</td></tr>
+        <tr><td><code>also</code></td><td><code>it</code></td><td>the object</td><td>side effects (logging)</td></tr></table>
+        <p>Pick by two axes: do you want the receiver as <code>this</code> or <code>it</code>, and do you want the object back or the lambda's result?</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="delegation by lazy observable map delegate property">
+      <summary><span class="qix">Q09</span><span class="qtext">Explain property delegation (<code>by</code>) with a real use.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Delegation routes a property's get/set to a delegate object that implements <code>getValue</code>/<code>setValue</code>. Built-ins: <code>lazy</code>, <code>Delegates.observable</code>, <code>Delegates.notNull</code>, and map-backed properties.</p>
+        <pre><code><span class="k">var</span> name: String <span class="k">by</span> Delegates.observable(<span class="s">""</span>) { _, old, new -&gt;
+    log(<span class="s">"$old -&gt; $new"</span>)
+}
+<span class="c">// Fragment args, viewModels(), preferences are all delegates</span>
+<span class="k">private val</span> viewModel: HomeViewModel <span class="k">by</span> viewModels()</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="companion object static jvmstatic singleton">
+      <summary><span class="qix">Q10</span><span class="qtext"><code>companion object</code> vs Java <code>static</code>?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Kotlin has no <code>static</code>. A <code>companion object</code> is a single instance tied to the class; its members are accessed via the class name. Unlike static, it's a real object — it can implement interfaces and be passed around. Annotate members with <code>@JvmStatic</code> to expose true statics for Java interop. Top-level functions are the idiomatic replacement for genuine utility statics.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ COROUTINES ============ -->
+  <section class="cat" id="coroutines" data-cat="coroutines">
+    <h2><span class="ix">02</span> Coroutines &amp; Flow</h2>
+    <p class="cat-sub">Structured concurrency and reactive streams — the highest-signal Android topic.</p>
+
+    <details class="qa" data-tags="structured concurrency scope cancellation">
+      <summary><span class="qix">Q11</span><span class="qtext">What is structured concurrency and why does it matter?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Every coroutine runs inside a <code>CoroutineScope</code> and becomes a child of a parent <code>Job</code>. That gives three guarantees: a parent doesn't complete until its children do; cancelling the parent cancels all children; and a child failure propagates up. The practical payoff is <b>no leaked coroutines</b> — when a <code>ViewModel</code> clears, <code>viewModelScope</code> cancels everything it launched.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="dispatchers main io default unconfined threading">
+      <summary><span class="qix">Q12</span><span class="qtext">When do you use Main, IO, Default and Unconfined dispatchers?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <ul>
+          <li><code>Main</code> — UI work and touching views.</li>
+          <li><code>IO</code> — blocking I/O (disk, network, DB). Large elastic pool (default 64 threads).</li>
+          <li><code>Default</code> — CPU-bound work (parsing, sorting, image processing). Pool sized to cores.</li>
+          <li><code>Unconfined</code> — starts in the caller's thread, resumes wherever the suspending call resumes. Rarely used outside tests/edge cases.</li>
+        </ul>
+        <div class="callout">Make suspend functions <b>main-safe</b>: shift threads <em>inside</em> the function with <code>withContext(IO)</code> rather than forcing callers to choose a dispatcher.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="launch async deferred await concurrency">
+      <summary><span class="qix">Q12b</span><span class="qtext"><code>launch</code> vs <code>async</code>?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><code>launch</code> fires a coroutine that returns a <code>Job</code> — use it for fire-and-forget work. <code>async</code> returns a <code>Deferred&lt;T&gt;</code> whose result you <code>await()</code> — use it for parallel decomposition.</p>
+        <pre><code>coroutineScope {
+    <span class="k">val</span> user = <span class="f">async</span> { api.user() }
+    <span class="k">val</span> feed = <span class="f">async</span> { api.feed() }
+    render(user.await(), feed.await())   <span class="c">// run in parallel</span>
+}</code></pre>
+        <p>Note: an exception in <code>async</code> surfaces at <code>await()</code>, whereas <code>launch</code> throws into the scope immediately.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="coroutineScope supervisorScope failure isolation supervisorjob">
+      <summary><span class="qix">Q13</span><span class="qtext"><code>coroutineScope</code> vs <code>supervisorScope</code>?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>In <code>coroutineScope</code>, one child failing cancels its siblings and the scope. In <code>supervisorScope</code> (backed by a <code>SupervisorJob</code>), children fail <b>independently</b> — one crash doesn't tear down the others. Use supervisor scoping when you launch several independent jobs (e.g. loading widgets on a dashboard) and want partial success.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="cancellation cooperative ensureActive yield isActive nonCancellable">
+      <summary><span class="qix">Q14</span><span class="qtext">How does coroutine cancellation actually work?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Cancellation is <b>cooperative</b>. Cancelling sets the <code>Job</code> to cancelling; suspension points (from <code>kotlinx.coroutines</code>) check this and throw <code>CancellationException</code>. A tight CPU loop with no suspension points will <em>not</em> stop — you must cooperate via <code>ensureActive()</code>, <code>yield()</code>, or checking <code>isActive</code>.</p>
+        <pre><code><span class="k">while</span> (isActive) { stepHeavyWork() }   <span class="c">// cancellable loop</span></code></pre>
+        <p>Don't swallow <code>CancellationException</code> in a broad <code>catch (e: Exception)</code> — rethrow it. To run cleanup that must finish (e.g. closing a resource) use <code>withContext(NonCancellable)</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="exception handling CoroutineExceptionHandler try catch supervisorjob">
+      <summary><span class="qix">Q15</span><span class="qtext">How do you handle exceptions in coroutines?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <ul>
+          <li><b>try/catch</b> works around a suspending call for localized handling.</li>
+          <li><code>launch</code> exceptions propagate up the job tree; <code>async</code> exceptions are deferred to <code>await()</code>.</li>
+          <li>A <code>CoroutineExceptionHandler</code> installed on a root <code>launch</code> is the last-resort net (uncaught handler). It does <b>not</b> work for <code>async</code> nor in the middle of a tree.</li>
+          <li>A <code>SupervisorJob</code> stops a child failure from cancelling siblings.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="flow cold stream builder collect emit">
+      <summary><span class="qix">Q16</span><span class="qtext">What is a Flow and what makes it "cold"?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A <code>Flow</code> is an asynchronous, sequential stream of values built on suspension. It's <b>cold</b>: the producer block doesn't run until a terminal operator (<code>collect</code>) subscribes, and it re-executes for each new collector.</p>
+        <pre><code><span class="k">fun</span> ticker() = flow {
+    <span class="k">var</span> i = 0
+    <span class="k">while</span> (true) { emit(i++); delay(1000) }
+}   <span class="c">// nothing runs until someone collects</span></code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="stateflow sharedflow livedata hot replay conflated">
+      <summary><span class="qix">Q17</span><span class="qtext"><code>StateFlow</code> vs <code>SharedFlow</code> vs <code>LiveData</code>?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>All are <b>hot</b> holders, but they differ in semantics:</p>
+        <ul>
+          <li><b>StateFlow</b> — always has a current value, conflated, emits only on change (<code>distinctUntilChanged</code>). Perfect for UI <em>state</em>.</li>
+          <li><b>SharedFlow</b> — configurable <code>replay</code> and buffer, emits every value (including duplicates). Perfect for one-off <em>events</em> (navigation, snackbars) with <code>replay = 0</code>.</li>
+          <li><b>LiveData</b> — lifecycle-aware out of the box, main-thread only, Java-friendly. Flows need <code>repeatOnLifecycle</code> for safe collection.</li>
+        </ul>
+        <div class="callout">For events, prefer <code>SharedFlow(replay = 0)</code> over <code>StateFlow</code> — a conflated StateFlow can drop or replay an event on config change.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="flowOn upstream downstream context dispatcher">
+      <summary><span class="qix">Q18</span><span class="qtext">What does <code>flowOn</code> do and why not just <code>withContext</code>?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><code>flowOn(dispatcher)</code> changes the context of the <b>upstream</b> (everything before it) without affecting the collector. You can't wrap a flow's emission in <code>withContext</code> because a flow must preserve context across emit boundaries (it'd throw <code>IllegalStateException</code>). The collector's context (e.g. <code>Main</code>) stays untouched.</p>
+        <pre><code>repo.dataFlow()
+    .map { transform(it) }
+    .flowOn(Dispatchers.Default)   <span class="c">// upstream on Default</span>
+    .collect { render(it) }        <span class="c">// collected on caller (Main)</span></code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="operators flatMapLatest debounce conflate buffer combine zip">
+      <summary><span class="qix">Q19</span><span class="qtext">Implement search-as-you-type with Flow operators.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <pre><code>queryFlow
+    .debounce(300)                 <span class="c">// wait for typing to settle</span>
+    .filter { it.length &gt;= 2 }
+    .distinctUntilChanged()
+    .flatMapLatest { q -&gt;          <span class="c">// cancel stale request</span>
+        repo.search(q).catch { emit(emptyList()) }
+    }
+    .flowOn(Dispatchers.IO)
+    .collect { results -&gt; _state.value = results }</code></pre>
+        <p><code>flatMapLatest</code> is the key — when a new query arrives it cancels the in-flight inner flow, so you never render results for a stale keystroke. Use <code>conflate()</code> to drop intermediate values when the collector is slow, and <code>buffer()</code> to decouple a fast producer from a slow consumer.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="callbackFlow channelFlow callback bridge awaitClose">
+      <summary><span class="qix">Q20</span><span class="qtext">How do you turn a callback API into a Flow?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <pre><code><span class="k">fun</span> locationFlow(client: LocationClient) = callbackFlow {
+    <span class="k">val</span> cb = LocationCallback { loc -&gt; trySend(loc) }
+    client.register(cb)
+    awaitClose { client.unregister(cb) }   <span class="c">// cleanup on cancel</span>
+}</code></pre>
+        <p><code>callbackFlow</code> + <code>awaitClose</code> bridges listener-based APIs and guarantees the listener is removed when the collector cancels — the canonical way to wrap sensors, Firebase listeners, etc.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="repeatOnLifecycle viewModelScope lifecycleScope safe collection">
+      <summary><span class="qix">Q21</span><span class="qtext">Why collect with <code>repeatOnLifecycle</code> instead of <code>lifecycleScope.launch</code>?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A plain <code>lifecycleScope.launch { flow.collect {} }</code> keeps collecting while the UI is in the background, wasting work and risking updates to a stopped view. <code>repeatOnLifecycle(STARTED)</code> starts collection when the lifecycle reaches STARTED and <b>cancels</b> it at STOPPED, restarting on the next STARTED.</p>
+        <pre><code>lifecycleScope.launch {
+    repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState.collect { render(it) }
+    }
+}</code></pre>
+        <p>Or use <code>flow.flowWithLifecycle(lifecycle)</code> for a single flow.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ CORE & LIFECYCLE ============ -->
+  <section class="cat" id="core" data-cat="core">
+    <h2><span class="ix">03</span> Core &amp; Lifecycle</h2>
+    <p class="cat-sub">The framework mechanics behind every screen.</p>
+
+    <details class="qa" data-tags="activity lifecycle onCreate onStart onResume onPause configuration change">
+      <summary><span class="qix">Q22</span><span class="qtext">Walk the Activity lifecycle and where you'd do what.</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><code>onCreate</code> (inflate, bind, restore state) → <code>onStart</code> (visible) → <code>onResume</code> (foreground, interactive) → <code>onPause</code> (losing focus, release exclusive resources — keep it fast) → <code>onStop</code> (hidden, persist state) → <code>onDestroy</code>.</p>
+        <p>On rotation the activity is destroyed and recreated; survive transient UI data with <code>SavedStateHandle</code>/<code>ViewModel</code>, not member fields. <code>onSaveInstanceState</code> handles small, serializable UI state for process death.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="fragment lifecycle view lifecycle viewLifecycleOwner memory leak">
+      <summary><span class="qix">Q23</span><span class="qtext">Why does a Fragment have two lifecycles?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A Fragment instance can outlive its view (e.g. on the back stack the view is destroyed but the fragment isn't). So there's the <b>fragment lifecycle</b> and a separate <b>view lifecycle</b> (<code>onCreateView</code> → <code>onDestroyView</code>).</p>
+        <div class="callout">Always observe LiveData / collect flows tied to the UI with <code>viewLifecycleOwner</code>, not <code>this</code>. Using the fragment as owner re-attaches observers to a stale view after the view is recreated → duplicate callbacks and leaks. Also null out binding in <code>onDestroyView</code>.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="looper handler messagequeue thread main thread">
+      <summary><span class="qix">Q24</span><span class="qtext">Explain Looper, Handler and MessageQueue.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>This trio is Android's per-thread event loop:</p>
+        <ul>
+          <li><b>MessageQueue</b> — a time-ordered queue of <code>Message</code>/<code>Runnable</code> items.</li>
+          <li><b>Looper</b> — loops forever pulling the next due message off the queue and dispatching it. The main thread's Looper is what keeps the app alive and processes input, draw, lifecycle callbacks.</li>
+          <li><b>Handler</b> — bound to a Looper; you post/send messages through it, and it runs their callbacks on that Looper's thread.</li>
+        </ul>
+        <pre><code>Handler(Looper.getMainLooper()).post { updateUi() }</code></pre>
+        <p>To make a worker thread loop-able: <code>Looper.prepare()</code> → create handlers → <code>Looper.loop()</code> (or just use <code>HandlerThread</code>). Coroutines/Executors have largely replaced manual handlers, but the main-thread dispatch model is exactly this.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="context application activity context memory leak">
+      <summary><span class="qix">Q25</span><span class="qtext">Application Context vs Activity Context — which to pass where?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Use the <b>Activity</b> context for UI things bound to that activity — inflating views, themed dialogs, starting activities. Use the <b>Application</b> context for things that outlive any screen — singletons, databases, long-lived caches. Holding an Activity context in a singleton or static field leaks the whole Activity (and its view tree). Rule of thumb: if it needs theming or a window, use Activity context; otherwise Application.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="process death savedstatehandle restore state low memory">
+      <summary><span class="qix">Q26</span><span class="qtext">How do you survive process death (not just rotation)?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A <code>ViewModel</code> survives configuration changes but <b>not</b> process death — the OS can kill a backgrounded app and recreate it later. To restore essential UI state, use <code>SavedStateHandle</code> (it persists to the saved-instance bundle):</p>
+        <pre><code><span class="k">class</span> SearchViewModel(<span class="k">val</span> handle: SavedStateHandle) : ViewModel() {
+    <span class="k">val</span> query = handle.getStateFlow(<span class="s">"q"</span>, <span class="s">""</span>)
+    <span class="k">fun</span> setQuery(q: String) { handle[<span class="s">"q"</span>] = q }
+}</code></pre>
+        <p>Keep it small and serializable. Source-of-truth data should be re-fetchable from the repository.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="ANR application not responding main thread blocking 5 seconds">
+      <summary><span class="qix">Q27</span><span class="qtext">What causes an ANR and how do you debug one?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>An ANR fires when the main thread is blocked too long: ~5s for input dispatch, ~10s for a foreground <code>BroadcastReceiver</code>, or a slow <code>Service</code> start. Causes: heavy work on the main thread (DB/network/JSON), main-thread lock contention, a deadlock, or a binder call to a slow process.</p>
+        <p>Debug with the <code>/data/anr/traces.txt</code> stack dump (shows what the main thread was doing), Play Console ANR vitals, <code>StrictMode</code> to catch main-thread I/O in dev, and Macrobenchmark/Perfetto traces. Fix by moving work off-main with coroutines and keeping <code>onCreate</code>/<code>onResume</code> lean.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="workmanager service foreground background deferrable">
+      <summary><span class="qix">Q28</span><span class="qtext">WorkManager vs Service vs coroutine — how do you choose?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <ul>
+          <li><b>Coroutine in viewModelScope</b> — work tied to a screen, no persistence needed.</li>
+          <li><b>WorkManager</b> — <em>deferrable, guaranteed</em> background work that must survive app death/reboot (sync, upload, periodic cleanup), with constraints (network, charging) and backoff.</li>
+          <li><b>Foreground Service</b> — user-visible ongoing work that must run <em>now</em> and keep running (music playback, active navigation, live location) with a persistent notification.</li>
+        </ul>
+        <p>Since Android 12+, background-start restrictions make WorkManager the default for most "do it later, reliably" work.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ UI ============ -->
+  <section class="cat" id="ui" data-cat="ui">
+    <h2><span class="ix">04</span> Views &amp; Compose</h2>
+    <p class="cat-sub">From RecyclerView recycling to recomposition — the performance heart of the UI.</p>
+
+    <details class="qa" data-tags="recyclerview diffutil viewholder recycling adapter listadapter">
+      <summary><span class="qix">Q29</span><span class="qtext">How does RecyclerView recycle, and why DiffUtil?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>RecyclerView keeps a small pool of <code>ViewHolder</code>s — roughly one per visible row plus a few. As rows scroll off, their holders are returned to the pool and <code>onBindViewHolder</code> rebinds them for new data, so inflation cost is paid once. <code>DiffUtil</code> (via <code>ListAdapter</code>) computes the minimal set of changes between old and new lists so only changed rows animate/rebind instead of <code>notifyDataSetChanged()</code> redrawing everything.</p>
+        <pre><code>class Diff : DiffUtil.ItemCallback&lt;Item&gt;() {
+    override fun areItemsTheSame(a: Item, b: Item) = a.id == b.id
+    override fun areContentsTheSame(a: Item, b: Item) = a == b
+}</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="view draw measure layout overdraw hierarchy flattening">
+      <summary><span class="qix">Q30</span><span class="qtext">What is overdraw and how did you reduce jank on busy screens?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The view pipeline is measure → layout → draw, run per frame. <b>Overdraw</b> is the GPU painting the same pixel multiple times (stacked opaque backgrounds). Deep nested hierarchies multiply measure/layout cost.</p>
+        <p>Levers that cut jank: flatten hierarchy (<code>ConstraintLayout</code> over nested <code>LinearLayout</code>s), remove redundant backgrounds, use <code>DiffUtil</code> to avoid full rebinds, avoid layout passes inside scroll, profile with the GPU Overdraw debug overlay and the Layout Inspector, and watch frame timing in Perfetto. On a chatroom feed this is how I took jank/re-rendering down ~80%.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="compose recomposition state snapshot smart recomposition">
+      <summary><span class="qix">Q31</span><span class="qtext">What is recomposition and when does it trigger?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Recomposition is Compose re-running a composable to update the UI tree when a <code>State</code> it <em>reads</em> changes. It's smart — only composables that read the changed state recompose, and it can skip ones whose inputs are unchanged (if their parameters are stable). Composables must be side-effect-free and idempotent because they may run frequently, in any order, and be skipped.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="remember rememberSaveable state hoisting recomposition survive">
+      <summary><span class="qix">Q32</span><span class="qtext"><code>remember</code> vs <code>rememberSaveable</code>, and state hoisting?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><code>remember</code> caches a value across recompositions but is lost on config change. <code>rememberSaveable</code> additionally survives config change/process death via the saved-state bundle (needs a Saver for custom types).</p>
+        <p><b>State hoisting</b> = move state up to the caller and pass <code>value</code> down + <code>onValueChange</code> up, making the composable stateless, reusable and testable (unidirectional data flow).</p>
+        <pre><code>@Composable
+fun Counter(count: Int, onInc: () -&gt; Unit) {   <span class="c">// stateless</span>
+    Button(onClick = onInc) { Text(<span class="s">"$count"</span>) }
+}</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="stability immutable stable skippable lambda lists recomposition">
+      <summary><span class="qix">Q33</span><span class="qtext">Why do unstable parameters hurt Compose performance?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Compose skips a composable only if all its inputs are <b>stable</b> and unchanged. A type is stable if Compose can trust its <code>equals</code> and know when public properties change. <code>List</code> (the interface) is treated as unstable because the runtime can't prove it won't mutate — so passing a <code>List</code> can defeat skipping and cause needless recomposition.</p>
+        <p>Fixes: use <code>ImmutableList</code> from kotlinx-collections-immutable, mark types <code>@Immutable</code>/<code>@Stable</code> when you guarantee the contract, hoist lambdas with <code>remember</code>, and use the Compose compiler stability/recomposition reports to find offenders.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="LaunchedEffect DisposableEffect SideEffect rememberCoroutineScope side effects">
+      <summary><span class="qix">Q34</span><span class="qtext">When do you use LaunchedEffect vs DisposableEffect vs rememberCoroutineScope?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <ul>
+          <li><b>LaunchedEffect(key)</b> — run a suspend block when entering composition or when <code>key</code> changes; cancelled on leave. Use for one-shot loads, snackbars, animations.</li>
+          <li><b>DisposableEffect(key)</b> — register/unregister non-suspending resources (listeners, observers) with an <code>onDispose</code> cleanup.</li>
+          <li><b>rememberCoroutineScope</b> — a scope tied to the composition you launch from <em>event callbacks</em> (e.g. onClick), not during composition.</li>
+          <li><b>SideEffect</b> — publish Compose state to non-Compose code after every successful recomposition.</li>
+        </ul>
+        <div class="callout">Never launch coroutines directly in the composable body — use these effect APIs so work is scoped to the composition lifecycle.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="lazycolumn keys modifier order phases derivedStateOf">
+      <summary><span class="qix">Q35</span><span class="qtext">Two Compose gotchas: <code>LazyColumn</code> keys and Modifier order.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Keys:</b> give <code>items(list, key = { it.id })</code> a stable key so Compose preserves item state and animates correctly on reorder/insert — without keys it falls back to position and mis-recomposes.</p>
+        <p><b>Modifier order matters</b> — modifiers apply outside-in. <code>padding().background()</code> paints the background <em>inside</em> the padding; <code>background().padding()</code> paints it <em>around</em>. Same chain, different result.</p>
+        <p>Bonus: wrap derived UI flags in <code>derivedStateOf</code> so they only recompute (and trigger recomposition) when the derived result actually changes, e.g. <code>val showFab by remember { derivedStateOf { listState.firstVisibleItemIndex &gt; 0 } }</code>.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="cat" id="arch" data-cat="arch">
+    <h2><span class="ix">05</span> Architecture</h2>
+    <p class="cat-sub">Patterns that keep a large codebase testable and maintainable.</p>
+
+    <details class="qa" data-tags="mvvm mvi mvp architecture unidirectional state">
+      <summary><span class="qix">Q36</span><span class="qtext">MVVM vs MVI vs MVP — trade-offs?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <ul>
+          <li><b>MVP</b> — Presenter holds UI logic and calls an explicit View interface. Testable but verbose, and the two-way View↔Presenter coupling is easy to get wrong on config change.</li>
+          <li><b>MVVM</b> — ViewModel exposes observable state; the View reacts. Less boilerplate, survives config changes, the Android-default with Jetpack.</li>
+          <li><b>MVI</b> — a single <em>immutable</em> state object updated by reducing <em>intents</em>; strict unidirectional flow. Great for complex screens (predictable, time-travel-debuggable) but more ceremony.</li>
+        </ul>
+        <p>In practice: MVVM with a single immutable <code>UiState</code> (StateFlow) borrows MVI's predictability without the full reducer overhead — what I used for the ShareChat chatroom and intervention surfaces.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="clean architecture layers use case domain data presentation dependency rule">
+      <summary><span class="qix">Q37</span><span class="qtext">Explain Clean Architecture layers and the dependency rule.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Three layers: <b>presentation</b> (ViewModel/UI) → <b>domain</b> (use cases + entities, pure Kotlin, no Android) → <b>data</b> (repositories, network, DB). The <b>dependency rule</b>: dependencies point inward; domain knows nothing about Android or data sources. Repositories are defined as interfaces in domain and implemented in data, so you can swap a data source or test the domain with no framework.</p>
+        <p>Use cases (interactors) encapsulate one business action (<code>GetFeedUseCase</code>), keeping ViewModels thin. Don't over-apply it to trivial screens — the indirection has a cost.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="repository single source of truth caching offline">
+      <summary><span class="qix">Q38</span><span class="qtext">What does "single source of truth" mean in a repository?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The UI observes <b>one</b> authoritative store — usually the local database — and the network only ever writes into that store. The repository exposes a <code>Flow</code> from the DB; a refresh fetches from network and upserts to the DB, which emits to observers automatically.</p>
+        <pre><code><span class="k">fun</span> articles(): Flow&lt;List&lt;Article&gt;&gt; = dao.observeAll()
+<span class="k">suspend fun</span> refresh() { dao.upsert(api.fetch()) }</code></pre>
+        <p>This gives offline support, consistent data after writes, and a clean reactive contract — no merging two streams in the UI.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DI ============ -->
+  <section class="cat" id="di" data-cat="di">
+    <h2><span class="ix">06</span> Dependency Injection</h2>
+    <p class="cat-sub">Dagger/Hilt mechanics — frequently the make-or-break Android round.</p>
+
+    <details class="qa" data-tags="dependency injection dagger hilt why benefits testability">
+      <summary><span class="qix">Q39</span><span class="qtext">Why DI, and what does Hilt add over Dagger?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>DI gives a class its collaborators instead of constructing them — decoupling, easy mocking in tests, and one place to control lifetimes. Dagger generates this wiring at <b>compile time</b> (fast, type-safe, no reflection). Hilt is a layer on Dagger that provides standard Android components and scopes (<code>@HiltAndroidApp</code>, <code>@AndroidEntryPoint</code>, <code>@HiltViewModel</code>) so you write far less boilerplate and get a consistent component hierarchy out of the box.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="binds provides module abstraction interface implementation">
+      <summary><span class="qix">Q40</span><span class="qtext"><code>@Binds</code> vs <code>@Provides</code> — when each?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Both tell Dagger how to satisfy a type. <code>@Provides</code> is a method whose body <em>constructs</em> the object — use it when you need logic, third-party types, or builders. <code>@Binds</code> just <em>maps an interface to an implementation</em> Dagger already knows how to create — it's an abstract method, generates less code and is preferred for interface→impl.</p>
+        <pre><code>@Module @InstallIn(SingletonComponent::<span class="k">class</span>)
+<span class="k">abstract class</span> RepoModule {
+    @Binds <span class="k">abstract fun</span> bindRepo(impl: UserRepoImpl): UserRepo
+}
+@Module @InstallIn(SingletonComponent::<span class="k">class</span>)
+<span class="k">object</span> NetModule {
+    @Provides @Singleton <span class="k">fun</span> retrofit(): Retrofit = Retrofit.Builder()...build()
+}</code></pre>
+        <p>Rule: can the impl be constructor-injected and you just need the interface? <code>@Binds</code>. Need to build it yourself? <code>@Provides</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="hilt scopes singleton activityretained viewmodel component lifetime">
+      <summary><span class="qix">Q41</span><span class="qtext">Walk through Hilt components and scopes.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Hilt has a fixed component hierarchy, each with a scope annotation and a lifetime:</p>
+        <table><tr><th>Component</th><th>Scope</th><th>Lives as long as</th></tr>
+        <tr><td>SingletonComponent</td><td><code>@Singleton</code></td><td>the Application</td></tr>
+        <tr><td>ActivityRetainedComponent</td><td><code>@ActivityRetained</code></td><td>across config changes</td></tr>
+        <tr><td>ViewModelComponent</td><td><code>@ViewModelScoped</code></td><td>the ViewModel</td></tr>
+        <tr><td>ActivityComponent</td><td><code>@ActivityScoped</code></td><td>the Activity</td></tr>
+        <tr><td>FragmentComponent</td><td><code>@FragmentScoped</code></td><td>the Fragment</td></tr></table>
+        <p>A scope means "one instance per that component lifetime". Unscoped bindings give a new instance every injection. Key constraint: a binding can only depend on bindings from its own component or an ancestor — you can't inject an <code>@ActivityScoped</code> thing into a <code>@Singleton</code>. Don't over-scope; scoping a stateless object just pins memory.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="qualifiers named multibinding intoset intomap">
+      <summary><span class="qix">Q42</span><span class="qtext">Two impls of the same type — qualifiers and multibinding?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Qualifiers</b> disambiguate two bindings of the same type:</p>
+        <pre><code>@Qualifier <span class="k">annotation class</span> Authed
+@Provides @Authed <span class="k">fun</span> authedClient(): OkHttpClient = ...
+<span class="c">// inject:  @Authed client: OkHttpClient</span></code></pre>
+        <p><b>Multibinding</b> (<code>@IntoSet</code>, <code>@IntoMap</code>) collects many contributions into a <code>Set</code>/<code>Map</code> — perfect for plugin-style registries like a set of analytics trackers or a map of <code>ViewModel</code> factories, so feature modules add to a collection without the consumer knowing them.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ MEMORY & PERF ============ -->
+  <section class="cat" id="perf" data-cat="perf">
+    <h2><span class="ix">07</span> Memory &amp; Performance</h2>
+    <p class="cat-sub">Leaks, caching, startup and app-size — where senior engineers earn their title.</p>
+
+    <details class="qa" data-tags="memory leak causes static inner class handler context leakcanary">
+      <summary><span class="qix">Q43</span><span class="qtext">Most common Android memory leaks and how you find them?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A leak is a longer-lived object holding a shorter-lived one, blocking GC. Usual suspects:</p>
+        <ul>
+          <li>A <b>static</b>/singleton holding an Activity or View context.</li>
+          <li>Non-static inner classes / anonymous listeners (implicit outer reference) outliving the Activity.</li>
+          <li><code>Handler</code> with delayed messages keeping the Activity alive.</li>
+          <li>Unregistered listeners/observers, unclosed disposables, RxJava subscriptions.</li>
+          <li>Observing LiveData/flows with the fragment instead of <code>viewLifecycleOwner</code>.</li>
+        </ul>
+        <p>Detect with <b>LeakCanary</b> (auto heap-dump + leak trace), the Android Studio Memory Profiler (allocations, heap dumps, retained set), and StrictMode. LeakCanary watches destroyed objects, forces GC, and if still reachable computes the shortest strong reference path to a GC root.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="lru cache memory disk bitmap eviction lru">
+      <summary><span class="qix">Q44</span><span class="qtext">How does an LRU cache work, and where would you use one?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Least-Recently-Used eviction: when full, drop the entry untouched longest. Classic implementation is a <code>HashMap</code> + doubly-linked list (O(1) get/put, move-to-front on access). Android's <code>LruCache</code> caps by a <em>size</em> you define (e.g. bytes for bitmaps via <code>sizeOf</code>).</p>
+        <pre><code><span class="k">val</span> max = (Runtime.getRuntime().maxMemory() / 1024 / 8).toInt()
+<span class="k">val</span> cache = <span class="k">object</span> : LruCache&lt;String, Bitmap&gt;(max) {
+    override fun sizeOf(k: String, b: Bitmap) = b.byteCount / 1024
+}</code></pre>
+        <p>Use it for in-memory bitmap/image caches (the memory tier of an image loader), backed by a disk LRU for the next tier.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="baseline profile startup aot jit r8">
+      <summary><span class="qix">Q45</span><span class="qtext">What are Baseline Profiles and how do they help startup?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A Baseline Profile lists the hot code paths (startup, key journeys). At install time ART <b>AOT-compiles</b> those paths instead of relying on JIT warming up at runtime, cutting cold-start time and early-frame jank — commonly 20–30% startup improvement. You generate it with the Macrobenchmark library running a representative journey, ship it in the APK/AAB, and verify with cold-start traces. Pair with the App Startup library to order initializers and avoid a slow custom <code>Application.onCreate</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="r8 proguard shrink obfuscate minify keep rules">
+      <summary><span class="qix">Q46</span><span class="qtext">What does R8 do, and what breaks without keep rules?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>R8 (the default since AGP 3.4) does shrinking (drop unused code/resources), obfuscation (rename to short names), and optimization (inline, etc.) in one pass — smaller, faster APKs. It breaks code reached via <b>reflection</b> or serialization that R8 can't see statically (Gson/Moshi models, JNI-called methods, classes named in XML). Add <code>-keep</code> rules for those, or use library-provided consumer rules. Always test the minified release build, not just debug.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="bitmap memory insamplesize decoding oom large images">
+      <summary><span class="qix">Q47</span><span class="qtext">How do you load a huge image without OOM?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A bitmap costs <code>width × height × bytesPerPixel</code> in memory regardless of file size, so a 12MP photo can be tens of MB decoded. Downsample to the target view size: read bounds first with <code>inJustDecodeBounds</code>, compute a power-of-two <code>inSampleSize</code>, then decode. In practice use Coil/Glide which handle sampling, pooling, memory+disk caching and lifecycle for you — that's the right answer in an interview too.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DATA & BUILD ============ -->
+  <section class="cat" id="build" data-cat="build">
+    <h2><span class="ix">08</span> Data, Build &amp; Tooling</h2>
+    <p class="cat-sub">Persistence, modularization and the build pipeline I love optimizing.</p>
+
+    <details class="qa" data-tags="room database transaction relation flow dao migration">
+      <summary><span class="qix">Q48</span><span class="qtext">Room essentials: relations, <code>@Transaction</code>, reactive queries.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Room maps SQLite to typed DAOs with compile-time-checked SQL. A DAO method returning <code>Flow&lt;T&gt;</code> emits automatically whenever the underlying tables change — the basis of single-source-of-truth. Use <code>@Transaction</code> for multi-step reads/writes that must be atomic and consistent (e.g. a <code>@Relation</code> query that runs several statements). Provide explicit <code>Migration</code>s (or <code>fallbackToDestructiveMigration</code> only in dev) and test them. <code>DataStore</code> replaces <code>SharedPreferences</code> for key-value because it's async, transactional and flow-based — no main-thread disk I/O.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="paging3 pagingsource remotemediator load network db">
+      <summary><span class="qix">Q49</span><span class="qtext">How does Paging 3 work end to end?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A <code>PagingSource</code> loads pages on demand; the <code>Pager</code> exposes a <code>Flow&lt;PagingData&gt;</code> the UI collects (RecyclerView <code>PagingDataAdapter</code> or Compose <code>LazyPagingItems</code>). It handles prefetch, placeholders, retry and load states for you. For offline-first, a <code>RemoteMediator</code> fetches from network and writes to Room, and the <code>PagingSource</code> reads from Room — so the DB is the source of truth and the network just tops it up. Keys can be page indices or cursors.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="gradle build speed modularization configuration cache parallel">
+      <summary><span class="qix">Q50</span><span class="qtext">How did you cut build time 53%? (Gradle &amp; modularization)</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The big levers, roughly in impact order:</p>
+        <ul>
+          <li><b>Modularization</b> — split the monolith into feature/data modules so Gradle compiles only what changed and parallelizes the rest. Depend on <code>api</code> sparingly; prefer <code>implementation</code> to shrink the recompilation graph.</li>
+          <li><b>Build &amp; configuration cache</b> — reuse task outputs and the configuration phase across builds (local + remote cache in CI).</li>
+          <li><b>Dependency hygiene</b> — drop unused deps, avoid dynamic versions, enable <code>parallel</code> and adequate JVM/Gradle heap.</li>
+          <li><b>Annotation processing</b> — KSP over KAPT (KSP skips the Java stub generation that makes KAPT slow).</li>
+          <li><b>CI specifics</b> — warm remote build cache, shard tests, avoid clean builds where safe.</li>
+        </ul>
+        <p>Dynamic Feature Modules also help install size: on-demand modules (e.g. FFMPEG/Agora) ship later, which is how we cut 15MB+ off the base APK.</p>
+      </div>
+    </details>
+
+  </section>
+
+  <div class="no-results">No questions match your search.</div>
+
+  <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
+    <a class="backlink" href="prep-react.html">Next: React Native, JS &amp; React →</a>
+  </div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="small">Interview notes · maintained by Shivam Tiwari · for study, not redistribution.</div>
+    <nav class="links">
+      <a href="index.html">Portfolio</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

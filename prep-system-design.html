@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mobile &amp; Web System Design — Interview Notes · Shivam Tiwari</title>
+<meta name="description" content="Mobile and web system design interview prep — a repeatable framework plus worked designs: image-loading library, offline-first chat, feed, photo upload, push, analytics SDK, typeahead, rate limiter and more." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
+    <nav class="nav-links">
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a class="nav-cta" href="index.html">← Portfolio</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<section class="prep-hero">
+  <div class="wrap">
+    <a class="backlink" href="index.html#notes">← All interview notes</a>
+    <span class="eyebrow" style="margin-top:18px">03 — Mobile &amp; Web System Design</span>
+    <h1>Designing systems<br>that scale.</h1>
+    <p>A repeatable way to drive any design round, then worked solutions for the classics — an image-loading library, offline-first chat, an infinite feed, photo upload, push, an analytics SDK, an overlay framework, plus web problems like typeahead and rate limiting.</p>
+    <div class="prep-stats">
+      <span><b>18</b> problems</span>
+      <span><b>Mobile + Web</b></span>
+      <span><b>Framework</b> included</span>
+      <span>No redirects</span>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q-search" type="text" placeholder="Search 18 designs — e.g. image loader, offline chat, feed, upload, rate limiter…" />
+      </div>
+      <div class="tool-btns">
+        <button class="tbtn" id="expand-all">Expand all</button>
+        <button class="tbtn" id="collapse-all">Collapse all</button>
+      </div>
+    </div>
+    <div class="chips-row">
+      <button class="fchip active" data-target="all">All</button>
+      <button class="fchip" data-target="framework">Framework</button>
+      <button class="fchip" data-target="mobile">Mobile designs</button>
+      <button class="fchip" data-target="web">Web designs</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section" style="padding-top:20px">
+<div class="layout">
+  <aside class="toc">
+    <h5>On this page</h5>
+    <a href="#framework">Framework &amp; basics</a>
+    <a href="#mobile">Mobile designs</a>
+    <a href="#web">Web designs</a>
+  </aside>
+
+  <div>
+
+  <!-- ============ FRAMEWORK ============ -->
+  <section class="cat" id="framework" data-cat="framework">
+    <h2><span class="ix">01</span> Framework &amp; fundamentals</h2>
+    <p class="cat-sub">How to drive the round, plus the cross-cutting decisions every mobile design needs.</p>
+
+    <details class="qa" data-tags="framework approach requirements scope mobile system design steps">
+      <summary><span class="qix">D01</span><span class="qtext">A repeatable framework for a mobile system-design round.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Mobile design rounds reward <b>client-side</b> reasoning, not just boxes-and-arrows backend. Drive it in this order:</p>
+        <ol>
+          <li><b>Clarify &amp; scope</b> — functional requirements, then non-functional (offline, latency, battery, data usage, app size, accessibility). State assumptions and constraints (platforms, scale, API ownership).</li>
+          <li><b>Define the API contract</b> — endpoints, pagination style, payload shape, error model. This anchors everything.</li>
+          <li><b>Client architecture</b> — layers (UI → domain → data), state model, threading, single source of truth.</li>
+          <li><b>Data &amp; caching</b> — memory/disk tiers, persistence (Room/SQLite), eviction, freshness/TTL, offline-first sync.</li>
+          <li><b>Deep dives</b> — the hard part the interviewer cares about (real-time, conflict resolution, media, list performance).</li>
+          <li><b>Non-functional polish</b> — performance, observability/metrics, security, rollout, failure modes.</li>
+        </ol>
+        <div class="callout">Spend the most time on the deep dive, and always close on trade-offs — "I chose X over Y because…". Seniority shows in the trade-offs, not the diagram.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="pagination offset cursor keyset infinite scroll api">
+      <summary><span class="qix">D02</span><span class="qtext">Offset vs cursor pagination — which for an infinite feed?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Offset</b> (<code>?page=3&amp;size=20</code>) is simple but breaks on live data — inserts/deletes shift offsets, causing duplicates or skipped items, and deep offsets are slow on the DB. <b>Cursor/keyset</b> (<code>?after=&lt;opaque_token&gt;</code>) encodes the last item's sort key, so the next page is "everything after this point" — stable under inserts and O(log n) on an indexed column. Use cursor pagination for feeds and chat. The client stores the next cursor with the cached page and requests the next on scroll.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="caching strategy memory disk lru ttl stale-while-revalidate http">
+      <summary><span class="qix">D03</span><span class="qtext">Design a multi-tier client caching strategy.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Three tiers, read top-down, write bottom-up:</p>
+        <ul>
+          <li><b>Memory (LRU)</b> — hot objects/bitmaps, fastest, lost on process death. Bound by size.</li>
+          <li><b>Disk</b> — SQLite/Room for structured data, a disk LRU for blobs/images. Survives restarts.</li>
+          <li><b>Network</b> — source of truth, with HTTP caching (ETag/<code>Cache-Control</code>) at the OkHttp layer.</li>
+        </ul>
+        <p>Freshness policies: <b>cache-first</b> (speed, may be stale), <b>network-first</b> (freshness, slower), and <b>stale-while-revalidate</b> (show cache instantly, refresh in background, emit the update) — usually the best UX. Drive it through the repository so the UI just observes a <code>Flow</code>. Add per-entity TTLs and invalidation on writes.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="offline first sync conflict resolution queue outbox last write wins">
+      <summary><span class="qix">D04</span><span class="qtext">How do you build offline-first with conflict resolution?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Make the local DB the source of truth; the UI never waits on the network. Writes go through an <b>outbox</b> pattern:</p>
+        <ol>
+          <li>Write optimistically to the local DB and mark the row <code>pending</code> (with a client-generated id).</li>
+          <li>Enqueue a mutation in an outbox table; a <code>WorkManager</code> job drains it when connectivity returns, with exponential backoff and idempotency keys.</li>
+          <li>On success, reconcile the server id and clear <code>pending</code>; on permanent failure, surface a retry/needs-attention state.</li>
+        </ol>
+        <p><b>Conflict resolution:</b> simplest is last-write-wins via server timestamps/versions; better is per-field merge or, for collaborative data, CRDTs/OT. Always send a version/<code>updatedAt</code> so the server can detect conflicts. Show clear pending/failed indicators rather than silently dropping edits.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="auth token refresh access refresh jwt 401 interceptor secure storage">
+      <summary><span class="qix">D05</span><span class="qtext">Design token auth with silent refresh on mobile.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Short-lived <b>access token</b> + long-lived <b>refresh token</b>. The access token is attached by an interceptor; on a <code>401</code>, an <b>authenticator</b> uses the refresh token to get a new access token and retries the request.</p>
+        <ul>
+          <li>Store refresh tokens in secure storage — Android Keystore / iOS Keychain, never plain prefs.</li>
+          <li><b>Single-flight</b> the refresh: if many requests 401 at once, only one refresh runs (a mutex), others await its result — otherwise you stampede the refresh endpoint and may rotate tokens out of sync.</li>
+          <li>On refresh failure (revoked/expired), clear the session and route to login.</li>
+          <li>Support token rotation and server-side revocation; consider certificate pinning for the auth endpoints.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ MOBILE DESIGNS ============ -->
+  <section class="cat" id="mobile" data-cat="mobile">
+    <h2><span class="ix">02</span> Mobile system designs</h2>
+    <p class="cat-sub">Worked client-side designs — the bread and butter of mobile rounds.</p>
+
+    <details class="qa" data-tags="image loading library glide coil cache memory disk downsample request lifecycle">
+      <summary><span class="qix">D06</span><span class="qtext">Design an image-loading library (Glide / Coil).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> load a URL into an ImageView/Composable fast, cache aggressively, downsample to target size, cancel on view recycle, never OOM, support transformations.</p>
+        <p><b>Pipeline (request → result):</b></p>
+        <ol>
+          <li><b>Request</b> — key = URL + target size + transformations. Check <b>memory LRU</b> (decoded bitmaps) → return instantly on hit.</li>
+          <li>Miss → check <b>disk LRU</b> (encoded bytes). Hit → decode with sampling → put in memory cache.</li>
+          <li>Miss → <b>fetch</b> over the network (dedupe concurrent requests for the same key), write bytes to disk.</li>
+          <li><b>Decode</b> off the main thread, downsampling via <code>inSampleSize</code> to the target dimensions to cap memory.</li>
+          <li><b>Deliver</b> on the main thread; apply a placeholder/error and a crossfade.</li>
+        </ol>
+        <p><b>Lifecycle:</b> tie each request to the view/lifecycle so scrolling a row off-screen cancels its in-flight request (critical for list performance — the RecyclerView/FlashList connection). Bound both caches; size the memory cache from <code>maxMemory</code>. Use a bitmap pool to reduce GC churn. Trade-offs: memory cache size vs OOM risk; aggressive prefetch vs data usage.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="chat messaging offline sync realtime websocket delivery status ordering">
+      <summary><span class="qix">D07</span><span class="qtext">Design a real-time chat / messaging feature.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> send/receive in real time, offline send, correct ordering, delivery/read receipts, history pagination, media.</p>
+        <p><b>Transport:</b> a persistent <b>WebSocket</b> (or platform push for wake-ups) for low-latency bidirectional messages; fall back to long-poll. Heartbeats + reconnect with backoff; resume by passing the last-seen message id.</p>
+        <p><b>Client model:</b> local SQLite is the source of truth, UI observes a <code>Flow</code> per conversation (cursor-paginated). Sending uses the outbox pattern: insert with a client id and <code>sending</code> status → optimistic render → socket/REST send → server returns canonical id + timestamp → update status to <code>sent/delivered/read</code>.</p>
+        <p><b>Ordering:</b> order by server timestamp + a tiebreaker; use a monotonic sequence per conversation so a late-arriving message inserts correctly. <b>Receipts</b> are just lightweight events updating message rows. <b>Sync on reconnect:</b> pull everything after the last synced cursor. Media uploads go through the upload design (D09) and reference a blob id.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="news feed timeline infinite scroll prefetch cache pagination feed">
+      <summary><span class="qix">D08</span><span class="qtext">Design an infinite feed / timeline (e.g. ShareChat/Moj).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> smooth infinite scroll, fresh content, offline view of last feed, mixed media, low jank at 180M-MAU scale.</p>
+        <ul>
+          <li><b>Pagination:</b> cursor-based; server returns a page + next cursor + ranking already applied (push-vs-pull fanout is a backend concern — note it but keep client focus).</li>
+          <li><b>Paging 3 + RemoteMediator:</b> network writes pages into Room; the UI's <code>PagingSource</code> reads from Room → offline-first, single source of truth, automatic load states and retry.</li>
+          <li><b>Prefetch:</b> trigger the next page a few items before the end; <b>preload media</b> for upcoming rows (bounded) so images/video are ready.</li>
+          <li><b>List performance:</b> recycled rows (RecyclerView/FlashList), stable keys, view-type-specific holders, image requests cancelled on recycle, no work in <code>onBind</code>.</li>
+          <li><b>Freshness:</b> pull-to-refresh resets the cursor; show "new posts" pill when newer content exists. Dedupe by id across pages.</li>
+          <li><b>Video:</b> autoplay only the most-visible item, preload ±1, release players off-screen (player pool).</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="file photo upload resumable chunked background progress retry workmanager">
+      <summary><span class="qix">D09</span><span class="qtext">Design a resilient photo / file upload system.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> upload large media reliably on flaky networks, survive app/process death, show progress, allow retry, don't block the UI.</p>
+        <ul>
+          <li><b>Pre-process:</b> compress/resize on a background thread before upload to save bytes and time.</li>
+          <li><b>Resumable, chunked upload:</b> split into chunks; track which chunks succeeded so a drop resumes from the last good chunk (tus/S3 multipart style). The server assembles on completion.</li>
+          <li><b>Durability:</b> run the upload in <code>WorkManager</code> (or a foreground service for user-initiated, must-finish-now uploads) so it survives backgrounding/reboot, with network constraints and exponential backoff.</li>
+          <li><b>Direct-to-storage:</b> client requests a pre-signed URL, uploads straight to object storage (offload from app servers), then notifies the backend with the blob id.</li>
+          <li><b>UX:</b> optimistic local entry with a progress indicator; idempotency key so retries don't create duplicates; clear failed state with manual retry.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="push notification fcm apns token delivery deep link silent">
+      <summary><span class="qix">D10</span><span class="qtext">Design a push notification system (client side).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Registration:</b> get an FCM/APNs token on launch, send it to the backend mapped to the user+device; refresh on token rotation and on logout invalidate it. <b>Delivery:</b> backend → FCM/APNs → device. Handle two types: <b>display</b> notifications (system shows them) and <b>data/silent</b> pushes (wake the app to sync, subject to OS background limits — coalesce, don't abuse battery).</p>
+        <p><b>Client handling:</b> a messaging service receives the payload, builds a channel-categorized notification, and sets a <b>deep link</b>/PendingIntent so a tap routes to the right screen with the right back stack. Group/bundle related notifications, respect per-channel user prefs, and track delivered/opened for analytics. Add a server-side notification center fetch so users who had pushes off still see history.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="analytics sdk event tracking batching queue offline flush schema">
+      <summary><span class="qix">D11</span><span class="qtext">Design an analytics / event-tracking SDK.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> capture events with low overhead, never lose events (offline), never block the UI, batch efficiently, be resilient to crashes.</p>
+        <ul>
+          <li><b>API:</b> simple <code>track(event, props)</code>; enrich automatically with session, device, app version, timestamp.</li>
+          <li><b>Persist first:</b> write each event to a local queue (SQLite/Room) <em>before</em> anything else, off the main thread — so a crash or kill doesn't lose data.</li>
+          <li><b>Batching &amp; flush:</b> flush on size threshold, time interval, or app background; send compressed batches. Use <code>WorkManager</code> for guaranteed delivery with backoff; delete rows only after a 2xx.</li>
+          <li><b>Reliability:</b> idempotency/dedupe ids, bounded queue with drop-oldest policy to cap disk, retry with jitter, sampling for high-volume events.</li>
+          <li><b>Privacy:</b> consent gating, PII scrubbing, opt-out. Versioned event schema.</li>
+        </ul>
+        <p>This is a registry-friendly design — multibinding a set of trackers (the Hilt <code>@IntoSet</code> pattern) lets features add events without coupling.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="overlay intervention framework popup orchestration priority queue lifecycle">
+      <summary><span class="qix">D12</span><span class="qtext">Design an app-wide overlay / intervention framework (my work).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Problem:</b> many features want to show overlays (popups, tooltips, coach-marks, snackbars, bottom sheets, force-update dialogs) across the app. Without coordination they collide, stack, or fire at bad moments. Goal: one system that arbitrates <em>what</em> shows, <em>when</em>, and in <em>what order</em>, lifecycle-aware and remotely controllable.</p>
+        <p><b>Design:</b></p>
+        <ul>
+          <li><b>Central orchestrator</b> — a single coordinator (I used a Kotlin <b>Coroutines Actor</b> to serialize requests without locks) owns a <b>priority queue</b> of intervention requests. Producers <code>enqueue(Intervention)</code>; the actor decides the next to display.</li>
+          <li><b>Intervention contract</b> — id, priority, type, eligibility predicate, display constraints (which screens/states it's allowed on), cooldown/frequency caps, and a remote-config gate.</li>
+          <li><b>Lifecycle awareness</b> — only show when a valid host surface is in <code>RESUMED</code>; pause/resume the queue with the foreground surface; never show over an incompatible screen.</li>
+          <li><b>Arbitration rules</b> — at most one overlay at a time; higher priority preempts or queues; honor per-intervention frequency caps and global pacing so users aren't spammed.</li>
+          <li><b>State &amp; UI</b> — MVI state drives a host that renders the current intervention; results (shown/dismissed/clicked) feed back for analytics and caps. Dagger-Hilt wires producers via multibinding so features register interventions without the core knowing them.</li>
+        </ul>
+        <p><b>Trade-offs:</b> centralization gives consistency and control but every feature must route through it (governance cost); serializing via an actor avoids race conditions at the cost of one logical owner. Adopted company-wide at ShareChat for exactly this reliability/UX consistency.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="live streaming video player playback adaptive bitrate buffering prefetch">
+      <summary><span class="qix">D13</span><span class="qtext">Design video playback for a short-video / livestream feed.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Requirements:</b> instant start, smooth scroll-to-next, low rebuffering on poor networks, battery/data conscious.</p>
+        <ul>
+          <li><b>Adaptive bitrate (HLS/DASH)</b> — the player picks a rendition matching current bandwidth, stepping down to avoid stalls. Server provides multiple renditions.</li>
+          <li><b>Player pool</b> — reuse a small set of ExoPlayer instances across the list (like view recycling); never one player per row.</li>
+          <li><b>Prefetch</b> — warm the next 1–2 videos (initial segments) while the current plays, so swiping is instant; cap prefetch on cellular.</li>
+          <li><b>Autoplay policy</b> — play only the most-visible item; pause/release off-screen; mute by default.</li>
+          <li><b>Caching</b> — a bounded media cache for recently seen segments; resume position tracking.</li>
+          <li><b>Live specifics</b> — low-latency HLS, sync to live edge, graceful degradation, and a separate real-time channel (Agora/WebRTC) for interactive low-latency streams.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="feature flags remote config kill switch rollout ab test">
+      <summary><span class="qix">D14</span><span class="qtext">Design a feature-flag / remote-config system for the client.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Goal:</b> toggle features, run A/B tests, and kill-switch bad code without a release. <b>Client:</b> fetch a config blob on launch (and periodically), cache it locally, and expose typed accessors with safe defaults baked into the app (so first launch / offline still works). <b>Evaluation</b> can be server-side (server returns the resolved variant per user — consistent, simpler client) or client-side (rules + user attributes evaluated locally — works offline). Apply changes at a safe boundary (next screen/launch) to avoid mid-session flips. Add bucketing by stable user id for sticky A/B assignment, exposure logging for analytics, and a remote <b>kill switch</b> evaluated early in startup. Trade-off: fetch-on-launch freshness vs a flash of default behavior — mitigate with a short cached TTL and background refresh.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ WEB DESIGNS ============ -->
+  <section class="cat" id="web" data-cat="web">
+    <h2><span class="ix">03</span> Web system designs</h2>
+    <p class="cat-sub">Frontend-leaning web problems that round out a full-stack mobile profile.</p>
+
+    <details class="qa" data-tags="typeahead autocomplete search debounce cache trie ranking web">
+      <summary><span class="qix">D15</span><span class="qtext">Design a typeahead / autocomplete (web).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Client:</b> debounce input (~200–300ms), require a min length, <code>distinctUntilChanged</code>, and <b>cancel stale requests</b> (AbortController) so only the latest query renders — the web twin of <code>flatMapLatest</code>. Cache results per prefix in an LRU so backspacing is instant. Handle keyboard navigation (↑/↓/Enter), ARIA combobox roles, and a loading/empty state.</p>
+        <p><b>Server:</b> a prefix index — a <b>trie</b> or an inverted index (Elasticsearch) — returns top-K suggestions ranked by popularity/personalization, served from an edge cache/CDN since suggestions are highly cacheable. Precompute top completions per prefix for hot terms. Trade-off: client cache freshness vs server load; debounce latency vs request volume.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="rate limiter token bucket sliding window leaky bucket throttle client">
+      <summary><span class="qix">D16</span><span class="qtext">Design a rate limiter (and the client-side throttle).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Algorithms:</b></p>
+        <ul>
+          <li><b>Token bucket</b> — tokens refill at a fixed rate; each request spends one; allows bursts up to bucket size. Most common.</li>
+          <li><b>Leaky bucket</b> — requests drain at a constant rate; smooths bursts.</li>
+          <li><b>Fixed window</b> — count per window; simple but allows 2× burst at window edges.</li>
+          <li><b>Sliding window log/counter</b> — accurate, more memory.</li>
+        </ul>
+        <p><b>Distributed:</b> keep counters in Redis (atomic <code>INCR</code>/Lua) keyed by user/IP/API-key so all servers share state. Return <code>429</code> with <code>Retry-After</code>. <b>Client side:</b> respect <code>Retry-After</code>, back off with jitter, and throttle/debounce outgoing calls so you don't self-DDoS — the same token-bucket idea applied locally.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="image cdn delivery resize transform edge cache responsive">
+      <summary><span class="qix">D17</span><span class="qtext">Design an image CDN / delivery service.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Goal:</b> deliver the right-sized, right-format image fast worldwide. Origin stores the master; an image service does <b>on-the-fly transforms</b> from URL params (<code>?w=400&amp;format=webp&amp;q=80</code>) — resize, crop, format negotiation (WebP/AVIF by <code>Accept</code> header), DPR-aware sizing. Results cache at the <b>edge (CDN)</b> keyed by the transform URL, so the transform runs once per variant. Add <b>responsive</b> delivery (<code>srcset</code>/<code>sizes</code>), lazy loading, LQIP/blur-up placeholders, and signed URLs to prevent transform abuse. Trade-off: generate-on-demand (flexible, first-hit latency) vs pre-generate common sizes (fast, storage cost) — usually do both: pre-warm hot sizes, generate the long tail on demand.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="collaborative editor crdt operational transform realtime sync google docs">
+      <summary><span class="qix">D18</span><span class="qtext">Design a collaborative editor (Google-Docs-style) — the sync core.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Challenge:</b> many users edit the same document concurrently; everyone must converge to the same state despite latency and offline edits.</p>
+        <p><b>Two approaches:</b></p>
+        <ul>
+          <li><b>Operational Transformation (OT)</b> — clients send operations (insert/delete at index); a server transforms each op against concurrent ones so they apply consistently. Proven (Google Docs) but the transform logic is famously tricky.</li>
+          <li><b>CRDTs</b> — data types (e.g. RGA/Yjs) that merge commutatively, so order doesn't matter and you can merge peer-to-peer and offline without a central transformer. More memory/metadata, simpler convergence — the modern default.</li>
+        </ul>
+        <p><b>Transport:</b> WebSocket for low-latency op broadcast; presence/cursors as ephemeral metadata. <b>Offline:</b> buffer local ops and merge on reconnect (CRDTs shine here). Persist with periodic snapshots + op log for fast load and history. Show remote cursors and selections for awareness.</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="no-results">No designs match your search.</div>
+
+  <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
+    <a class="backlink" href="index.html#notes">← Back to all interview notes</a>
+  </div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="small">Interview notes · maintained by Shivam Tiwari · for study, not redistribution.</div>
+    <nav class="links">
+      <a href="index.html">Portfolio</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
