@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Extras — Tech Deep Dive · Shivam Tiwari</title>
+<meta name="description" content="Awareness-level deep dives — concepts worth knowing before an Android, RN, or web interview but rarely the headline question: Services & IPC, Binder, Doze, Promise.any, async pools, retry, virtual DOM diff, React concurrent features." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="progress"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
+    <nav class="nav-links">
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-extras.html">Extras</a>
+      <a class="nav-cta" href="index.html">← Portfolio</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<section class="prep-hero">
+  <div class="wrap">
+    <a class="backlink" href="index.html#notes">← All deep dives</a>
+    <span class="eyebrow" style="margin-top:18px">04 — Extras &amp; awareness</span>
+    <h1>Concepts to be<br>aware of.</h1>
+    <p>Things that almost never carry an interview on their own, but absolutely come up as follow-ups. Two-to-four sentences per concept — enough to answer "what is it, when do you reach for it, what's the trade-off" without padding. Marked <span class="diff lowprio" style="display:inline-block;vertical-align:middle">Low priority</span> by default; the few that show up more often are tagged Medium.</p>
+    <div class="prep-stats">
+      <span><b>27</b> concepts</span>
+      <span><b>3</b> tracks</span>
+      <span><b>Awareness</b> level</span>
+      <span>No redirects</span>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q-search" type="text" placeholder="Search 27 concepts — e.g. Binder, Doze, AIDL, Promise.any, virtual DOM…" />
+      </div>
+      <div class="tool-btns">
+        <button class="tbtn" id="expand-all">Expand all</button>
+        <button class="tbtn" id="collapse-all">Collapse all</button>
+      </div>
+    </div>
+    <div class="chips-row">
+      <button class="fchip active" data-target="all">All</button>
+      <button class="fchip" data-target="droid">Android extras</button>
+      <button class="fchip" data-target="jsr">JS &amp; React extras</button>
+      <button class="fchip" data-target="sys">System design awareness</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section" style="padding-top:20px">
+<div class="layout">
+  <aside class="toc">
+    <h5>On this page</h5>
+    <a href="#droid">Android extras</a>
+    <a href="#jsr">JS &amp; React extras</a>
+    <a href="#sys">System design awareness</a>
+  </aside>
+
+  <div>
+
+  <!-- ============ ANDROID EXTRAS ============ -->
+  <section class="cat" id="droid" data-cat="droid">
+    <h2><span class="ix">01</span> Android extras</h2>
+    <p class="cat-sub">Framework breadth — services, IPC, security, deep linking, OS-level constraints.</p>
+
+    <details class="qa" data-tags="service started bound foreground">
+      <summary><span class="qix">E01</span><span class="qtext">Service types: started, bound, foreground.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A <b>started service</b> runs until it stops itself (or is killed); used for fire-and-forget background work — mostly replaced by <code>WorkManager</code> now. A <b>bound service</b> exposes an IPC interface (Binder/Messenger/AIDL) and lives while clients are bound. A <b>foreground service</b> shows a persistent notification and is the only way to do user-visible, must-run-now background work (media, navigation, calls) without being killed; on Android 14+ you must declare a foreground service type.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="broadcast receiver manifest runtime ordered">
+      <summary><span class="qix">E02</span><span class="qtext">BroadcastReceiver: manifest vs runtime, ordered broadcasts.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Receivers handle system or app broadcasts. <b>Manifest-declared</b> receivers can be woken even when the app isn't running (limited since Android 8). <b>Runtime-registered</b> receivers live with their <code>Context</code> — typical for in-app events. <code>onReceive</code> runs on the main thread and must finish &lt;10s. <b>Ordered broadcasts</b> deliver sequentially by priority and let receivers abort or modify the payload — used to be common for SMS interception, now rare. Prefer <code>LocalBroadcastManager</code> alternatives like <code>SharedFlow</code> or LiveData for in-app fan-out.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="content provider urimatcher cursor cross app data sharing">
+      <summary><span class="qix">E03</span><span class="qtext">ContentProvider: when (and when not) to use one.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The official cross-process data sharing surface — exposes data by URI with permission control, and what backs Contacts/MediaStore/Calendar. Internally it implements <code>query/insert/update/delete</code> over a <code>Cursor</code>, with a <code>UriMatcher</code> routing URIs to handlers. Today you only build one when you genuinely need to share data with other apps; for in-app DB work, Room is the right tool. Most "do I need a ContentProvider?" interview answers are: no — unless you're publishing data to other processes.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="ipc binder aidl messenger cross process">
+      <summary><span class="qix">E04</span><span class="qtext">Binder &amp; AIDL — how Android IPC actually works.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Binder</b> is the kernel driver that backs nearly all Android IPC: service calls, <code>startActivity</code>, content providers — everything ultimately marshals through Binder transactions. <b>AIDL</b> is a DSL that generates a Binder stub/proxy pair for you: clients call methods that look local; the framework serializes args via <code>Parcel</code>, hops processes, and dispatches on a worker thread on the server side. Use <code>Messenger</code> (built on AIDL) for simple message passing, AIDL when you need a typed multi-method interface. Watch for: 1MB transaction size limit, main-thread blocking on bound calls, oneway methods for fire-and-forget.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="intent flags single_top clear_top new_task task back stack">
+      <summary><span class="qix">E05</span><span class="qtext">Intent flags &amp; launch modes you actually use.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Most "back stack misbehaves" bugs come down to these. <code>FLAG_ACTIVITY_NEW_TASK</code> + <code>CLEAR_TASK</code> is the classic "reset to home after login" combo. <code>SINGLE_TOP</code> reuses the top activity if it matches; <code>CLEAR_TOP</code> pops everything above it. Launch modes (<code>standard</code>, <code>singleTop</code>, <code>singleTask</code>, <code>singleInstance</code>) are the manifest-level version. With <code>NavController</code> you mostly let Navigation handle it via <code>popUpTo</code>/<code>inclusive</code>, but you'll still be asked when the launch-mode names appear in interviews.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="deep link app link universal link assetlinks intent filter">
+      <summary><span class="qix">E06</span><span class="qtext">Deep links vs App Links — and why verification matters.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A <b>deep link</b> is any intent-filter that handles a URI; the OS shows a disambiguation chooser. <b>Android App Links</b> are HTTPS deep links the OS has verified via <code>/.well-known/assetlinks.json</code> on your domain — they open directly in your app with no chooser, which is critical for marketing/email flows. iOS equivalent is Universal Links. Test with <code>adb shell am start -a android.intent.action.VIEW -d "https://…"</code> and the App Links assistant. For React Native, configure both platforms and use <code>Linking</code>/React Navigation.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="doze app standby buckets power background restrictions">
+      <summary><span class="qix">E07</span><span class="qtext">Doze, App Standby buckets &amp; background restrictions.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Why your "every minute" sync isn't every minute on real devices. <b>Doze</b> kicks in when the device is idle and unplugged, batching network/jobs into infrequent maintenance windows. <b>App Standby Buckets</b> (Active → Working → Frequent → Rare → Restricted) limit job/alarm frequency based on user engagement. You don't fight these; you cooperate: <code>WorkManager</code> with constraints, foreground services for must-run-now work, high-priority FCM for time-critical wake-ups. Test on real devices — emulators don't enforce realistically.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="security network security config certificate pinning cleartext">
+      <summary><span class="qix">E08</span><span class="qtext">Network Security Config &amp; certificate pinning.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>An XML resource that declares your TLS posture without code changes: opt out of cleartext, restrict trusted CAs per domain, pin certificates (<code>&lt;pin-set&gt;</code>) so a compromised CA can't MITM you, and define a <code>debug-overrides</code> for local proxies. Pinning is great defence-in-depth but a hard pin can brick an app if certs rotate — pair pins with a server-driven kill switch or short-lived pin sets. OkHttp also supports programmatic pinning, useful when you need rotation logic.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="biometric prompt keystore key attestation cryptoobject">
+      <summary><span class="qix">E09</span><span class="qtext">BiometricPrompt, Keystore &amp; CryptoObject.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Use <code>BiometricPrompt</code> for fingerprint/face auth. To gate sensitive crypto on biometric success, generate a key in the <b>Android Keystore</b> with <code>setUserAuthenticationRequired(true)</code> and pass a <code>CryptoObject</code> wrapping a <code>Cipher</code>/<code>Signature</code>: the OS only unlocks the key when the user authenticates. Key attestation lets your server verify a key originated on real hardware (StrongBox/TEE), defeating emulator/keystore swap attacks. Almost never the headline question, often a follow-up.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="storage access framework scoped storage saf mediastore">
+      <summary><span class="qix">E10</span><span class="qtext">Scoped storage &amp; the Storage Access Framework.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Since Android 10, apps no longer have free-roam access to external storage. You use <b>MediaStore</b> for media in shared collections, the app-private dirs for everything internal, and the <b>SAF</b> (<code>ACTION_OPEN_DOCUMENT</code>/<code>ACTION_CREATE_DOCUMENT</code>) when the user picks a file or folder — the OS hands you a persistent URI you can re-open later via <code>ContentResolver</code>. <code>WRITE_EXTERNAL_STORAGE</code> is effectively dead. Photo Picker on 13+ avoids permissions entirely for image/video picking.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="notification channels importance grouping bubbles 13">
+      <summary><span class="qix">E11</span><span class="qtext">Notification channels &amp; user controls.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Since Android 8, every notification belongs to a <b>channel</b>; importance, sound, vibration are user-controlled per channel. Design channels by user intent ("New messages", "Promotions"), not feature names, so users can mute one without losing others. Android 13+ requires runtime <code>POST_NOTIFICATIONS</code> permission. For lots of notifications use group + summary; for high-signal chat consider Bubbles.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="macrobenchmark perfetto traces startup performance profiling">
+      <summary><span class="qix">E12</span><span class="qtext">Macrobenchmark, Perfetto &amp; startup tracing.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p><b>Macrobenchmark</b> is the Jetpack library that runs your real release APK through scripted journeys and reports cold/warm/hot startup, frame timing and journey duration — feeds Baseline Profile generation. <b>Perfetto</b> is the system tracer: cross-process timeline, binder calls, choreographer frames, CPU scheduling. The combo is how you turn "startup feels slow" into a number with a cause. Pair with Android Vitals (Play Console) for field metrics.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="r8 proguard rules keep reflection serialization">
+      <summary><span class="qix">E13</span><span class="qtext">When R8 breaks things — common keep-rule patterns.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>R8 can't see code reached through reflection or string-based lookups. Symptoms: <code>NoSuchFieldException</code>, fields rename to <code>a</code>/<code>b</code>, models deserialize as nulls. Standard fixes: keep model classes (<code>-keep class com.foo.model.** { *; }</code>), keep JNI methods, keep classes named in XML, rely on library consumer rules (Gson, Moshi, Retrofit ship their own). Always smoke-test release builds, not just debug.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="play store dynamic delivery feature module install onDemand">
+      <summary><span class="qix">E14</span><span class="qtext">Play Asset / Feature Delivery &amp; DFM.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Dynamic Feature Modules ship as part of the AAB but install on-demand (or conditionally by device/locale), shrinking the base APK. Useful for big rarely-used surfaces — at ShareChat we DFM'd FFMPEG and Agora for 15MB+ savings. Asset Delivery does the same for large media (games). Trade-off: install latency on first use; you have to handle install state, download progress, and fall-back UI. Test edge cases like immediate uninstall and missing modules at runtime.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ JS / REACT EXTRAS ============ -->
+  <section class="cat" id="jsr" data-cat="jsr">
+    <h2><span class="ix">02</span> JS &amp; React extras</h2>
+    <p class="cat-sub">The async/concurrency catalogue and React features that get follow-up'd.</p>
+
+    <details class="qa" data-tags="promise any race allsettled aggregate concurrent">
+      <summary><span class="qix">E15</span><span class="qtext"><code>Promise.any</code>, <code>race</code>, <code>allSettled</code> — when each?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Beyond <code>Promise.all</code>: <b>any</b> resolves with the first <em>fulfilled</em> value and only rejects if all fail (an <code>AggregateError</code>) — perfect for "fastest mirror wins". <b>race</b> settles with the first to <em>either</em> resolve or reject — used for timeouts (race against a delayed reject). <b>allSettled</b> waits for every promise to settle and returns <code>{status, value/reason}</code> tuples — use when partial success is OK (analytics flush, multi-endpoint dashboard).</p>
+        <pre><code><span class="c">// timeout pattern</span>
+<span class="k">const</span> withTimeout = (p, ms) =&gt;
+    <span class="f">Promise</span>.race([p, <span class="k">new</span> <span class="f">Promise</span>((_, r) =&gt; <span class="f">setTimeout</span>(() =&gt; <span class="f">r</span>(<span class="k">new</span> <span class="f">Error</span>(<span class="s">'timeout'</span>)), ms))]);</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="async pool concurrency limit parallel queue">
+      <summary><span class="qix">E16</span><span class="qtext">Implement an async pool (concurrency limit).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>"Run N tasks at most K at a time" — a classic follow-up to <code>Promise.all</code> when you can't fire 1000 requests at once.</p>
+        <pre><code><span class="k">async function</span> <span class="f">pool</span>(items, limit, fn) {
+    <span class="k">const</span> out = []; <span class="k">const</span> active = <span class="k">new</span> <span class="f">Set</span>();
+    <span class="k">for</span> (<span class="k">const</span> [i, item] <span class="k">of</span> items.entries()) {
+        <span class="k">const</span> p = <span class="f">Promise</span>.resolve(<span class="f">fn</span>(item, i)).then(v =&gt; { out[i] = v; active.delete(p); });
+        active.add(p);
+        <span class="k">if</span> (active.size &gt;= limit) <span class="k">await</span> <span class="f">Promise</span>.race(active);
+    }
+    <span class="k">await</span> <span class="f">Promise</span>.all(active);
+    <span class="k">return</span> out;
+}</code></pre>
+        <p>Key idea: track active promises in a Set, await <code>race</code> when full so one slot frees up. Write results by index to preserve order.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="retry exponential backoff jitter abortcontroller">
+      <summary><span class="qix">E17</span><span class="qtext">Retry with exponential backoff &amp; jitter.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <pre><code><span class="k">async function</span> <span class="f">retry</span>(fn, { tries = 4, base = 300, cap = 5000 } = {}) {
+    <span class="k">let</span> err;
+    <span class="k">for</span> (<span class="k">let</span> i = 0; i &lt; tries; i++) {
+        <span class="k">try</span> { <span class="k">return await</span> <span class="f">fn</span>(); }
+        <span class="k">catch</span> (e) {
+            err = e;
+            <span class="k">const</span> delay = <span class="f">Math</span>.min(cap, base * 2 ** i);
+            <span class="k">const</span> jitter = <span class="f">Math</span>.random() * delay;
+            <span class="k">await new</span> <span class="f">Promise</span>(r =&gt; <span class="f">setTimeout</span>(r, jitter));
+        }
+    }
+    <span class="k">throw</span> err;
+}</code></pre>
+        <p>The <b>jitter</b> matters: without it every retrying client hits the server in lockstep ("thundering herd"). Pair with <code>AbortController</code> so a navigating-away user cancels in-flight retries.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="abortcontroller fetch cancel signal">
+      <summary><span class="qix">E18</span><span class="qtext"><code>AbortController</code> — cancellable fetch.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>JS doesn't have first-class cancellation; <code>AbortController</code> is the universal opt-in. Create one, pass <code>controller.signal</code> to fetch / event listeners / streams, call <code>abort()</code> to cancel. Reads on <code>signal.aborted</code> let you bail out mid-loop. In React, abort the in-flight request in <code>useEffect</code> cleanup so a fast-typing user doesn't render stale results.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="virtual dom diff reconciliation implementation children">
+      <summary><span class="qix">E19</span><span class="qtext">Sketch a tiny virtual-DOM diff.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Compare two node trees and produce DOM mutations. Two trees, same position: if types differ → replace; if same → patch attributes, then recurse over children.</p>
+        <pre><code><span class="k">function</span> <span class="f">diff</span>(prev, next, dom) {
+    <span class="k">if</span> (!next) <span class="k">return</span> dom.remove();
+    <span class="k">if</span> (!prev || prev.type !== next.type) <span class="k">return</span> dom.replaceWith(<span class="f">render</span>(next));
+    <span class="k">if</span> (<span class="k">typeof</span> next === <span class="s">'string'</span>) <span class="k">if</span> (dom.nodeValue !== next) dom.nodeValue = next;
+    <span class="k">else</span> {
+        <span class="f">patchProps</span>(dom, prev.props, next.props);
+        <span class="k">const</span> a = prev.children || [], b = next.children || [];
+        <span class="k">for</span> (<span class="k">let</span> i = 0; i &lt; <span class="f">Math</span>.max(a.length, b.length); i++)
+            <span class="f">diff</span>(a[i], b[i], dom.childNodes[i]);
+    }
+}</code></pre>
+        <p>This is the toy version — React's reconciler additionally uses <b>keys</b> to match list children by identity (not index) and Fiber for time-slicing.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="react concurrent usetransition usedeferredvalue starttransition">
+      <summary><span class="qix">E20</span><span class="qtext"><code>useTransition</code> &amp; <code>useDeferredValue</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Concurrent React lets you mark updates as <b>non-urgent</b> so React keeps the input responsive while heavy work renders in the background. <code>useTransition</code> wraps a state update: keystrokes stay snappy while a big list re-renders. <code>useDeferredValue</code> hands you a lagged copy of a value to feed into expensive children. Trade-off: the deferred UI is a frame or two behind reality — show a subtle "pending" indicator so users notice.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="react compiler auto memoization forget">
+      <summary><span class="qix">E21</span><span class="qtext">React Compiler (auto-memoization).</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>The compiler that statically analyses components and emits the equivalent of <code>useMemo</code>/<code>useCallback</code>/<code>React.memo</code> automatically — meaning much of what you hand-roll for performance becomes a build artefact. You still need to write correct, side-effect-free render code; the compiler can opt out of components it can't prove safe. Worth a sentence in interviews to signal you're tracking React's direction.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="react server components rsc data fetching streaming">
+      <summary><span class="qix">E22</span><span class="qtext">React Server Components — what changes.</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Components run on the server, render to a special wire format, stream to the client where they merge with client components. Result: data fetching co-located with components, smaller JS bundles, async/await directly in components. Only relevant for web (Next.js etc.) — React Native still uses traditional client rendering. Talk to it as a web architectural shift, not a mobile concern.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="swr react query tanstack fetching cache stale">
+      <summary><span class="qix">E23</span><span class="qtext">React Query / SWR fetcher patterns.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>"Server state" libraries solve the same problem the Android repository pattern solves: cache, dedupe, refetch on focus/network, optimistic updates, mutation invalidation. Mental model: a query key identifies remote data; the library owns its lifecycle. Maps cleanly to the offline-first repo design from the system-design page — same single-source-of-truth idea, different syntax.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="web worker thread offload heavy js">
+      <summary><span class="qix">E24</span><span class="qtext">Web Workers (and the RN equivalents).</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>Workers run JS off the main thread; you communicate via <code>postMessage</code>. Use for parsing, crypto, image processing — anything that would block the UI. On React Native there's no <code>Worker</code>; the equivalents are <b>Reanimated worklets</b> (UI thread) and native modules (heavy work in Kotlin/Swift). Same goal, different mechanics: keep the JS thread free.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="indexeddb service worker pwa offline web storage">
+      <summary><span class="qix">E25</span><span class="qtext">IndexedDB &amp; Service Workers (web offline).</span><span class="diff lowprio">Low</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>IndexedDB is the browser's asynchronous, indexed, large key-value/object store — the persistent layer for offline-first web. Service Workers are background scripts that intercept fetches and serve cached responses, enabling true offline UX and Progressive Web Apps. The combo is the web analogue of <code>Room</code> + <code>WorkManager</code>. Wrap IndexedDB with idb-keyval / Dexie; raw API is verbose.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ SYSTEM DESIGN AWARENESS ============ -->
+  <section class="cat" id="sys" data-cat="sys">
+    <h2><span class="ix">03</span> System design awareness</h2>
+    <p class="cat-sub">Two concepts that show up as follow-ups to the main system-design designs.</p>
+
+    <details class="qa" data-tags="cdn cache invalidation purge edge cache key">
+      <summary><span class="qix">E26</span><span class="qtext">CDN cache invalidation — the hard part.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>"There are only two hard problems in CS…" applies hard here. Strategies, in order of preference: (1) <b>versioned URLs</b> — new content gets a new URL, caches are immutable; (2) <b>short TTLs + stale-while-revalidate</b> — accept a small staleness window for write-through caching; (3) <b>explicit purge</b> — call the CDN API to invalidate paths/tags, slow and rate-limited but exact. Most production systems combine #1 for assets and #2 for API responses. Mention <code>Cache-Control: s-maxage</code> for CDN-only TTLs.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="circuit breaker fail fast graceful degradation reliability">
+      <summary><span class="qix">E27</span><span class="qtext">Circuit breakers &amp; graceful degradation.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <p>A circuit breaker wraps a dependency call: after N failures it "opens" and fails fast for a cooldown window, sparing the dependency from a stampede and your callers from waiting. Half-open state probes recovery. On mobile, the equivalent is "if the search API is down, fall back to local results and show a banner" — gracefully degrading instead of spinning. Pairs well with retry/jitter; without a breaker, retries amplify outages.</p>
+      </div>
+    </details>
+
+  </section>
+
+  <div class="no-results">No concepts match your search.</div>
+
+  <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
+    <a class="backlink" href="index.html#notes">← Back to all deep dives</a>
+  </div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="small">Tech deep dives · maintained by Shivam Tiwari · for study, not redistribution.</div>
+    <nav class="links">
+      <a href="index.html">Portfolio</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-extras.html">Extras</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

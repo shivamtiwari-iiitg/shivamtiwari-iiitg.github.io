@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+<div class="progress"></div>
 
 <!-- NAV -->
 <header class="nav">
@@ -22,7 +23,7 @@
       <a href="#work">Experience</a>
       <a href="#projects">Selected work</a>
       <a href="#skills">Skills</a>
-      <a href="#notes">Interview notes</a>
+      <a href="#notes">Tech deep dives</a>
       <a href="#about">Background</a>
       <a class="nav-cta" href="resume.pdf">Résumé ↓</a>
     </nav>
@@ -43,21 +44,30 @@
         <span class="ln"><i>Tiwari</i></span>
       </h1>
       <div class="role">Native Android <span class="dot">·</span> React Native <span class="dot">·</span> iOS delivery</div>
+      <div class="role" style="margin-top:6px">Today <span class="dot">·</span> <span class="cycler" data-words="Architecting overlays at 180M MAU.|Cutting CI from 30m to 14m.|Shipping CriQ on Android, iOS &amp; RN.|Bridging Kotlin, Swift &amp; JSI.|Studying for staff-level rounds."></span></div>
       <p class="thesis"><b>One engineer, every mobile surface.</b> I architect and ship native Android, React Native and iOS apps at consumer scale — with on-device ML, real-time speech, and framework-level systems behind them.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#projects">See selected work →</a>
-        <a class="btn btn-ghost" href="#notes">Interview notes</a>
+        <a class="btn btn-ghost" href="#notes">Tech deep dives</a>
         <a class="btn btn-ghost" href="resume.pdf">Résumé ↓</a>
       </div>
     </div>
 
-    <!-- instrument cluster -->
+    <!-- portrait + instrument cluster -->
+    <div>
+    <div class="portrait reveal" data-tilt style="margin-bottom:18px">
+      <div class="frame">
+        <img src="me.jpg" alt="Shivam Tiwari" />
+        <span class="cap">Noida, India <b>·</b> Senior · Staff · Lead</span>
+      </div>
+    </div>
     <div class="cluster reveal" aria-label="Career metrics">
       <div class="gauge"><div class="v"><span data-count="180">0</span><small>M+</small></div><div class="k">Monthly active users</div></div>
       <div class="gauge"><div class="v"><span data-count="53">0</span><small>%</small></div><div class="k">CI build-time cut</div></div>
       <div class="gauge"><div class="v"><span data-count="80">0</span><small>%</small></div><div class="k">UI jank removed</div></div>
       <div class="gauge"><div class="v"><span data-count="6">0</span><small>+ yrs</small></div><div class="k">Shipping mobile</div></div>
       <div class="cluster-foot"><span class="pulse"></span> systems live in production · 180M+ MAU surfaces</div>
+    </div>
     </div>
   </div>
 </section>
@@ -205,28 +215,34 @@
 <section class="section" id="notes">
   <div class="wrap">
     <div class="section-head reveal">
-      <span class="eyebrow">Interview notes</span>
+      <span class="eyebrow">Tech deep dives</span>
       <h2>An open knowledge base</h2>
-      <p>Working notes I keep sharp for interviews and design reviews — questions, answers and code, everything on one page per track. Searchable, no redirects.</p>
+      <p>Long-form notes I keep sharp for interviews and design reviews — questions, answers and code, everything on one page per track. Searchable, no redirects.</p>
     </div>
     <div class="notes-grid" data-stagger>
-      <a class="note-card" href="prep-android.html">
+      <a class="note-card" data-tilt href="prep-android.html">
         <span class="num">01 — Android</span>
         <h3>Android &amp; Kotlin</h3>
         <p>Coroutines &amp; Flow, Compose internals, lifecycle, Hilt, memory &amp; ANR, architecture, Gradle — with runnable Kotlin.</p>
-        <span class="go">Open notes <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <span class="go">Read deep dive <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
-      <a class="note-card" href="prep-react.html">
+      <a class="note-card" data-tilt href="prep-react.html">
         <span class="num">02 — Frontend</span>
         <h3>React Native, JS &amp; React</h3>
         <p>Event loop, closures, classic JS coding challenges, React reconciliation &amp; hooks, RN New Architecture / Fabric / JSI.</p>
-        <span class="go">Open notes <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <span class="go">Read deep dive <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
-      <a class="note-card" href="prep-system-design.html">
+      <a class="note-card" data-tilt href="prep-system-design.html">
         <span class="num">03 — Architecture</span>
         <h3>Mobile &amp; Web System Design</h3>
         <p>A repeatable framework plus worked designs — image loader, offline-first chat, feed, overlay framework, upload, push.</p>
-        <span class="go">Open notes <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <span class="go">Read deep dive <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="note-card" data-tilt href="prep-extras.html">
+        <span class="num">04 — Awareness</span>
+        <h3>Extras &amp; awareness</h3>
+        <p>Concept-level briefs for the follow-ups — Binder, Doze, AIDL, <code>Promise.any</code>, async pools, virtual DOM diff, RSC. Tagged <span class="diff lowprio" style="display:inline-block;vertical-align:middle">Low priority</span>.</p>
+        <span class="go">Read deep dive <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
       </a>
     </div>
   </div>
@@ -276,7 +292,7 @@
       <a href="https://linkedin.com/in/shivamtiwari3" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://github.com/shivamtiwari-iiitg" target="_blank" rel="noopener">GitHub</a>
       <a href="resume.pdf">Résumé</a>
-      <a href="prep-android.html">Interview notes</a>
+      <a href="prep-android.html">Tech deep dives</a>
     </nav>
   </div>
 </footer>

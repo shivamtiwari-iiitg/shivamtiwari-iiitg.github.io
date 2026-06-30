@@ -3,6 +3,103 @@
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ---------- pointer-tracking ambient gradient ---------- */
+  if (!reduce) {
+    window.addEventListener("pointermove", function (e) {
+      document.documentElement.style.setProperty("--mx", e.clientX + "px");
+      document.documentElement.style.setProperty("--my", e.clientY + "px");
+    });
+  }
+
+  /* ---------- scroll progress bar ---------- */
+  var prog = document.querySelector(".progress");
+  if (prog) {
+    window.addEventListener("scroll", function () {
+      var h = document.documentElement;
+      var max = h.scrollHeight - h.clientHeight;
+      var pct = max > 0 ? h.scrollTop / max : 0;
+      prog.style.transform = "scaleX(" + pct + ")";
+    }, { passive: true });
+  }
+
+  /* ---------- subtle 3D tilt + cursor spotlight on [data-tilt] cards ---------- */
+  if (!reduce) {
+    document.querySelectorAll("[data-tilt]").forEach(function (card) {
+      card.addEventListener("pointermove", function (e) {
+        var r = card.getBoundingClientRect();
+        var px = e.clientX - r.left;
+        var py = e.clientY - r.top;
+        var x = px / r.width - 0.5;
+        var y = py / r.height - 0.5;
+        card.style.transform = "perspective(900px) rotateX(" + (-y * 4) + "deg) rotateY(" + (x * 5) + "deg) translateY(-2px)";
+        card.style.setProperty("--sx", px + "px");
+        card.style.setProperty("--sy", py + "px");
+      });
+      card.addEventListener("pointerleave", function () { card.style.transform = ""; });
+    });
+  }
+
+  /* ---------- magnetic CTA buttons ---------- */
+  if (!reduce) {
+    document.querySelectorAll(".btn, .nav-cta").forEach(function (btn) {
+      btn.addEventListener("pointermove", function (e) {
+        var r = btn.getBoundingClientRect();
+        var x = e.clientX - r.left - r.width / 2;
+        var y = e.clientY - r.top - r.height / 2;
+        btn.style.transform = "translate(" + (x * 0.18) + "px, " + (y * 0.25) + "px)";
+      });
+      btn.addEventListener("pointerleave", function () { btn.style.transform = ""; });
+    });
+  }
+
+  /* ---------- sliding active-indicator under filter chips ---------- */
+  var chipsRow = document.querySelector(".chips-row");
+  if (chipsRow) {
+    var indicator = document.createElement("span");
+    indicator.className = "chip-indicator";
+    chipsRow.appendChild(indicator);
+    function moveIndicator() {
+      var active = chipsRow.querySelector(".fchip.active");
+      if (!active) return;
+      var r = active.getBoundingClientRect();
+      var rr = chipsRow.getBoundingClientRect();
+      indicator.style.left = (r.left - rr.left) + "px";
+      indicator.style.width = r.width + "px";
+      indicator.classList.add("on");
+    }
+    requestAnimationFrame(moveIndicator);
+    chipsRow.addEventListener("click", function (e) {
+      if (e.target.classList.contains("fchip")) {
+        setTimeout(moveIndicator, 0);
+      }
+    });
+    window.addEventListener("resize", moveIndicator);
+  }
+
+  /* ---------- hero cycler (typewriter rotating taglines) ---------- */
+  var cycler = document.querySelector(".cycler");
+  if (cycler && !reduce) {
+    var words = (cycler.getAttribute("data-words") || "").split("|").filter(Boolean);
+    if (words.length > 1) {
+      var wi = 0, ci = 0, deleting = false;
+      function tick() {
+        var word = words[wi];
+        cycler.textContent = word.slice(0, ci);
+        if (!deleting && ci < word.length) {
+          ci++; setTimeout(tick, 70);
+        } else if (deleting && ci > 0) {
+          ci--; setTimeout(tick, 40);
+        } else if (!deleting && ci === word.length) {
+          deleting = true; setTimeout(tick, 1600);
+        } else {
+          deleting = false; wi = (wi + 1) % words.length; setTimeout(tick, 280);
+        }
+      }
+      tick();
+    }
+  }
+
+
   /* ---------- mobile nav ---------- */
   var toggle = document.querySelector(".nav-toggle");
   var links = document.querySelector(".nav-links");
