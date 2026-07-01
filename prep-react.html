@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>React Native, JS &amp; React — Tech Deep Dive · Shivam Tiwari</title>
-<meta name="description" content="Extensive React Native, JavaScript and React interview questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
+<meta name="description" content="Extensive React Native, JavaScript and React questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -82,7 +82,7 @@
   <!-- ============ JS CORE ============ -->
   <section class="cat" id="js" data-cat="js">
     <h2><span class="ix">01</span> JavaScript core</h2>
-    <p class="cat-sub">The engine-level questions every JS/RN interview opens with.</p>
+    <p class="cat-sub">The engine-level questions every JS/RN developer needs an answer of.</p>
 
     <details class="qa" data-tags="event loop microtask macrotask task queue promise settimeout">
       <summary><span class="qix">Q01</span><span class="qtext">Explain the event loop, micro- vs macro-tasks.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -157,7 +157,7 @@ c(); c();              <span class="c">// 1, 2</span></code></pre>
   <!-- ============ JS CODING CHALLENGES ============ -->
   <section class="cat" id="jscode" data-cat="jscode">
     <h2><span class="ix">02</span> JS coding challenges</h2>
-    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) interviewers love.</p>
+    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) developers love.</p>
 
     <details class="qa" data-tags="debounce implement leading trailing timer">
       <summary><span class="qix">Q09</span><span class="qtext">Implement <code>debounce(fn, wait)</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -277,7 +277,7 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
     off(ev, cb) { <span class="k">this</span>.map.get(ev)?.delete(cb); }
     emit(ev, ...args) { <span class="k">this</span>.map.get(ev)?.forEach((cb) =&gt; <span class="f">cb</span>(...args)); }
 }</code></pre>
-        <p>Using a <code>Set</code> dedupes listeners and makes <code>off</code> O(1). Returning an unsubscribe function is the ergonomic touch interviewers like.</p>
+        <p>Using a <code>Set</code> dedupes listeners and makes <code>off</code> O(1). Returning an unsubscribe function is the ergonomic touch devs like.</p>
       </div>
     </details>
 
