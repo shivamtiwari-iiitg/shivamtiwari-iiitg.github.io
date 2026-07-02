@@ -19,6 +19,7 @@
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
       <a class="nav-cta" href="index.html">← Portfolio</a>
     </nav>
@@ -31,7 +32,7 @@
     <a class="backlink" href="index.html#notes">← All deep dives</a>
     <span class="eyebrow" style="margin-top:18px">01 — Android &amp; Kotlin</span>
     <h1>Android &amp; Kotlin,<br>start to finish.</h1>
-    <p>Everything you need for Android — language internals, structured concurrency, Compose, lifecycle, dependency injection, memory and build. Answers and code on one page. Use search, filter by topic, or expand all.</p>
+    <p>Everything you need to know in Android — language internals, structured concurrency, Compose, lifecycle, dependency injection, memory and build. Answers and code on one page. Use search, filter by topic, or expand all.</p>
     <div class="prep-stats">
       <span><b>51</b> questions</span>
       <span><b>8</b> topics</span>
@@ -63,6 +64,7 @@
       <button class="fchip" data-target="di">DI</button>
       <button class="fchip" data-target="perf">Memory &amp; Perf</button>
       <button class="fchip" data-target="build">Data &amp; Build</button>
+      <button class="fchip" data-target="cicd">CI/CD</button>
     </div>
   </div>
 </div>
@@ -79,6 +81,7 @@
     <a href="#di">Dependency Injection</a>
     <a href="#perf">Memory &amp; Performance</a>
     <a href="#build">Data &amp; Build</a>
+    <a href="#cicd">CI/CD</a>
   </aside>
 
   <div>
@@ -86,7 +89,7 @@
   <!-- ============ KOTLIN ============ -->
   <section class="cat" id="kotlin" data-cat="kotlin">
     <h2><span class="ix">01</span> Kotlin language</h2>
-    <p class="cat-sub">Language internals we tend to forget — explained from the ground up.</p>
+    <p class="cat-sub">Language internals interviewers actually probe — explained from the ground up.</p>
 
     <details class="qa" data-tags="val var immutable mutable reference">
       <summary><span class="qix">Q01</span><span class="qtext">Does <code>val</code> guarantee immutability?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -184,7 +187,7 @@ list.add(<span class="s">"b"</span>)   <span class="c">// fine — we're mutatin
 <span class="k">fun</span> B.name() = <span class="s">"B"</span>
 <span class="k">val</span> a: A = B()
 a.name()   <span class="c">// "A" — chosen by declared type A, even though the object is a B</span></code></pre>
-        <p>Two consequences worth stating: extensions can't override real members, and if a member function and an extension have the same signature, <b>the member always wins</b>. <b>Why it matters:</b> extensions are great for readability and utility APIs, but if you expect overriding behaviour, you need real inheritance instead.</p>
+        <p>Two consequences worth stating in an interview: extensions can't override real members, and if a member function and an extension have the same signature, <b>the member always wins</b>. <b>Why it matters:</b> extensions are great for readability and utility APIs, but if you expect overriding behaviour, you need real inheritance instead.</p>
       </div>
     </details>
 
@@ -518,7 +521,7 @@ onDestroy  <span class="c">// final cleanup</span></code></pre>
           <li><b>WorkManager</b> — work that's <em>deferrable but guaranteed</em>: must survive app death and reboots, can wait for conditions (on Wi-Fi, while charging), and retries with backoff. (Sync, upload, periodic cleanup.)</li>
           <li><b>Foreground Service</b> — user-visible work that must run <em>now</em> and continuously, with a persistent notification. (Music playback, active navigation, live location.)</li>
         </ul>
-        <p><b>Why it matters:</b> since Android 12+, the OS aggressively restricts plain background work, so "do it later, reliably" almost always means WorkManager now — reaching for a bare Service or a naked thread is usually the wrong answer.</p>
+        <p><b>Why it matters:</b> since Android 12+, the OS aggressively restricts plain background work, so "do it later, reliably" almost always means WorkManager now — reaching for a bare Service or a naked thread is usually the wrong answer in a modern interview.</p>
       </div>
     </details>
   </section>
@@ -795,7 +798,7 @@ BitmapFactory.decodeFile(path, opts)          <span class="c">// read size only,
 opts.inSampleSize = calculateInSampleSize(opts, reqW, reqH)  <span class="c">// e.g. 4</span>
 opts.inJustDecodeBounds = <span class="k">false</span>
 <span class="k">val</span> bitmap = BitmapFactory.decodeFile(path, opts)  <span class="c">// decode downsampled</span></code></pre>
-        <p><b>In practice:</b> use Coil or Glide, which handle sampling, memory + disk caching, bitmap pooling, and lifecycle for you — and that's the right answer too.</p>
+        <p><b>In practice:</b> use Coil or Glide, which handle sampling, memory + disk caching, bitmap pooling, and lifecycle for you — and that's the right answer to give too.</p>
       </div>
     </details>
   </section>
@@ -843,6 +846,314 @@ opts.inJustDecodeBounds = <span class="k">false</span>
       </div>
     </details>
   </section>
+  <!-- ============ CI/CD ============ -->
+  <section class="cat" id="cicd" data-cat="cicd">
+    <h2><span class="ix">09</span> CI/CD</h2>
+    <p class="cat-sub">How pipelines are structured, how mobile CI/CD differs from web, and how to implement it end to end.</p>
+
+    <details class="qa" data-tags="ci cd what is continuous integration deployment pipeline">
+      <summary><span class="qix">Q51</span><span class="qtext">What is CI/CD and what problem does it solve?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Without CI/CD, merging code from multiple engineers is a periodic nightmare — "integration day" where everyone's work is combined, things break in unexpected ways, and it takes days to sort out. CI/CD makes integration continuous and delivery automated, so the cost of merging stays small and predictable every single day.</div>
+        <p class="analogy">Like restocking a shop in tiny daily deliveries instead of one giant monthly lorry. Small deliveries are easy to check, easy to reject if something's wrong, and the shop is never suddenly out of stock for a week after a bad batch.</p>
+        <ul>
+          <li><b>Continuous Integration (CI)</b> — every code push automatically builds the app and runs the test suite. The rule: if CI is red, fixing it takes priority over all new work. This catches regressions immediately, while the change is still fresh in the author's head, rather than weeks later.</li>
+          <li><b>Continuous Delivery (CD)</b> — every passing build is automatically packaged into a deployable artifact (APK, AAB, IPA). Pushing it to a real environment might still be a manual step, but the artifact is always ready.</li>
+          <li><b>Continuous Deployment</b> — goes one further: passing builds are released automatically to production with no manual gate. Common in web; less common in mobile because app stores add a mandatory review step.</li>
+        </ul>
+        <p><b>Why it matters specifically in mobile:</b> the feedback loop between "commit code" and "user sees it" is inherently longer than web (store review, OTA update, user installing the update). CI/CD shrinks every controllable part of that loop — catching bugs early, automating builds that engineers would otherwise do manually, and making releases reliable rather than stressful.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="github actions workflow job step runner yaml trigger">
+      <summary><span class="qix">Q52</span><span class="qtext">How does a GitHub Actions workflow actually work?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A workflow is a YAML file that says "when X happens, run these steps on a machine." GitHub spins up a fresh VM, runs your steps in order, and reports back pass or fail — all without you managing any servers.</div>
+        <p>The building blocks, from outermost to innermost:</p>
+        <ul>
+          <li><b>Workflow</b> — one YAML file in <code>.github/workflows/</code>. Has one or more jobs.</li>
+          <li><b>Trigger (<code>on:</code>)</b> — what starts it: <code>push</code>, <code>pull_request</code>, <code>schedule</code>, manual <code>workflow_dispatch</code>, or another workflow.</li>
+          <li><b>Job</b> — a set of steps that run on one runner (VM). Jobs run in parallel by default; use <code>needs:</code> to sequence them.</li>
+          <li><b>Step</b> — a single shell command (<code>run:</code>) or a pre-built action (<code>uses:</code>). Steps in a job run sequentially on the same VM.</li>
+          <li><b>Runner</b> — the VM environment: <code>ubuntu-latest</code>, <code>macos-latest</code> (required for iOS builds), <code>windows-latest</code>, or a self-hosted machine.</li>
+        </ul>
+        <pre><code><span class="c"># .github/workflows/android-ci.yml</span>
+name: Android CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4            <span class="c"># clone the repo</span>
+      - uses: actions/setup-java@v4
+        with: { java-version: <span class="s">'17'</span>, distribution: <span class="s">'temurin'</span> }
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-{{ hashFiles(<span class="s">'**/*.gradle*'</span>) }}
+      - name: Run unit tests
+        run: ./gradlew test
+      - name: Build debug APK
+        run: ./gradlew assembleDebug</code></pre>
+        <p><b>Why caching matters here:</b> Gradle downloads all its dependencies on each run — without a cache, that's 2–5 minutes of pure download time before a single line of your code runs. Caching the <code>~/.gradle</code> directory keyed by the dependency file hash cuts that to near-zero on cache hits. This is exactly what made the 53% CI build time reduction achievable at Dream11 — cache hits plus parallelism compounded significantly.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="android signing keystore release build APK AAB play store">
+      <summary><span class="qix">Q53</span><span class="qtext">How do you handle Android signing in a CI pipeline?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A release APK/AAB must be cryptographically signed with your keystore before the Play Store accepts it. The keystore is a sensitive file you must never commit to the repo — instead you store it as a Base64-encoded secret and decode it at build time inside the CI runner.</div>
+        <pre><code><span class="c"># In your repository's GitHub Secrets, store:</span>
+<span class="c"># KEYSTORE_BASE64  — base64 of your .jks file</span>
+<span class="c"># KEY_ALIAS        — the alias inside the keystore</span>
+<span class="c"># KEY_PASSWORD     — password for the key</span>
+<span class="c"># STORE_PASSWORD   — password for the keystore</span>
+
+<span class="c"># .github/workflows/release.yml — signing step</span>
+- name: Decode keystore
+  run: echo <span class="s">"${{ secrets.KEYSTORE_BASE64 }}"</span> | base64 --decode &gt; release.jks
+
+- name: Build signed release AAB
+  run: ./gradlew bundleRelease
+  env:
+    SIGNING_STORE_FILE: release.jks
+    SIGNING_STORE_PASSWORD: <span class="s">"${{ secrets.STORE_PASSWORD }}"</span>
+    SIGNING_KEY_ALIAS: <span class="s">"${{ secrets.KEY_ALIAS }}"</span>
+    SIGNING_KEY_PASSWORD: <span class="s">"${{ secrets.KEY_PASSWORD }}"</span></code></pre>
+        <pre><code><span class="c">// build.gradle.kts — consume the env vars</span>
+<span class="k">android</span> {
+    signingConfigs {
+        create(<span class="s">"release"</span>) {
+            storeFile = file(System.getenv(<span class="s">"SIGNING_STORE_FILE"</span>) ?: <span class="s">"keystore.jks"</span>)
+            storePassword = System.getenv(<span class="s">"SIGNING_STORE_PASSWORD"</span>)
+            keyAlias = System.getenv(<span class="s">"SIGNING_KEY_ALIAS"</span>)
+            keyPassword = System.getenv(<span class="s">"SIGNING_KEY_PASSWORD"</span>)
+        }
+    }
+    buildTypes {
+        release { signingConfig = signingConfigs.getByName(<span class="s">"release"</span>) }
+    }
+}</code></pre>
+        <p><b>Security rules:</b> never hardcode credentials in the Gradle file, never log the decoded keystore, and clean up the decoded file at the end of the job (<code>rm release.jks</code>). The keystore itself must be backed up in a safe place outside the repo — losing it means you can never update an app already on the Play Store under that key.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="pipeline stages test build distribute parallel jobs">
+      <summary><span class="qix">Q54</span><span class="qtext">Design a complete mobile CI/CD pipeline from PR to production.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Think of the pipeline as a series of gates. Code can only advance to the next gate after clearing the current one — each gate is cheaper to fail fast than the one after it. The whole thing should finish in under 15 minutes for a good developer experience.</div>
+        <p>A production-grade mobile pipeline has four stages, structured to fail fast and parallelize where safe:</p>
+        <pre><code><span class="c"># Stage 1 — fast static checks (parallel, ~2 min)</span>
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./gradlew lint detekt         <span class="c"># code style + static analysis</span>
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./gradlew dependencyCheckAnalyze   <span class="c"># check deps for known CVEs</span>
+
+<span class="c"># Stage 2 — unit tests (parallel with lint, ~4 min)</span>
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./gradlew testDebugUnitTest --parallel
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: test-results, path: '**/build/test-results/' }
+
+<span class="c"># Stage 3 — build (runs after tests pass, ~5 min)</span>
+  build:
+    needs: [lint, unit-tests]              <span class="c"># gate: must clear stages 1 &amp; 2</span>
+    runs-on: ubuntu-latest
+    steps:
+      - run: ./gradlew assembleDebug bundleRelease
+      - uses: actions/upload-artifact@v4
+        with: { name: release-aab, path: app/build/outputs/bundle/release/ }
+
+<span class="c"># Stage 4 — distribute (only on main branch merge)</span>
+  distribute:
+    needs: build
+    if: github.ref == <span class="s">'refs/heads/main'</span>
+    steps:
+      - name: Upload to Firebase App Distribution   <span class="c"># internal testers</span>
+        run: firebase appdistribution:distribute ...
+      - name: Upload to Play Store internal track
+        uses: r0adkll/upload-google-play@v1</code></pre>
+        <p><b>Why parallel at stage 1:</b> lint and unit tests have no dependency between them, so running them side-by-side cuts total pipeline time by their slower sibling, not their sum. The build stage only starts when both have cleared — this is the key structural decision that keeps fast feedback while still enforcing all checks before an artifact ships.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="testing in ci unit integration ui espresso emulator flaky">
+      <summary><span class="qix">Q55</span><span class="qtext">How do you run Android tests in CI — and how do you handle flaky tests?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Unit tests run on the plain JVM and are fast — these belong in every CI run. Instrumented tests (Espresso, UI Automator) need an actual Android runtime — either an emulator spun up inside CI or a real device farm — which is slower and more expensive. The hard part isn't running them; it's stopping flaky tests from randomly failing your pipeline and blocking other engineers.</div>
+        <pre><code><span class="c"># Unit tests — cheap, run on every PR</span>
+- name: Unit tests
+  run: ./gradlew testDebugUnitTest
+
+<span class="c"># Instrumented tests — run on emulator, only on main or release branches</span>
+- name: Start emulator
+  uses: reactivecircus/android-emulator-runner@v2
+  with:
+    api-level: 34
+    arch: x86_64
+    script: ./gradlew connectedDebugAndroidTest</code></pre>
+        <p><b>Handling flaky tests — the practical approach:</b></p>
+        <ul>
+          <li><b>Identify by retry rate, not gut feel</b> — track which tests fail in CI but pass on re-run; those are your flakes. Most CI platforms annotate repeated failures automatically now.</li>
+          <li><b>Quarantine, don't delete</b> — move confirmed flaky tests to a separate "quarantine" suite run with <code>@Ignore</code> or a custom annotation. They still run in a nightly job but don't block PRs. Fix or delete them on a weekly cadence, not under pressure.</li>
+          <li><b>Root causes to chase:</b> timing-dependent tests (missing <code>idleFor</code> / <code>awaitIdle</code> calls in Espresso), shared test state not cleaned up between runs (a static cache, a Room DB that wasn't wiped), and real-device hardware variance on a physical device farm.</li>
+          <li><b>Shard large suites</b> — split the instrumented suite across multiple emulators in parallel to keep total run time under control as the suite grows: <code>numShards: 3</code> in the runner config.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="react native ci cd codepush ota multi platform ios android">
+      <summary><span class="qix">Q56</span><span class="qtext">How is CI/CD for a React Native app different — and how did you set it up for CriQ?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An RN app is one codebase but two completely separate build systems underneath — Gradle for Android, Xcode for iOS. CI has to manage both, with their own signing secrets, their own runners (iOS requires macOS), and their own distribution paths (Play Store vs TestFlight). The JS layer on top also has its own pipeline (type-check, lint, test, bundle).</div>
+        <pre><code><span class="c"># React Native CI — three parallel jobs</span>
+jobs:
+  js-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - run: yarn install --frozen-lockfile
+      - run: yarn tsc --noEmit          <span class="c"># type-check</span>
+      - run: yarn lint                  <span class="c"># eslint</span>
+      - run: yarn test --ci            <span class="c"># jest unit tests</span>
+
+  android-build:
+    runs-on: ubuntu-latest
+    needs: js-checks
+    steps:
+      - run: cd android &amp;&amp; ./gradlew assembleRelease
+      <span class="c"># ... signing steps as in Q53</span>
+
+  ios-build:
+    runs-on: macos-latest             <span class="c"># must be macOS — Xcode doesn't run on Linux</span>
+    needs: js-checks
+    steps:
+      - run: pod install --project-directory=ios
+      - run: xcodebuild -workspace ios/CriQ.xcworkspace
+                        -scheme CriQ -configuration Release
+                        -archivePath CriQ.xcarchive archive
+      - run: xcodebuild -exportArchive -archivePath CriQ.xcarchive
+                        -exportOptionsPlist ios/ExportOptions.plist
+                        -exportPath ./ipa</code></pre>
+        <p><b>The OTA layer on top (CodePush) adds a third release path for JS-only changes:</b></p>
+        <pre><code><span class="c"># When only JS files changed — no need to go through the app stores</span>
+  codepush-release:
+    runs-on: ubuntu-latest
+    if: <span class="c"># only JS files changed (checked with git diff)</span>
+    steps:
+      - run: npx appcenter codepush release-react
+                -a org/CriQ-Android
+                --deployment-name Production
+                --description <span class="s">"${{ github.event.head_commit.message }}"</span>
+                --mandatory false
+                --rollout 20   <span class="c"># staged: 20% of users first</span></code></pre>
+        <p><b>How this was set up for CriQ specifically:</b> two separate Play Store tracks (India and international) with different package IDs and different Firebase project credentials, so both needed their own secrets and distribution steps. The JS-check job gated both native builds — a TypeScript error blocked both platforms simultaneously, which was the right call since the error would affect both regardless of which binary was generated. The macOS runner for iOS is the most expensive part of the pipeline (~3× the cost of Ubuntu), so iOS builds only ran on main-branch pushes, not on every PR.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="environment variables secrets management production staging env">
+      <summary><span class="qix">Q57</span><span class="qtext">How do you manage secrets and environment configs across dev / staging / production?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Every environment needs different API endpoints, keys, and feature flags. The wrong approach is if-statements scattered through the code checking a build type. The right approach is injecting the right values at build time so each binary is born knowing its environment, with no runtime toggling logic.</div>
+        <pre><code><span class="c">// build.gradle.kts — inject values at compile time via BuildConfig</span>
+<span class="k">android</span> {
+    buildTypes {
+        debug {
+            buildConfigField(<span class="s">"String"</span>, <span class="s">"API_URL"</span>, <span class="s">"\"https://staging.api.app\""</span>)
+            buildConfigField(<span class="s">"Boolean"</span>, <span class="s">"ENABLE_LOGGING"</span>, <span class="s">"true"</span>)
+        }
+        release {
+            buildConfigField(<span class="s">"String"</span>, <span class="s">"API_URL"</span>, <span class="s">"\"https://api.app\""</span>)    <span class="c">// prod URL baked in</span>
+            buildConfigField(<span class="s">"Boolean"</span>, <span class="s">"ENABLE_LOGGING"</span>, <span class="s">"false"</span>)
+        }
+    }
+    <span class="c">// per-flavor config for multi-market apps (India vs International)</span>
+    flavorDimensions += <span class="s">"market"</span>
+    productFlavors {
+        create(<span class="s">"india"</span>) {
+            buildConfigField(<span class="s">"String"</span>, <span class="s">"PAYMENT_GATEWAY"</span>, <span class="s">"\"razorpay\""</span>)
+        }
+        create(<span class="s">"international"</span>) {
+            buildConfigField(<span class="s">"String"</span>, <span class="s">"PAYMENT_GATEWAY"</span>, <span class="s">"\"stripe\""</span>)
+        }
+    }
+}</code></pre>
+        <pre><code><span class="c">// app code — reads the injected constant, no runtime if-else</span>
+<span class="k">val</span> api = Retrofit.Builder().baseUrl(BuildConfig.API_URL).build()</code></pre>
+        <p>For secrets that genuinely can't go in source control (API keys, signing credentials): store in GitHub Secrets at the org or repo level, inject as environment variables during the CI job, and consume via <code>System.getenv()</code> in Gradle. Never commit them in <code>local.properties</code> and expect CI to have that file — it won't, and the build silently uses wrong values.</p>
+        <div class="callout"><b>The matrix build approach for multi-flavor CI:</b> use Gradle's <code>--build-cache</code> plus a build matrix so each flavor/buildType combination compiles in parallel rather than sequentially — important when you have 2 markets × 2 build types = 4 separate artifacts to produce per release.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="deployment play store fastlane upload automate release track">
+      <summary><span class="qix">Q58</span><span class="qtext">How do you automate the Play Store upload and release?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Google exposes the Play Store API, so you can upload an AAB and promote it through tracks (internal → alpha → beta → production) entirely from a CI script. No manual "upload via the Play Console" web UI.</div>
+        <p>Two common approaches:</p>
+        <p><b>1. Direct via the GitHub Action:</b></p>
+        <pre><code><span class="c"># r0adkll/upload-google-play is the simplest approach for most setups</span>
+- name: Upload to Play Store
+  uses: r0adkll/upload-google-play@v1
+  with:
+    serviceAccountJsonPlainText: <span class="s">"${{ secrets.SERVICE_ACCOUNT_JSON }}"</span>
+    packageName: com.app.criq
+    releaseFiles: app/build/outputs/bundle/release/*.aab
+    track: internal          <span class="c"># internal → alpha → beta → production</span>
+    status: completed
+    whatsNewDirectory: distribution/whatsnew   <span class="c"># per-locale release notes</span></code></pre>
+        <p><b>2. Fastlane</b> — when you need more control (screenshots, metadata, multi-step promotion logic, TestFlight on the iOS side at the same time):</p>
+        <pre><code><span class="c"># Fastfile</span>
+lane :deploy do
+  gradle(task: <span class="s">"bundle"</span>, build_type: <span class="s">"Release"</span>)
+  upload_to_play_store(
+    track: <span class="s">'internal'</span>,
+    aab: <span class="s">'app/build/outputs/bundle/release/app-release.aab'</span>,
+    json_key_data: ENV[<span class="s">'SERVICE_ACCOUNT_JSON'</span>]
+  )
+end</code></pre>
+        <pre><code><span class="c"># Then from GitHub Actions:</span>
+- run: bundle exec fastlane deploy</code></pre>
+        <p><b>Service account key:</b> create a service account in Google Play Console with "Release manager" permissions, download the JSON key, and store it as a GitHub secret. This key grants CI the same upload rights a human would have in the UI, without sharing your personal Google account credentials.</p>
+        <p><b>Staged rollout on the CD side:</b> upload to internal → verify with smoke tests → promote to production with a staged rollout (5% → 20% → 50% → 100%) so a newly introduced crash surfaces on a small fraction of users before it reaches everyone. The Play API supports all of this programmatically.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="pull request checks status branch protection quality gates">
+      <summary><span class="qix">Q59</span><span class="qtext">How do you enforce CI as a real quality gate on PRs, not just a courtesy check?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> If developers can merge with a failing CI run ("I'll fix it after"), the pipeline is advisory, not a gate. Real enforcement means the repo physically won't allow a merge until the checks pass — configured in branch protection rules, not just team culture.</div>
+        <pre><code><span class="c"># GitHub branch protection rules (set in repo Settings → Branches):</span>
+<span class="c"># ✓ Require status checks to pass before merging</span>
+<span class="c">#   Required checks: lint, unit-tests, build</span>
+<span class="c"># ✓ Require branches to be up to date before merging</span>
+<span class="c"># ✓ Require at least 1 review approval</span>
+<span class="c"># ✓ Do not allow bypassing the above settings (even for admins)</span></code></pre>
+        <p>Beyond the technical gate, a few cultural patterns that make CI healthy:</p>
+        <ul>
+          <li><b>Red main means stop-the-world</b> — when CI on main is red, the team drops what they're doing and fixes it. A flaky-by-default main branch means engineers start ignoring failures, and the first real regression will be missed.</li>
+          <li><b>Keep the feedback loop short</b> — if CI takes 30 minutes, engineers stop waiting for it and merge speculatively. Under 10 minutes means developers actually watch it before moving on. This was directly what the 53% build time reduction improved — CI went from ~30 minutes (too slow to wait) to ~14 minutes (fast enough to keep a PR tab open).</li>
+          <li><b>Surface failures at the PR level, not just email</b> — integrate CI status directly into your PR workflow (GitHub Checks, Slack notifications on failure) so failures are impossible to miss rather than buried in an email inbox.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
   <div class="no-results">No questions match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
@@ -860,6 +1171,7 @@ opts.inJustDecodeBounds = <span class="k">false</span>
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
     </nav>
   </div>
