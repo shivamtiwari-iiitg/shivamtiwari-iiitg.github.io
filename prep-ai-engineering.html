@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Engineering &amp; FDE — Tech Deep Dive · Shivam Tiwari</title>
+<meta name="description" content="AI Engineering and Forward Deployed Engineer interview prep — LLM fundamentals, RAG, agents, evals, prompt engineering, Claude Skills (how to build and evaluate them), and the client-facing systems-integration skillset FDE roles test for." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="progress"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
+    <nav class="nav-links">
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
+      <a href="prep-extras.html">Extras</a>
+      <a class="nav-cta" href="index.html">← Portfolio</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<section class="prep-hero">
+  <div class="wrap">
+    <a class="backlink" href="index.html#notes">← All deep dives</a>
+    <span class="eyebrow" style="margin-top:18px">05 — AI Engineering &amp; Forward Deployed</span>
+    <h1>AI engineering,<br>Claude Skills &amp; FDE.</h1>
+    <p>LLM fundamentals, retrieval and agents, how to actually evaluate an AI system, how Claude Skills are built and eval'd, and the client-facing systems-integration skillset Forward Deployed Engineer roles test for — tied back to CriQ's AI test-generation agent, the agentic PR-review pipeline, and on-device ML work already on my resume.</p>
+    <div class="prep-stats">
+      <span><b>24</b> questions</span>
+      <span><b>4</b> tracks</span>
+      <span><b>Resume-linked</b> examples</span>
+      <span>No redirects</span>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q-search" type="text" placeholder="Search 24 questions — e.g. RAG, evals, Claude Skills, agents, FDE…" />
+      </div>
+      <div class="tool-btns">
+        <button class="tbtn" id="expand-all">Expand all</button>
+        <button class="tbtn" id="collapse-all">Collapse all</button>
+      </div>
+    </div>
+    <div class="chips-row">
+      <button class="fchip active" data-target="all">All</button>
+      <button class="fchip" data-target="fund">AI Eng fundamentals</button>
+      <button class="fchip" data-target="skills">Claude Skills</button>
+      <button class="fchip" data-target="evals">Evals &amp; reliability</button>
+      <button class="fchip" data-target="fde">Forward Deployed Engineer</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section" style="padding-top:20px">
+<div class="layout">
+  <aside class="toc">
+    <h5>On this page</h5>
+    <a href="#fund">AI Eng fundamentals</a>
+    <a href="#skills">Claude Skills</a>
+    <a href="#evals">Evals &amp; reliability</a>
+    <a href="#fde">Forward Deployed Engineer</a>
+  </aside>
+
+  <div>
+
+  <section class="cat" id="fund" data-cat="fund">
+    <h2><span class="ix">01</span> AI Engineering fundamentals</h2>
+    <p class="cat-sub">How LLMs, retrieval, and agents actually work — the concepts under every "AI feature."</p>
+
+    <details class="qa" data-tags="llm token context window autoregressive prediction">
+      <summary><span class="qix">A01</span><span class="qtext">What is an LLM actually doing, mechanically?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An LLM reads all the text so far and predicts the single most likely next chunk of text ("token"), appends it, and repeats. There's no separate "thinking" step under the hood — the appearance of reasoning emerges from doing this prediction very well, over and over.</div>
+        <p class="analogy">Like an extremely well-read autocomplete: given everything typed so far, what's statistically the best next word — but trained on so much text that "statistically the best next word" ends up looking like reasoning, coding, and conversation.</p>
+        <p>Text is broken into <b>tokens</b> (roughly word-pieces, not whole words). The model has a fixed <b>context window</b> — the maximum tokens of input + output it can attend to at once. Everything the model "knows" during a conversation must fit in that window; nothing persists between separate API calls unless you resend it. This is why prompt engineering and context management (what you put in that window, and in what order) matters so much.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="prompt engineering system prompt few shot chain of thought">
+      <summary><span class="qix">A02</span><span class="qtext">What actually moves the needle in prompt engineering?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Prompting is programming in natural language — you're not "asking nicely," you're specifying a task precisely enough that there's only one reasonable way to do it.</div>
+        <p>What reliably helps, roughly in order of impact:</p>
+        <ul>
+          <li><b>Be explicit and specific</b> — vague asks get vague answers. State the exact output format, constraints, and edge cases you care about.</li>
+          <li><b>Show examples (few-shot)</b> — one or two worked examples of input→output often beat paragraphs of instruction, especially for format-sensitive tasks.</li>
+          <li><b>Let it reason before answering</b> — asking the model to work through a problem step by step ("chain of thought") before giving a final answer measurably improves accuracy on multi-step tasks.</li>
+          <li><b>Structure with XML/markdown tags</b> — separating instructions, context, and examples with clear tags reduces the model conflating them.</li>
+          <li><b>Positive AND negative examples</b> — "do this, not that" is more reliable than "don't do that" alone.</li>
+        </ul>
+        <p><b>Why it matters for interviews:</b> the FDE/AI-eng bar isn't "can you write a prompt," it's "can you systematically iterate a prompt against real failure cases" — treat it like debugging, not like writing a wish.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="rag retrieval augmented generation embeddings vector search">
+      <summary><span class="qix">A03</span><span class="qtext">Explain RAG — why not just fine-tune, or paste everything in the prompt?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> RAG (Retrieval-Augmented Generation) means: before answering, go fetch the specific pieces of your knowledge base that are actually relevant to this question, and hand only those to the model along with the question. Instead of the model "knowing" everything, it looks things up each time — like an open-book exam.</div>
+        <p>Why not just dump your whole knowledge base into the prompt? Context windows are finite and costly, and stuffing in irrelevant text dilutes the model's attention and hurts accuracy. Why not fine-tune the facts in? Fine-tuning is expensive to keep updated, doesn't reliably teach new facts (it's better for style/behaviour), and gives no easy way to cite sources or update just one document.</p>
+        <p>The pipeline: chunk your documents → embed each chunk into a vector (a list of numbers capturing its meaning) → store in a vector database → at query time, embed the user's question the same way → retrieve the chunks whose vectors are closest ("semantic search") → pass those chunks + the question to the model.</p>
+        <pre><code><span class="c">// conceptual RAG query</span>
+<span class="k">const</span> queryVec = <span class="k">await</span> embed(userQuestion);
+<span class="k">const</span> chunks = <span class="k">await</span> vectorDb.search(queryVec, { topK: 5 });
+<span class="k">const</span> answer = <span class="k">await</span> llm.complete({
+    system: <span class="s">"Answer using only the provided context."</span>,
+    context: chunks.map(c =&gt; c.text).join(<span class="s">'\n\n'</span>),
+    question: userQuestion
+});</code></pre>
+        <p><b>Where it breaks:</b> retrieval quality is the real bottleneck, not the LLM — bad chunking (splitting mid-sentence), too few/many retrieved chunks, or a query that doesn't semantically match the phrasing in your docs all silently degrade answers. Debug retrieval before blaming the model.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="agents tool use function calling autonomy loop">
+      <summary><span class="qix">A04</span><span class="qtext">What makes something an "agent" instead of just a chatbot?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A chatbot answers with text. An agent can <em>act</em> — it decides to call a tool (search the web, run code, hit an API, edit a file), looks at the result, and decides what to do next, in a loop, until the task is done.</div>
+        <p>The mechanism is <b>tool use / function calling</b>: you describe available tools (name, description, parameters) to the model; the model's response can be either a normal text reply or a request to call one of those tools with specific arguments; your code executes the tool and feeds the result back in; the model continues. That loop — think, act, observe, repeat — is the agent.</p>
+        <pre><code><span class="c">// one iteration of an agent loop</span>
+<span class="k">const</span> response = <span class="k">await</span> llm.complete({ messages, tools: [searchTool, runCodeTool] });
+<span class="k">if</span> (response.type === <span class="s">'tool_use'</span>) {
+    <span class="k">const</span> result = <span class="k">await</span> executeTool(response.tool, response.args);
+    messages.push(response, { role: <span class="s">'tool_result'</span>, content: result });
+    <span class="c">// loop continues — model sees the result and decides the next step</span>
+}</code></pre>
+        <p><b>What makes agents hard in practice:</b> error recovery (a failed tool call needs graceful handling, not a crash), knowing when to stop (avoiding infinite loops or runaway tool calls), and giving the agent just enough autonomy without letting it take unsafe or expensive actions unsupervised. This is exactly the shape of the agentic PR-review and test-generation pipelines I built at Dream11 — the agent reads a diff, decides what to check, runs static analysis or test tools, and iterates.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="fine tuning vs prompting when to fine tune training">
+      <summary><span class="qix">A05</span><span class="qtext">When does fine-tuning actually make sense over prompting?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Prompting changes <em>what you ask</em>; fine-tuning changes <em>the model itself</em> by training it further on examples. Fine-tuning is a bigger, slower, more expensive lever — reach for prompting first, almost always.</div>
+        <p>Prompting (with good examples and RAG for facts) solves the vast majority of real product needs and iterates in seconds. Fine-tuning earns its cost when you need: a very specific output <em>style</em> or format consistently reproduced at scale where prompting is unreliable, much lower latency/cost by using a smaller fine-tuned model instead of a large general one, or a narrow, repetitive task where you have thousands of labeled examples.</p>
+        <div class="callout">Common mistake: fine-tuning to "teach the model facts." Fine-tuning is poor at reliably injecting new factual knowledge — it tends to shift style and behaviour more than ground-truth recall. For facts, RAG almost always wins over fine-tuning.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="vector database embeddings similarity cosine dot product">
+      <summary><span class="qix">A06</span><span class="qtext">How does a vector database find "similar" text?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An embedding model turns text into a list of numbers (a vector) such that texts with similar <em>meaning</em> end up as nearby points in that number-space — even if they don't share any words. "Similarity search" is just finding the nearest points.</div>
+        <p class="analogy">Like plotting every sentence as a dot on a giant map, where dots close together mean similar meaning. "How do I reset my password" and "I forgot my login" land near each other even though they share almost no words, because an embedding model captures meaning, not just vocabulary.</p>
+        <p>Similarity is typically measured with <b>cosine similarity</b> (the angle between two vectors) or dot product. Searching this space naively (compare against every vector) doesn't scale, so vector DBs (Pinecone, Weaviate, pgvector, FAISS) build approximate-nearest-neighbour indexes (like HNSW) that trade a little accuracy for huge speed at scale. <b>Why it matters:</b> this is the retrieval half of RAG — embedding quality and index tuning directly determine answer quality, independent of which LLM you use downstream.</p>
+      </div>
+    </details>
+  </section>
+  <section class="cat" id="skills" data-cat="skills">
+    <h2><span class="ix">02</span> Claude Skills</h2>
+    <p class="cat-sub">What Skills are, how they're structured, how to build one well, and how to evaluate it.</p>
+
+    <details class="qa" data-tags="what is a claude skill definition purpose">
+      <summary><span class="qix">A07</span><span class="qtext">What is a Claude Skill, conceptually?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A Skill is a packaged folder of instructions and reference material that teaches an AI agent how to do a specific kind of task well — the same way a new hire gets a runbook instead of having to rediscover best practices from scratch every time.</div>
+        <p class="analogy">Think of a Skill as a specialist's playbook handed to a generalist. The model already "knows" how to write code or edit a document in a generic sense, but a Skill encodes the hard-won, environment-specific details — which library to use, which pitfalls to avoid, what the output format needs to look like — so the agent doesn't have to rediscover them by trial and error on every task.</p>
+        <p>Practically, a Skill is a directory containing a primary instructions file (commonly named <code>SKILL.md</code>) plus any supporting reference files, and the agent reads it before attempting a matching task. The point isn't to teach the model something it's fundamentally incapable of — it's to close the gap between "generically capable" and "reliably good at this exact recurring task in this exact environment."</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="skill structure skill.md format sections triggers description">
+      <summary><span class="qix">A08</span><span class="qtext">What does a well-structured Skill actually contain?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A good Skill has two jobs: help the agent decide <em>when</em> to use it, and tell it precisely <em>how</em> once it's decided. Weak Skills conflate these and end up either never triggering or triggering on the wrong tasks.</div>
+        <p>The recurring structure that works well:</p>
+        <ul>
+          <li><b>A sharp trigger description</b> — the metadata the agent scans before even opening the file needs to unambiguously say what kinds of requests this Skill covers, using the actual words a user would use, not just an abstract category name.</li>
+          <li><b>Concrete constraints, not vague advice</b> — "use library X, not Y, because Z breaks in this environment" beats "write good code." Specificity is what makes a Skill better than the model's generic knowledge.</li>
+          <li><b>Worked examples</b> — a short example of the exact input→output shape removes ambiguity faster than another paragraph of prose.</li>
+          <li><b>Explicit failure modes</b> — naming the mistakes people commonly make ("don't use localStorage here, it silently fails") saves the agent from repeating them.</li>
+          <li><b>Reference files kept separate</b> — long lookup tables or exhaustive references live in their own files the agent reads on demand, so the main instructions file stays scannable rather than becoming an unreadable wall of text.</li>
+        </ul>
+        <div class="callout"><b>Anti-pattern:</b> a Skill that just restates general best practices the model already knows. That adds token cost with no behaviour change. A Skill earns its place by encoding something the model would <em>get wrong or leave to chance</em> without it.</div>
+        <p>A minimal but well-formed example — a Skill for generating chart images in a specific internal format:</p>
+        <pre><code><span class="c">---</span>
+<span class="c">name: chart-generator</span>
+<span class="c">description: Use when the user asks for a chart, graph, or data</span>
+<span class="c">  visualization that needs to match our internal dashboard style.</span>
+<span class="c">  Covers bar, line, and pie charts from CSV or JSON input.</span>
+<span class="c">---</span>
+
+<span class="c"># Chart Generator</span>
+
+<span class="c">## When NOT to use this</span>
+<span class="c">Ad-hoc one-off plots for exploratory analysis — use plain matplotlib</span>
+<span class="c">for those. This Skill is only for charts matching our dashboard style.</span>
+
+<span class="c">## Required style</span>
+<span class="c">- Font: Inter, 12px axis labels</span>
+<span class="c">- Color palette: use palette.json in this folder, NOT default colors</span>
+<span class="c">- Always include a title and a source-data timestamp footer</span>
+
+<span class="c">## Common mistake to avoid</span>
+<span class="c">Do not use library auto-scaling for the y-axis on revenue charts —</span>
+<span class="c">it makes small monthly changes look dramatic. Always start y-axis at 0</span>
+<span class="c">for revenue/count metrics; auto-scale is fine for percentage metrics.</span>
+
+<span class="c">## Reference</span>
+<span class="c">See palette.json for exact hex values and chart-examples.md for</span>
+<span class="c">three worked input→output examples.</span></code></pre>
+        <p>Notice the shape: the description up top is written the way a real request would be phrased ("chart, graph, visualization"), the body is almost entirely constraints the model wouldn't otherwise know (exact palette, the y-axis mistake), and the exhaustive example set lives in a separate reference file rather than bloating this one.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="build skill from scratch process authoring">
+      <summary><span class="qix">A09</span><span class="qtext">Walk through building a Skill from scratch.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> You don't write a Skill by imagining what might go wrong — you write it by watching the agent actually fail at the task, then encoding the fix. It's closer to debugging than authoring documentation from a blank page.</div>
+        <ol>
+          <li><b>Run the task without a Skill first.</b> Give the agent the raw task and see where it goes wrong or makes inconsistent choices — those gaps are exactly what the Skill needs to close.</li>
+          <li><b>Write the trigger description</b> so the agent recognizes matching future requests, phrased the way real requests are phrased, not how a category label would be phrased.</li>
+          <li><b>Encode the specific fixes</b> for the failures you observed — the missing constraint, the wrong default, the undocumented environment quirk.</li>
+          <li><b>Re-run the same task with the Skill loaded</b> and confirm the failure is actually gone, not just superficially addressed.</li>
+          <li><b>Test adjacent, related tasks</b> to check the Skill generalizes and doesn't overfit to your one example.</li>
+          <li><b>Trim aggressively.</b> Every extra paragraph costs context budget on every future invocation — keep only what changed the outcome in testing.</li>
+        </ol>
+        <p><b>Why it matters for the interview:</b> the mindset transfers directly from mobile engineering — a Skill is basically a "runbook as code," and building one well is an iteration loop, not a one-shot writing exercise, exactly like debugging a flaky test or fixing a build-time regression.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="eval skill test measure effectiveness before after">
+      <summary><span class="qix">A10</span><span class="qtext">How do you evaluate whether a Skill is actually working?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The same way you'd evaluate any change to a system: build a fixed set of representative test tasks, run them with and without the Skill, and measure the difference — not vibes, a before/after comparison on the same inputs.</div>
+        <p>A practical eval loop:</p>
+        <ol>
+          <li><b>Collect a task set</b> that represents the real range of requests the Skill should cover — including edge cases and near-misses that shouldn't trigger it.</li>
+          <li><b>Define pass/fail criteria per task</b> up front — a rubric, an exact-match check, or a grading model, decided before you look at outputs (otherwise you unconsciously grade generously).</li>
+          <li><b>Run baseline (no Skill) vs. treatment (with Skill)</b> on the identical task set.</li>
+          <li><b>Look at the diffs, not just the aggregate score.</b> A Skill that fixes 3 failures but introduces 1 new one in a previously-passing case is a net win numerically but might indicate the Skill overcorrects — worth reading actual transcripts, not just a pass rate.</li>
+          <li><b>Track variance across runs</b> — LLM outputs aren't fully deterministic, so run each task multiple times before concluding a change helped or hurt.</li>
+        </ol>
+        <p><b>What "good" looks like:</b> a measurable jump in the pass rate on the tasks the Skill targets, with no regression on tasks it shouldn't touch (checked via the trigger-description precision — does it fire only when it should?). This is precisely the discipline of the eval track below (A15–A20) applied to one specific artifact instead of a whole system.</p>
+        <p>A concrete, minimal harness for this comparison:</p>
+        <pre><code><span class="k">const</span> tasks = [
+    { input: <span class="s">'chart of monthly revenue for Q1'</span>, mustInclude: [<span class="s">'y-axis starts at 0'</span>, <span class="s">'Inter font'</span>] },
+    { input: <span class="s">'quick scatter plot for my analysis'</span>, mustNotTrigger: <span class="s">'chart-generator'</span> },   <span class="c">// negative case</span>
+    <span class="c">// … representative sample of real request phrasings</span>
+];
+
+<span class="k">async function</span> <span class="f">runEval</span>(withSkill) {
+    <span class="k">let</span> passed = 0;
+    <span class="k">for</span> (<span class="k">const</span> t <span class="k">of</span> tasks) {
+        <span class="k">const</span> output = <span class="k">await</span> agent.run(t.input, { skills: withSkill ? [<span class="s">'chart-generator'</span>] : [] });
+        <span class="k">if</span> (<span class="f">gradeAgainstCriteria</span>(output, t)) passed++;
+    }
+    <span class="k">return</span> passed / tasks.length;
+}
+
+<span class="k">const</span> baseline = <span class="k">await</span> <span class="f">runEval</span>(<span class="k">false</span>);   <span class="c">// score without the Skill</span>
+<span class="k">const</span> treatment = <span class="k">await</span> <span class="f">runEval</span>(<span class="k">true</span>);   <span class="c">// score with the Skill loaded</span>
+<span class="f">console</span>.log({ baseline, treatment, delta: treatment - baseline });</code></pre>
+        <p>The negative case in the task list matters as much as the positive ones — it's how you catch a Skill that's <em>too</em> eager to trigger and starts hijacking unrelated requests.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="skill vs prompt vs fine tune when to use">
+      <summary><span class="qix">A11</span><span class="qtext">Skill vs. a longer system prompt vs. fine-tuning — how do you choose?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> All three encode "how to behave," but they differ in when the knowledge loads and how narrow it is. A system prompt is always present and general; a Skill is loaded only when relevant and can be as long and detailed as the task needs; fine-tuning bakes behaviour into the model weights themselves.</div>
+        <table><tr><th></th><th>System prompt</th><th>Skill</th><th>Fine-tuning</th></tr>
+        <tr><td>Loaded</td><td>always, every call</td><td>only when task matches</td><td>baked into the model</td></tr>
+        <tr><td>Best for</td><td>identity, tone, global rules</td><td>task-specific, detailed know-how</td><td>consistent style/format at scale</td></tr>
+        <tr><td>Cost per call</td><td>always paid</td><td>only paid when used</td><td>none (in weights)</td></tr>
+        <tr><td>Iteration speed</td><td>fast</td><td>fast</td><td>slow, needs retraining</td></tr></table>
+        <p><b>Rule of thumb:</b> global behaviour that should apply to every interaction → system prompt. Deep, specific know-how needed only for certain recurring task types → a Skill, so you're not paying its token cost on unrelated requests. Extremely high-volume, narrow, stylistically-consistent output where prompting proves unreliable → consider fine-tuning, but only after a Skill has been tried and measured.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="progressive disclosure context budget skill loading efficiency">
+      <summary><span class="qix">A12</span><span class="qtext">Why do good Skills use "progressive disclosure" instead of one giant file?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Context window space is a real, limited budget — every token spent on instructions the agent didn't need is a token not spent on the actual task. So good Skills keep the main file short and push exhaustive detail into separate reference files the agent only opens if the task actually needs that specific detail.</div>
+        <p class="analogy">Like a table of contents versus reading an entire textbook cover to cover for every question. A short index gets you to the right chapter fast; you don't reread the whole book to answer one question.</p>
+        <p>Concretely: the primary instructions file stays scannable — core guidance, decision rules, common cases — while deep reference material (exhaustive API listings, edge-case tables, long examples) lives in linked files the agent fetches only when the task at hand actually touches that area. This keeps the "always paid" cost of having the Skill loaded low, while still supporting deep, thorough coverage when it's genuinely needed.</p>
+      </div>
+    </details>
+  </section>
+  <section class="cat" id="evals" data-cat="evals">
+    <h2><span class="ix">03</span> Evals &amp; reliability</h2>
+    <p class="cat-sub">How AI engineers actually know a system is good, and keep it good as it changes.</p>
+
+    <details class="qa" data-tags="what is an eval why matters ai product">
+      <summary><span class="qix">A13</span><span class="qtext">What is an "eval" and why is it the core skill of AI engineering?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An eval is a test suite for an AI system — a fixed set of inputs with a way to judge whether the output was good. It's the equivalent of unit tests, except the thing under test is non-deterministic and "correct" is often fuzzy.</div>
+        <p>Without evals, "improving the prompt" is guessing — you tweak something, try it a couple of times, it feels better, and ship it. That's exactly how regressions sneak in on the cases you didn't happen to try. With an eval set, every change gets a before/after number on a fixed, representative sample, so you can actually tell improvement from noise.</p>
+        <p><b>Why it's the central skill:</b> in traditional software, correctness is largely binary and testable with assertions. In AI systems, output quality is graded, not binary, and inputs are effectively infinite — so the entire discipline shifts from "did the test pass" to "how do we build a trustworthy, representative sample and a fair way to grade it." That's evals.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="eval types automated grading llm judge exact match rubric">
+      <summary><span class="qix">A14</span><span class="qtext">What are the main ways to grade an LLM's output?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Grading gets harder as the task gets more open-ended. For tasks with one clearly right answer, checking is cheap and exact. For open-ended writing or reasoning, you often need another model — or a human — to judge quality.</div>
+        <ul>
+          <li><b>Exact match / regex / schema validation</b> — fastest and most reliable, when the task has a precisely correct answer (a JSON structure, a specific extracted value, a classification label).</li>
+          <li><b>Rubric-based grading</b> — define specific criteria ("does it cite a source," "is the tone appropriate," "does it avoid X") and check each independently, either programmatically or with a grading model.</li>
+          <li><b>LLM-as-judge</b> — use a strong model to score an output against a rubric or compare two outputs. Fast to scale, but has its own biases (favors longer or more confident-sounding answers) that you have to actively guard against.</li>
+          <li><b>Human review</b> — the ground truth for genuinely subjective or high-stakes quality, but slow and expensive, so usually reserved for calibrating the automated methods above or for a small held-out sample.</li>
+        </ul>
+        <p><b>Best practice:</b> use the cheapest method that's actually valid for the task, and periodically spot-check LLM-judge scores against human judgment to make sure the judge hasn't drifted from what actually matters.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="golden dataset test set representative sampling">
+      <summary><span class="qix">A15</span><span class="qtext">How do you build a good eval dataset?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A test set is only useful if it actually looks like the real traffic your system will see. A handful of easy examples you made up yourself will tell you almost nothing about how it behaves in production.</div>
+        <ul>
+          <li><b>Sample real usage</b> where possible — actual user queries or, early on, queries from the people closest to the problem (support tickets, sales calls, internal dogfooding) rather than invented ones.</li>
+          <li><b>Deliberately include hard cases</b> — ambiguous phrasing, edge cases, adversarial inputs, and near-misses that shouldn't trigger a feature. Easy cases don't discriminate between a good system and a mediocre one.</li>
+          <li><b>Keep a held-out set</b> you don't optimize against directly, so you can catch overfitting to your visible eval set — the same discipline as a train/validation/test split.</li>
+          <li><b>Version and grow it over time</b> — every real production failure you find becomes a new eval case, so regressions can never silently reappear.</li>
+        </ul>
+        <p><b>Size:</b> starting with even 20–50 well-chosen, diverse cases beats 500 near-duplicates. Grow it as you discover failure modes, rather than trying to enumerate everything up front.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="regression testing prompt changes ci evals production">
+      <summary><span class="qix">A16</span><span class="qtext">How do you stop a prompt change from silently breaking something?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Run your eval set automatically every time the prompt, model, or pipeline changes — the same discipline as running CI before merging code — instead of eyeballing a couple of manual test runs and shipping.</div>
+        <p>Treat prompts like code: version them, and gate changes on the eval suite passing at or above the current baseline score. A drop on any tracked metric is a signal to look closer before merging, exactly like a failing CI job. This is the transferable instinct from mobile: I built CI pipelines that caught regressions before release; an eval suite is the same principle applied to a prompt or an agent instead of a binary.</p>
+        <div class="callout"><b>Extra wrinkle vs. normal CI:</b> LLM outputs have run-to-run variance even at the same input, so a single failing run isn't necessarily a real regression — track pass rate across multiple runs per case, not one binary pass/fail per case, before concluding something broke.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="hallucination reduce mitigate grounding citations">
+      <summary><span class="qix">A17</span><span class="qtext">How do you reduce hallucinations in a production AI feature?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A model will confidently state things that aren't true when it's forced to answer from memory rather than from evidence you actually gave it. Every real lever for reducing this comes down to grounding the answer in real, retrievable evidence and making it easy for the model to say "I don't know."</div>
+        <ul>
+          <li><b>Ground with retrieval (RAG)</b> — give the model the actual source text and instruct it to answer only from what's provided, rather than relying on memorized training data.</li>
+          <li><b>Explicitly permit "I don't know"</b> — a model without an escape hatch will guess; instructing it that an uncertain or unsupported answer is an acceptable outcome measurably reduces confident fabrication.</li>
+          <li><b>Ask for citations</b> — requiring the model to point to which retrieved chunk supports each claim both improves grounding and gives users (and your evals) a way to verify the answer.</li>
+          <li><b>Lower temperature for factual tasks</b> — reduces the randomness that can push a model toward a plausible-sounding but wrong completion.</li>
+          <li><b>Verify high-stakes outputs</b> — for anything consequential, add a second pass (rule-based check, or a separate model call) that verifies claims against the source before the answer reaches the user.</li>
+        </ul>
+        <p><b>Why it matters:</b> this is the difference between a demo and a trustworthy product — hallucination rate under real, hard inputs is usually the single most-tracked metric in a production AI eval suite.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="cost latency tradeoff model selection production ai">
+      <summary><span class="qix">A18</span><span class="qtext">How do you think about cost and latency trade-offs in an AI feature?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Bigger, smarter models cost more per call and respond slower. Most production systems don't need the biggest model for every step — they route different parts of the task to differently-sized models based on how hard that specific part actually is.</div>
+        <ul>
+          <li><b>Model tiering</b> — use a fast, cheap model for simple classification/routing steps, and reserve the most capable model for the step that genuinely needs deep reasoning.</li>
+          <li><b>Caching</b> — repeated or near-identical queries (common in support/FAQ-style features) can skip the model call entirely.</li>
+          <li><b>Streaming</b> — start showing tokens as they're generated instead of waiting for the full response, which improves perceived latency even when total generation time is unchanged.</li>
+          <li><b>Prompt length discipline</b> — trimming unnecessary context (this is exactly what Skill progressive-disclosure design is for) directly reduces both cost and latency, since you pay per token.</li>
+        </ul>
+        <p><b>Mobile-engineer instinct that transfers directly:</b> this is the same trade-off shape as choosing Dispatchers.IO vs Default, or deciding what goes in a Baseline Profile — spend the expensive resource only where it actually changes the outcome.</p>
+      </div>
+    </details>
+  </section>
+  <section class="cat" id="fde" data-cat="fde">
+    <h2><span class="ix">04</span> Forward Deployed Engineer</h2>
+    <p class="cat-sub">The client-facing, rapid-integration skillset FDE roles actually test for — and how mobile/full-stack experience maps onto it.</p>
+
+    <details class="qa" data-tags="what is fde role definition responsibilities">
+      <summary><span class="qix">A19</span><span class="qtext">What does a Forward Deployed Engineer actually do day to day?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An FDE embeds directly with a customer, understands their specific messy real-world problem, and builds and ships a working solution against their actual systems and data — fast, and often on-site or in close collaboration with the client's team, rather than building a generic product feature from a distance.</div>
+        <p>The role sits at the intersection of three things: <b>engineering</b> (you actually build and ship working software, often integrating with a client's existing systems, APIs, and data), <b>product judgment</b> (you're often the one figuring out what to build, not just executing a spec someone else wrote), and <b>relationship/communication skill</b> (you're translating between what the client says they need and what's technically feasible, often in real time, in the room).</p>
+        <p><b>How it differs from a typical product engineering role:</b> less time on long-term architecture for a single codebase serving millions of generic users, more time on rapid, correct, pragmatic solutions tailored to one customer's specific constraints and systems — and a much shorter feedback loop between "customer describes a problem" and "customer sees it solved."</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="fde skills required technical breadth generalist">
+      <summary><span class="qix">A20</span><span class="qtext">What technical breadth do FDE interviews actually probe?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Depth in one stack matters less than the ability to quickly get productive in whatever stack the client already has. Interviews probe for "can you learn and integrate fast," not just "do you already know this exact framework."</div>
+        <ul>
+          <li><b>Systems integration</b> — reading unfamiliar APIs and data formats quickly, understanding auth flows, working with data you don't control the schema of.</li>
+          <li><b>Full-stack comfort</b> — being unblocked whether the gap is frontend, backend, data pipeline, or infra, because in a small embedded team there's often no one else to hand it to.</li>
+          <li><b>Rapid prototyping under ambiguity</b> — building something functional from a loosely specified problem fast, then iterating with the client's feedback rather than a written spec.</li>
+          <li><b>AI/LLM integration specifically</b> — increasingly core for AI-focused FDE roles: connecting an LLM to a client's actual data and systems (which is exactly the RAG/agent/tool-use material above), not just calling a chat API.</li>
+          <li><b>Debugging in someone else's environment</b> — client systems are messier and less documented than your own codebase; comfort with ambiguity and incomplete information is a real, tested skill.</li>
+        </ul>
+        <p><b>Directly transferable from my background:</b> building native modules that bridge Kotlin/Swift into React Native, wiring Speech-to-Text/TTS across platforms, and standing up CriQ's full pipeline (Android + iOS + React Native + backend + CI/CD) end-to-end are all "learn an unfamiliar surface fast and make it work correctly" — the exact muscle FDE work exercises, just aimed at a client's systems instead of my own company's.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="fde vs solutions engineer vs product engineer difference">
+      <summary><span class="qix">A21</span><span class="qtext">FDE vs. Solutions Engineer vs. product Software Engineer — how do they actually differ?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The three roles sit on a spectrum from "mostly configuring an existing product" to "mostly writing new code," with FDE landing in the middle — closer to the customer than a typical product engineer, but writing more real code than a typical solutions/sales engineer.</div>
+        <table><tr><th></th><th>Solutions Engineer</th><th>FDE</th><th>Product Software Engineer</th></tr>
+        <tr><td>Primary output</td><td>configuration, demos, technical sales support</td><td>working, deployed integrations/features</td><td>features in the core product</td></tr>
+        <tr><td>Customer contact</td><td>very high, often pre-sale</td><td>high, hands-on and ongoing</td><td>usually low/indirect</td></tr>
+        <tr><td>Code ownership</td><td>light — mostly config/scripts</td><td>real, often production, customer-specific</td><td>real, shared long-term codebase</td></tr>
+        <tr><td>Time horizon</td><td>a sales cycle</td><td>a deployment/project</td><td>a product roadmap, ongoing</td></tr></table>
+        <p><b>Why this distinction matters in an interview:</b> the honest answer to "why FDE and not a regular SWE role" should point at genuinely wanting the tight customer feedback loop and the breadth of ambiguous, cross-stack problem solving — not just "I like talking to people." Interviewers are checking whether you understand what you're actually signing up for.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="ambiguous requirements client communication translate needs">
+      <summary><span class="qix">A22</span><span class="qtext">How do you turn a vague client ask into a concrete technical plan?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A client describes the <em>symptom</em> ("our support team is drowning in tickets"), not the technical solution. The FDE's job is to dig one or two levels deeper to find the actual bottleneck before writing any code — otherwise you build a technically impressive solution to the wrong problem.</div>
+        <ol>
+          <li><b>Ask for a concrete example, not an abstract description</b> — "walk me through the last three tickets that took too long" surfaces the real pattern far faster than "what's slow about your process."</li>
+          <li><b>Identify what's actually being asked for vs. what would actually help</b> — clients often propose a specific solution ("build us a chatbot") when the underlying need is narrower ("stop answering the same 5 questions manually"); a smaller, faster win often beats the originally-requested scope.</li>
+          <li><b>Propose the smallest version that proves value fast</b> — a scoped prototype the client can react to beats a long requirements document, because their feedback on a real thing is more accurate than their feedback on a spec.</li>
+          <li><b>Make the constraints explicit and shared</b> — data access, security, timeline — so the client is deciding trade-offs with you, not discovering them after the fact.</li>
+        </ol>
+        <p><b>Resume-relevant framing:</b> this mirrors leading architecture and design reviews across cross-functional teams — the skill of translating a fuzzy ask ("this screen feels janky") into a concrete, scoped technical plan (diagnose the actual bottleneck, then fix it) is the same muscle, just pointed at an external client instead of an internal PM.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="fde example project criq architecture pitch">
+      <summary><span class="qix">A23</span><span class="qtext">How would you frame CriQ as an FDE-style story in an interview?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> CriQ is a genuine "0 to 1, ambiguous problem, full ownership, ship fast, integrate everything" story — which is exactly the shape FDE interviewers are listening for, even though it wasn't literally a client-embedded role.</div>
+        <p>The narrative beats that map directly onto FDE evaluation criteria:</p>
+        <ul>
+          <li><b>Ambiguous starting point, end-to-end ownership</b> — led the 0→1 build across Android, iOS (via React Native), backend services, and release pipelines, for two different markets with different sign-in requirements — no existing playbook to follow.</li>
+          <li><b>Fast iteration under real constraints</b> — CodePush OTA updates and GitHub Actions pipelines built specifically to let the team ship fixes without waiting on app-store review cycles, because speed of iteration mattered.</li>
+          <li><b>Deep systems integration</b> — native modules in Kotlin and Swift bridging on-device ML inference and a dual-engine Speech-to-Text/Text-to-Speech pipeline into a cross-platform app, i.e., getting genuinely different systems (native ML runtimes, RN's JS layer, platform audio APIs) to work together correctly.</li>
+          <li><b>Built the AI tooling too, not just the product</b> — the agentic PR-review and automated test-generation pipelines are a second, self-contained "solve an ambiguous internal problem with an AI system, ship it, and measure whether it actually helped" story, directly relevant to AI-engineering-flavoured FDE roles.</li>
+        </ul>
+        <p><b>How to actually tell it:</b> lead with the ambiguity and the constraint (two markets, tight timeline, no existing pattern), then the integration complexity, then the measurable outcome — that structure is what separates a strong FDE story from a generic "I built a feature" answer.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="on call production support client facing debugging pressure">
+      <summary><span class="qix">A24</span><span class="qtext">What's different about debugging and support in a client-facing role?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> When something breaks in a client-facing deployment, you're usually debugging a system you don't fully control, with a client watching, and often without the full observability tooling you'd have in your own production environment. Composure and communication under that pressure is a distinct, testable skill from pure debugging ability.</div>
+        <p>What actually matters in this setting:</p>
+        <ul>
+          <li><b>Communicate status before you have the fix</b> — "here's what I know, here's what I'm checking next, here's when I'll update you" keeps trust intact even mid-investigation; silence during an incident erodes confidence faster than the bug itself.</li>
+          <li><b>Reproduce with minimum access</b> — client environments often restrict what logs/data you can see, so isolating a bug with partial visibility (targeted logging, asking the client for a specific screenshot or trace) is a real, practiced skill, not an afterthought.</li>
+          <li><b>Fix the immediate issue, then flag the systemic one separately</b> — a client wants their specific problem solved now; whether it reveals a deeper architectural issue is a second, calmer conversation, not something to conflate with the urgent fix.</li>
+        </ul>
+        <p><b>Directly relevant experience:</b> systematic ANR and crash triage, memory profiling, and targeted fixes for platform stability at ShareChat's scale is the same discipline — diagnose under real production constraints, communicate clearly, fix without guessing — just aimed at internal stakeholders instead of an external client.</p>
+      </div>
+    </details>
+  </section>
+  <div class="no-results">No concepts match your search.</div>
+
+  <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
+    <a class="backlink" href="index.html#notes">← Back to all deep dives</a>
+  </div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="small">Tech deep dives · maintained by Shivam Tiwari · for study, not redistribution.</div>
+    <nav class="links">
+      <a href="index.html">Portfolio</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
+      <a href="prep-extras.html">Extras</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
