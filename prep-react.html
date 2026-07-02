@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>React Native, JS &amp; React — Tech Deep Dive · Shivam Tiwari</title>
-<meta name="description" content="Extensive React Native, JavaScript and React questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
+<meta name="description" content="Extensive React Native, JavaScript and React interview questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -19,6 +19,7 @@
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
       <a class="nav-cta" href="index.html">← Portfolio</a>
     </nav>
@@ -82,175 +83,324 @@
   <!-- ============ JS CORE ============ -->
   <section class="cat" id="js" data-cat="js">
     <h2><span class="ix">01</span> JavaScript core</h2>
-    <p class="cat-sub">The engine-level questions every JS/RN developer needs an answer of.</p>
+    <p class="cat-sub">The engine-level questions every JS/RN interview opens with — explained from the ground up.</p>
 
     <details class="qa" data-tags="event loop microtask macrotask task queue promise settimeout">
       <summary><span class="qix">Q01</span><span class="qtext">Explain the event loop, micro- vs macro-tasks.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>JS is single-threaded. The <b>call stack</b> runs synchronous code; async callbacks wait in queues. After each stack frame empties, the loop drains <b>all microtasks</b> (Promise <code>.then</code>, <code>queueMicrotask</code>, <code>MutationObserver</code>) before taking <b>one macrotask</b> (<code>setTimeout</code>, I/O, UI events), then repeats.</p>
+        <div class="plain"><b>In plain terms.</b> JavaScript runs on one thread. It runs synchronous code first, then processes async callbacks from queues. There are two queue "tiers": <em>microtasks</em> (from Promises) get drained completely between every step, while <em>macrotasks</em> (setTimeout, I/O) get processed one at a time.</div>
+        <p class="analogy">Picture a barista who handles all in-line orders (sync code) first, then before taking the next customer walk-in (macrotask), fully clears the pickup shelf of paid mobile orders (microtasks). Mobile orders always beat the next walk-in.</p>
+        <p>After each stack frame empties, the loop drains <b>all microtasks</b> (Promise <code>.then</code>, <code>queueMicrotask</code>, <code>MutationObserver</code>), then takes <b>one macrotask</b> (<code>setTimeout</code>, I/O, UI events), then repeats.</p>
         <pre><code><span class="f">console</span>.log(<span class="s">'A'</span>);
-<span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(<span class="s">'B'</span>), 0);
-<span class="f">Promise</span>.resolve().then(() =&gt; <span class="f">console</span>.log(<span class="s">'C'</span>));
+<span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(<span class="s">'B'</span>), 0);   <span class="c">// macrotask</span>
+<span class="f">Promise</span>.resolve().then(() =&gt; <span class="f">console</span>.log(<span class="s">'C'</span>));   <span class="c">// microtask</span>
 <span class="f">console</span>.log(<span class="s">'D'</span>);
-<span class="c">// A D C B  — microtask C beats macrotask B</span></code></pre>
-        <p>This is why a flood of resolved promises can starve <code>setTimeout</code>/rendering.</p>
+<span class="c">// Output: A D C B  — microtask C runs before macrotask B</span></code></pre>
+        <p><b>Why it matters:</b> a runaway chain of resolved promises can starve <code>setTimeout</code> and even rendering, since microtasks keep the loop from advancing. It also explains why "delay 0" is not actually zero — you're joining the back of a macrotask queue.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="closure lexical scope counter private state">
       <summary><span class="qix">Q02</span><span class="qtext">What is a closure? Give a real use.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>A closure is a function plus the lexical environment it was created in — it keeps access to outer variables after the outer function returns. Used for private state, factories, memoization and event handlers.</p>
+        <div class="plain"><b>In plain terms.</b> A function "remembers" the variables from where it was born, even after that surrounding function has returned. That memory is the closure — it's how JavaScript gives you private state without classes.</div>
+        <p class="analogy">Like taking a snapshot of your desk when you leave the room: the papers you had out (outer variables) come with you inside the photo, and you can keep referring to them later.</p>
         <pre><code><span class="k">function</span> <span class="f">counter</span>() {
-    <span class="k">let</span> n = 0;            <span class="c">// private</span>
-    <span class="k">return</span> () =&gt; ++n;
+    <span class="k">let</span> n = 0;              <span class="c">// private — outside code can't touch it</span>
+    <span class="k">return</span> () =&gt; ++n;       <span class="c">// this arrow function closes over 'n'</span>
 }
 <span class="k">const</span> c = <span class="f">counter</span>();
-c(); c();              <span class="c">// 1, 2</span></code></pre>
-        <p>Classic gotcha: <code>var</code> in a loop closes over one shared binding; use <code>let</code> (per-iteration binding) so each callback captures its own value.</p>
+c(); c();                <span class="c">// 1, 2 — same 'n' persists between calls</span></code></pre>
+        <p>A second real example — closures are how you build a rate-limited API key without exposing the counter:</p>
+        <pre><code><span class="k">function</span> <span class="f">createRateLimiter</span>(max) {
+    <span class="k">let</span> calls = 0;
+    <span class="k">return function</span> () {
+        <span class="k">if</span> (calls &gt;= max) <span class="k">throw new</span> <span class="f">Error</span>(<span class="s">'rate limited'</span>);
+        calls++;
+        <span class="k">return</span> <span class="f">fetch</span>(<span class="s">'/api'</span>);
+    };
+}
+<span class="k">const</span> callApi = <span class="f">createRateLimiter</span>(5);   <span class="c">// 'calls' is private to this instance</span></code></pre>
+        <p><b>Classic trap:</b> a <code>var</code> in a loop shares one binding across iterations, so all callbacks see the final value; <code>let</code> creates a fresh per-iteration binding, so each callback captures its own:</p>
+        <pre><code><span class="k">for</span> (<span class="k">var</span> i = 0; i &lt; 3; i++) <span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(i), 0);
+<span class="c">// 3, 3, 3 — all three closures share the same 'i'</span>
+<span class="k">for</span> (<span class="k">let</span> j = 0; j &lt; 3; j++) <span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(j), 0);
+<span class="c">// 0, 1, 2 — each iteration gets its own 'j'</span></code></pre>
       </div>
     </details>
 
     <details class="qa" data-tags="this binding call apply bind arrow function context">
       <summary><span class="qix">Q03</span><span class="qtext">How is <code>this</code> determined? Why do arrow functions differ?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>this</code> is set by <b>how a function is called</b>, not where it's defined: a method call binds to the object before the dot; a bare call is <code>undefined</code> (strict) or global; <code>new</code> binds to the new instance; <code>call</code>/<code>apply</code>/<code>bind</code> set it explicitly. <b>Arrow functions</b> have no own <code>this</code> — they capture it lexically from the enclosing scope, which is why they're ideal for callbacks where you want the surrounding <code>this</code> (and why you can't <code>bind</code> them).</p>
+        <div class="plain"><b>In plain terms.</b> In a regular function, <code>this</code> depends on <em>how you called it</em>, not where you wrote it. In an arrow function there's no own <code>this</code> at all — it borrows from the surrounding code, which is usually what you actually want in callbacks.</div>
+        <pre><code><span class="k">const</span> user = {
+    name: <span class="s">'Sara'</span>,
+    greetRegular: <span class="k">function</span> () { <span class="k">return</span> <span class="s">`Hi, ${this.name}`</span>; },
+    greetArrow: () =&gt; { <span class="k">return</span> <span class="s">`Hi, ${this?.name}`</span>; }
+};
+user.greetRegular();   <span class="c">// "Hi, Sara" — 'this' = user, the caller</span>
+user.greetArrow();     <span class="c">// "Hi, undefined" — arrow's 'this' comes from outer scope, not user</span></code></pre>
+        <p>For regular functions, <code>this</code> is set by the call site: a method call (<code>obj.fn()</code>) binds <code>this</code> to <code>obj</code>; a bare call (<code>fn()</code>) gives <code>undefined</code> in strict mode; <code>new Fn()</code> binds to the new instance; <code>fn.call(x)</code>/<code>apply(x)</code>/<code>bind(x)</code> set it explicitly.</p>
+        <pre><code><span class="k">class</span> Counter {
+    n = 0;
+    inc = () =&gt; { <span class="k">this</span>.n++; };   <span class="c">// arrow: 'this' = the Counter instance always</span>
+}
+<span class="k">const</span> counter = <span class="k">new</span> Counter();
+button.addEventListener(<span class="s">'click'</span>, counter.inc);   <span class="c">// works — no .bind(counter) needed</span></code></pre>
+        <p><b>Why it matters:</b> this is exactly why React class components historically needed <code>this.handleClick = this.handleClick.bind(this)</code> in the constructor for regular methods, but class fields with arrow functions sidestep the problem entirely.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="prototype prototypal inheritance __proto__ prototype chain">
       <summary><span class="qix">Q04</span><span class="qtext">How does prototypal inheritance work?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Every object has an internal <code>[[Prototype]]</code> link. On a property miss, the engine walks up the prototype chain until it finds the property or hits <code>null</code>. <code>class</code> is syntactic sugar over this: methods live on <code>Class.prototype</code>, shared by all instances. <code>Object.create(proto)</code> makes an object with a chosen prototype; <code>obj.__proto__</code>/<code>Object.getPrototypeOf</code> read the link.</p>
+        <div class="plain"><b>In plain terms.</b> Every object has a hidden link to another object — its "prototype." When you access a property that doesn't exist on the object, JavaScript follows that link up the chain until it finds one, or reaches the end (null).</div>
+        <p class="analogy">Like a lookup at a big company: if your team doesn't have the answer, they check with the department, then the division, then HQ, then give up. Each level is a prototype in the chain.</p>
+        <pre><code><span class="k">const</span> animal = { eats: <span class="k">true</span> };
+<span class="k">const</span> rabbit = <span class="f">Object</span>.create(animal);   <span class="c">// rabbit.[[Prototype]] = animal</span>
+rabbit.jumps = <span class="k">true</span>;
+rabbit.eats;    <span class="c">// true — not on rabbit itself, found on 'animal' via the chain</span>
+<span class="f">Object</span>.getPrototypeOf(rabbit) === animal;   <span class="c">// true</span></code></pre>
+        <p>The <code>class</code> keyword is sugar over exactly this: methods live on <code>Class.prototype</code> and are shared by all instances — one copy in memory, not one per object.</p>
+        <pre><code><span class="k">class</span> Animal {
+    <span class="k">constructor</span>(name) { <span class="k">this</span>.name = name; }
+    speak() { <span class="k">return</span> <span class="s">`${this.name} makes a sound`</span>; }   <span class="c">// lives on Animal.prototype</span>
+}
+<span class="k">const</span> a1 = <span class="k">new</span> Animal(<span class="s">'Rex'</span>), a2 = <span class="k">new</span> Animal(<span class="s">'Fido'</span>);
+a1.speak === a2.speak;   <span class="c">// true — same function object, shared via the prototype</span></code></pre>
+        <p><b>Why it matters:</b> this demystifies "why does my object have <code>toString</code>?" and explains patterns like mixins and delegation without deep class hierarchies.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="hoisting var let const tdz temporal dead zone">
       <summary><span class="qix">Q05</span><span class="qtext"><code>var</code> vs <code>let</code>/<code>const</code>: hoisting and the TDZ.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>var</code> is function-scoped and hoisted, initialized to <code>undefined</code>. <code>let</code>/<code>const</code> are block-scoped and hoisted too but live in the <b>Temporal Dead Zone</b> — referencing them before declaration throws <code>ReferenceError</code>. <code>const</code> forbids rebinding (the value can still mutate). Function <em>declarations</em> are fully hoisted; function <em>expressions</em> follow their variable's rules.</p>
+        <div class="plain"><b>In plain terms.</b> Both are "hoisted" — the engine knows about them before their line runs — but <code>var</code> is initialized to <code>undefined</code>, so using it early is silently weird; <code>let</code>/<code>const</code> throw a clear error if you touch them before their declaration.</div>
+        <pre><code><span class="f">console</span>.log(a);   <span class="c">// undefined  (var: hoisted &amp; initialized to undefined)</span>
+<span class="f">console</span>.log(b);   <span class="c">// ReferenceError: Cannot access 'b' before initialization (TDZ)</span>
+<span class="k">var</span> a = 1;
+<span class="k">let</span> b = 2;</code></pre>
+        <p>That error zone between the top of the block and the actual declaration is the <b>Temporal Dead Zone</b> — it exists so accidentally using a variable before you meant to is a loud crash instead of a subtle bug.</p>
+        <pre><code><span class="k">function</span> <span class="f">scopeDemo</span>() {
+    <span class="k">if</span> (<span class="k">true</span>) {
+        <span class="k">var</span> x = 1;    <span class="c">// leaks to function scope</span>
+        <span class="k">let</span> y = 2;    <span class="c">// contained to this block</span>
+    }
+    <span class="f">console</span>.log(x);   <span class="c">// 1 — var escaped the if-block</span>
+    <span class="c">// console.log(y);   // ReferenceError — y doesn't exist here</span>
+}</code></pre>
+        <p>Rule of thumb today: default to <code>const</code>, use <code>let</code> when reassigning, avoid <code>var</code> entirely in new code.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="equality == === coercion type conversion null undefined">
       <summary><span class="qix">Q06</span><span class="qtext"><code>==</code> vs <code>===</code>, and surprising coercions.</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>===</code> compares type + value with no coercion. <code>==</code> coerces, with thorny rules. Use <code>===</code> by default. Worth memorizing: <code>null == undefined</code> is <code>true</code> but <code>null === undefined</code> is false; <code>NaN !== NaN</code> (use <code>Number.isNaN</code>); <code>[] == ![]</code> is <code>true</code>; <code>0 == ''</code> is <code>true</code>. The one acceptable <code>==</code> is <code>x == null</code> to catch both null and undefined.</p>
+        <div class="plain"><b>In plain terms.</b> <code>===</code> compares strictly — same type, same value. <code>==</code> tries to convert one side to match the other first, and its rules are famously weird. Default to <code>===</code>.</div>
+        <pre><code><span class="k">null</span> == <span class="k">undefined</span>       <span class="c">// true  (only these two are == equal to each other)</span>
+<span class="k">null</span> === <span class="k">undefined</span>      <span class="c">// false — different types</span>
+<span class="f">NaN</span> === <span class="f">NaN</span>              <span class="c">// false — use Number.isNaN(x) instead</span>
+[] == ![]                <span class="c">// true  — both sides coerce to 0</span>
+0 == <span class="s">''</span>                 <span class="c">// true  — empty string coerces to 0</span>
+<span class="s">'0'</span> == 0                <span class="c">// true  — string coerces to number</span>
+{} == {}                 <span class="c">// false — object identity, not contents</span></code></pre>
+        <p><b>The one legitimate <code>==</code>:</b> <code>x == null</code> checks for both <code>null</code> and <code>undefined</code> in one expression — a genuinely useful shorthand. Otherwise, always <code>===</code>.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="promise async await error handling chaining then catch">
       <summary><span class="qix">Q07</span><span class="qtext">Promises vs async/await; how do errors flow?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>A Promise is a value that settles once (fulfilled/rejected); <code>.then/.catch/.finally</code> chain transformations. <code>async/await</code> is sugar that lets you write the chain like synchronous code — <code>await</code> pauses until the promise settles. Errors: a rejected promise skips <code>.then</code> to the nearest <code>.catch</code>; with await, wrap in <code>try/catch</code>. Run independent work in parallel with <code>Promise.all</code> (fail-fast) or <code>Promise.allSettled</code> (collect all outcomes). An unhandled rejection is a bug — always handle or propagate.</p>
+        <div class="plain"><b>In plain terms.</b> A Promise is a placeholder for a value that will settle later — either successfully (resolved) or with an error (rejected). <code>async/await</code> is prettier syntax for the same thing: it lets you write async code that reads top-to-bottom like normal code.</div>
+        <pre><code><span class="c">// same logic, two styles</span>
+<span class="k">function</span> <span class="f">loadPromise</span>() {
+    <span class="k">return</span> api.user()
+        .then(user =&gt; api.feed(user.id))
+        .catch(e =&gt; { <span class="f">reportError</span>(e); <span class="k">throw</span> e; });
+}
+<span class="k">async function</span> <span class="f">loadAsync</span>() {
+    <span class="k">try</span> {
+        <span class="k">const</span> user = <span class="k">await</span> api.user();
+        <span class="k">return await</span> api.feed(user.id);
+    } <span class="k">catch</span> (e) { <span class="f">reportError</span>(e); <span class="k">throw</span> e; }
+}</code></pre>
+        <p>For running independent calls in parallel, awaiting sequentially wastes time. Use <code>Promise.all</code> to run in parallel and fail-fast if any fails; <code>Promise.allSettled</code> if you want every result regardless of outcome:</p>
+        <pre><code><span class="k">async function</span> <span class="f">loadDashboard</span>() {
+    <span class="k">const</span> [user, feed] = <span class="k">await</span> <span class="f">Promise</span>.all([
+        api.user(), api.feed()      <span class="c">// both start immediately, run concurrently</span>
+    ]);
+    <span class="k">return</span> { user, feed };
+}</code></pre>
+        <p><b>Gotcha:</b> an unhandled promise rejection is a bug (a hard crash in modern Node/RN). Always handle or explicitly propagate it.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="shallow deep copy spread structuredClone reference">
       <summary><span class="qix">Q08</span><span class="qtext">Shallow vs deep copy in JS — the safe options.</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Spread <code>{...obj}</code> and <code>Object.assign</code> copy one level — nested objects are still shared references. For a deep copy use <code>structuredClone(obj)</code> (built-in, handles Dates/Maps/Sets/cycles), or write a recursive clone. <code>JSON.parse(JSON.stringify(x))</code> works only for plain JSON and silently drops functions, <code>undefined</code> and breaks on cycles.</p>
+        <div class="plain"><b>In plain terms.</b> A shallow copy only clones the top level — nested objects are still shared references, so mutating them affects both copies. A deep copy walks the whole tree and clones everything.</div>
+        <pre><code><span class="k">const</span> a = { name: <span class="s">'x'</span>, tags: [<span class="s">'js'</span>] };
+<span class="k">const</span> shallow = { ...a };            <span class="c">// or Object.assign({}, a)</span>
+shallow.tags.push(<span class="s">'ts'</span>);
+a.tags;   <span class="c">// ['js', 'ts'] — same array, mutation leaked through to the original</span>
+
+<span class="k">const</span> deep = <span class="f">structuredClone</span>(a);   <span class="c">// modern built-in, handles cycles</span>
+deep.tags.push(<span class="s">'go'</span>);
+a.tags;   <span class="c">// still ['js', 'ts'] — deep copy was independent</span></code></pre>
+        <ul>
+          <li><b><code>structuredClone(obj)</code></b> — the right default today. Built-in, handles Dates, Maps, Sets, typed arrays, circular references.</li>
+          <li>A hand-rolled recursive clone — when you need custom rules (skip functions, transform certain keys).</li>
+          <li><b>Avoid</b> <code>JSON.parse(JSON.stringify(x))</code>: silently drops functions and <code>undefined</code>, mangles Dates into strings, and throws on cycles.</li>
+        </ul>
       </div>
     </details>
   </section>
 
-  <!-- ============ JS CODING CHALLENGES ============ -->
   <section class="cat" id="jscode" data-cat="jscode">
     <h2><span class="ix">02</span> JS coding challenges</h2>
-    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) developers love.</p>
+    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) interviewers love — with the intuition first, then the code.</p>
 
     <details class="qa" data-tags="debounce implement leading trailing timer">
       <summary><span class="qix">Q09</span><span class="qtext">Implement <code>debounce(fn, wait)</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Delay invoking <code>fn</code> until <code>wait</code> ms after the last call — resets the timer on every call. Use for search-as-you-type, resize.</p>
+        <div class="plain"><b>In plain terms.</b> "Wait until they stop, then act." Debounce postpones running your function until <code>wait</code> milliseconds have passed with no new calls — every new call restarts the clock. Perfect for search-as-you-type: you don't want to fire a request for "c", "ca", "cat".</div>
+        <p class="analogy">Like an elevator door: every time someone new steps in, the door timer resets. It only actually closes once there's been a lull.</p>
         <pre><code><span class="k">function</span> <span class="f">debounce</span>(fn, wait) {
     <span class="k">let</span> t;
     <span class="k">return function</span> (...args) {
-        <span class="f">clearTimeout</span>(t);
+        <span class="f">clearTimeout</span>(t);                        <span class="c">// cancel any pending call</span>
         t = <span class="f">setTimeout</span>(() =&gt; fn.apply(<span class="k">this</span>, args), wait);
     };
+}
+
+<span class="c">// usage</span>
+<span class="k">const</span> onSearch = <span class="f">debounce</span>(query =&gt; api.search(query), 300);
+input.addEventListener(<span class="s">'input'</span>, e =&gt; onSearch(e.target.value));</code></pre>
+        <p>Two subtle things senior candidates get right: use a <em>regular</em> function (not arrow) for the returned wrapper so <code>this</code> flows from the caller, and forward arguments with <code>apply</code>. Common follow-up — add a <code>leading</code> option and a <code>.cancel()</code>:</p>
+        <pre><code><span class="k">function</span> <span class="f">debounce</span>(fn, wait, { leading = <span class="k">false</span> } = {}) {
+    <span class="k">let</span> t, called = <span class="k">false</span>;
+    <span class="k">function</span> <span class="f">wrapper</span>(...args) {
+        <span class="k">if</span> (leading &amp;&amp; !called) { fn.apply(<span class="k">this</span>, args); called = <span class="k">true</span>; }
+        <span class="f">clearTimeout</span>(t);
+        t = <span class="f">setTimeout</span>(() =&gt; { called = <span class="k">false</span>; <span class="k">if</span> (!leading) fn.apply(<span class="k">this</span>, args); }, wait);
+    }
+    wrapper.cancel = () =&gt; <span class="f">clearTimeout</span>(t);
+    <span class="k">return</span> wrapper;
 }</code></pre>
-        <p>Preserve <code>this</code> and args with a regular function + <code>apply</code>. A common follow-up adds a leading-edge option and a <code>.cancel()</code>.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="throttle implement rate limit timer leading trailing">
       <summary><span class="qix">Q10</span><span class="qtext">Implement <code>throttle(fn, wait)</code> — and how it differs from debounce.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Throttle runs <code>fn</code> at most once per <code>wait</code> window (good for scroll/drag). Debounce runs once after activity stops.</p>
+        <div class="plain"><b>In plain terms.</b> "Run at most once per window." Throttle guarantees the function fires no more than once every <code>wait</code> ms — great for events that fire in a stream (scroll, mousemove, drag) where you want updates but not <em>every</em> update.</div>
+        <p class="analogy">A metered water tap: no matter how fast you tap the handle, water only comes out once per fixed interval. Debounce, by contrast, is a tap that only opens after you've stopped touching it.</p>
         <pre><code><span class="k">function</span> <span class="f">throttle</span>(fn, wait) {
     <span class="k">let</span> last = 0, t = <span class="k">null</span>, lastArgs;
     <span class="k">return function</span> (...args) {
         <span class="k">const</span> now = <span class="f">Date</span>.now();
         <span class="k">const</span> remaining = wait - (now - last);
         lastArgs = args;
-        <span class="k">if</span> (remaining &lt;= 0) {
+        <span class="k">if</span> (remaining &lt;= 0) {              <span class="c">// window elapsed — fire now</span>
             last = now; fn.apply(<span class="k">this</span>, args);
-        } <span class="k">else if</span> (!t) {
+        } <span class="k">else if</span> (!t) {                   <span class="c">// schedule the trailing call</span>
             t = <span class="f">setTimeout</span>(() =&gt; {
                 last = <span class="f">Date</span>.now(); t = <span class="k">null</span>;
                 fn.apply(<span class="k">this</span>, lastArgs);
             }, remaining);
         }
     };
-}</code></pre>
+}
+
+<span class="c">// usage — scroll handler that runs at most every 200ms</span>
+window.addEventListener(<span class="s">'scroll'</span>, <span class="f">throttle</span>(updateProgressBar, 200));</code></pre>
+        <p>The trailing call matters — without it, the last event in a burst is dropped, so a slow-moving cursor never updates its final position. <b>Interview tip:</b> mention both leading (fire immediately) and trailing (fire the last one) as configurable options.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="promise.all implement aggregate concurrent">
       <summary><span class="qix">Q11</span><span class="qtext">Implement your own <code>Promise.all</code>.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Resolve with an array of results <b>in input order</b>, or reject on the first failure.</p>
+        <div class="plain"><b>In plain terms.</b> Take an array of promises, wait for them all in parallel, and give back their results in the <em>same order</em>. If any one rejects, the whole thing rejects immediately with that error (fail-fast).</div>
         <pre><code><span class="k">function</span> <span class="f">promiseAll</span>(items) {
     <span class="k">return new</span> <span class="f">Promise</span>((resolve, reject) =&gt; {
         <span class="k">const</span> out = []; <span class="k">let</span> done = 0;
         <span class="k">if</span> (items.length === 0) <span class="k">return</span> <span class="f">resolve</span>(out);
         items.forEach((p, i) =&gt; {
-            <span class="f">Promise</span>.resolve(p).then(
-                (v) =&gt; { out[i] = v; <span class="k">if</span> (++done === items.length) <span class="f">resolve</span>(out); },
-                reject
+            <span class="f">Promise</span>.resolve(p).then(          <span class="c">// wrap non-promise values</span>
+                (v) =&gt; {
+                    out[i] = v;                <span class="c">// write by index, not push</span>
+                    <span class="k">if</span> (++done === items.length) <span class="f">resolve</span>(out);
+                },
+                reject                         <span class="c">// first rejection wins</span>
             );
         });
     });
-}</code></pre>
-        <p>Key details: wrap each item in <code>Promise.resolve</code> (inputs may be plain values), write results by <em>index</em> not push order, and handle the empty array.</p>
+}
+
+<span class="c">// test</span>
+<span class="f">promiseAll</span>([1, <span class="f">Promise</span>.resolve(2), <span class="k">new</span> <span class="f">Promise</span>(r =&gt; <span class="f">setTimeout</span>(() =&gt; r(3), 100))])
+    .then(console.log);   <span class="c">// [1, 2, 3] — in order, after 100ms</span></code></pre>
+        <p>Three details interviewers grade on: wrap each input in <code>Promise.resolve</code> because the array might contain plain values, not just promises; write to <code>out[i]</code> by index because promises resolve out of order but the caller needs original ordering; handle the empty-array case explicitly, otherwise it never resolves.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="flatten array recursion nested depth">
       <summary><span class="qix">Q12</span><span class="qtext">Implement <code>flatten(arr, depth)</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Take a nested array and "un-nest" it by one or more levels. <code>flatten([1, [2, [3]]], 1)</code> gives <code>[1, 2, [3]]</code>. Recursion is the natural fit — if an item is an array and we still have depth budget, flatten it and spread the result.</div>
         <pre><code><span class="k">function</span> <span class="f">flatten</span>(arr, depth = 1) {
     <span class="k">return</span> arr.reduce((acc, x) =&gt; {
         <span class="k">if</span> (<span class="f">Array</span>.isArray(x) &amp;&amp; depth &gt; 0)
-            acc.push(...<span class="f">flatten</span>(x, depth - 1));
+            acc.push(...<span class="f">flatten</span>(x, depth - 1));    <span class="c">// consume one level</span>
         <span class="k">else</span> acc.push(x);
         <span class="k">return</span> acc;
     }, []);
 }
-<span class="f">flatten</span>([1, [2, [3, [4]]]], 2);  <span class="c">// [1, 2, 3, [4]]</span></code></pre>
-        <p>For full depth, an iterative stack version avoids deep recursion on huge arrays.</p>
+<span class="f">flatten</span>([1, [2, [3, [4]]]], 1);   <span class="c">// [1, 2, [3, [4]]]  — one level only</span>
+<span class="f">flatten</span>([1, [2, [3, [4]]]], 2);   <span class="c">// [1, 2, 3, [4]]</span>
+<span class="f">flatten</span>([1, [2, [3, [4]]]], Infinity);   <span class="c">// [1, 2, 3, 4]</span></code></pre>
+        <p><b>Follow-up worth knowing:</b> for arbitrary-depth flattening on huge inputs, recursion can blow the call stack. An iterative version using an explicit work stack avoids that:</p>
+        <pre><code><span class="k">function</span> <span class="f">flattenIterative</span>(arr) {
+    <span class="k">const</span> stack = [...arr], out = [];
+    <span class="k">while</span> (stack.length) {
+        <span class="k">const</span> next = stack.pop();
+        <span class="k">if</span> (<span class="f">Array</span>.isArray(next)) stack.push(...next);
+        <span class="k">else</span> out.unshift(next);
+    }
+    <span class="k">return</span> out;
+}</code></pre>
+        <p>In modern JS the built-in <code>arr.flat(Infinity)</code> does this — mention it after showing your implementation.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="curry implement partial application">
       <summary><span class="qix">Q13</span><span class="qtext">Implement <code>curry(fn)</code>.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Return a function that collects args until it has as many as the original's arity, then calls it.</p>
+        <div class="plain"><b>In plain terms.</b> Turn a function that takes N arguments at once into one you can feed arguments piece by piece. <code>add(1, 2, 3)</code> becomes <code>add(1)(2)(3)</code> — or any mix like <code>add(1, 2)(3)</code>. It calls the real function only once you've supplied enough arguments.</div>
         <pre><code><span class="k">function</span> <span class="f">curry</span>(fn) {
     <span class="k">return function</span> curried(...args) {
-        <span class="k">if</span> (args.length &gt;= fn.length) <span class="k">return</span> fn.apply(<span class="k">this</span>, args);
-        <span class="k">return</span> (...rest) =&gt; curried.apply(<span class="k">this</span>, [...args, ...rest]);
+        <span class="k">if</span> (args.length &gt;= fn.length)                <span class="c">// enough args → invoke</span>
+            <span class="k">return</span> fn.apply(<span class="k">this</span>, args);
+        <span class="k">return</span> (...rest) =&gt;                          <span class="c">// not enough → return a new collector</span>
+            curried.apply(<span class="k">this</span>, [...args, ...rest]);
     };
 }
 <span class="k">const</span> add = <span class="f">curry</span>((a, b, c) =&gt; a + b + c);
-add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code></pre>
+add(1)(2)(3);   <span class="c">// 6</span>
+add(1, 2)(3);   <span class="c">// 6</span>
+add(1)(2, 3);   <span class="c">// 6</span></code></pre>
+        <p><b>Why anyone uses this:</b> partial application — building specialized functions out of general ones.</p>
+        <pre><code><span class="k">const</span> applyTax = <span class="f">curry</span>((rate, price) =&gt; price * (1 + rate));
+<span class="k">const</span> applyIndiaGst = applyTax(0.18);   <span class="c">// specialized, reusable</span>
+applyIndiaGst(1000);   <span class="c">// 1180</span></code></pre>
       </div>
     </details>
 
     <details class="qa" data-tags="memoize implement cache map">
       <summary><span class="qix">Q14</span><span class="qtext">Implement a generic <code>memoize(fn)</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Cache a function's result the first time it's called with a particular set of args, and return the cached answer on subsequent calls. Trades memory for speed on pure functions.</div>
         <pre><code><span class="k">function</span> <span class="f">memoize</span>(fn, keyFn = (...a) =&gt; <span class="f">JSON</span>.stringify(a)) {
     <span class="k">const</span> cache = <span class="k">new</span> <span class="f">Map</span>();
     <span class="k">return function</span> (...args) {
@@ -260,45 +410,65 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
         cache.set(key, result);
         <span class="k">return</span> result;
     };
-}</code></pre>
-        <p>Discuss the key strategy (stringify is simple but lossy for objects/order), and that an unbounded cache leaks — bound it with LRU for hot paths.</p>
+}
+
+<span class="c">// example: memoized fibonacci — turns exponential into linear</span>
+<span class="k">const</span> fib = <span class="f">memoize</span>(n =&gt; (n &lt;= 1 ? n : fib(n - 1) + fib(n - 2)));
+fib(40);   <span class="c">// instant, vs. billions of calls unmemoized</span></code></pre>
+        <p>Two things to discuss aloud: the <b>cache key</b> — <code>JSON.stringify</code> is simple but has holes (object key order matters, can't handle cycles, drops functions), so for serious use accept a custom <code>keyFn</code>. And the <b>cache size</b> — an unbounded cache is a memory leak; bound it with LRU eviction in production. React's <code>useMemo</code> is a special case: a cache of size 1, keyed by the deps array.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="eventemitter pubsub implement on emit off subscribe">
       <summary><span class="qix">Q15</span><span class="qtext">Implement an <code>EventEmitter</code> (on / emit / off).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The classic publish/subscribe: many parts of your code can register callbacks for a named event ("user:login"), and someone else can fire that event to notify them all. Underpins Node streams, DOM events, RN's device event bus, and a lot of your own custom bus code.</div>
         <pre><code><span class="k">class</span> EventEmitter {
     constructor() { <span class="k">this</span>.map = <span class="k">new</span> <span class="f">Map</span>(); }
     on(ev, cb) {
         (<span class="k">this</span>.map.get(ev) ?? <span class="k">this</span>.map.set(ev, <span class="k">new</span> <span class="f">Set</span>()).get(ev)).add(cb);
-        <span class="k">return</span> () =&gt; <span class="k">this</span>.off(ev, cb);   <span class="c">// unsubscribe handle</span>
+        <span class="k">return</span> () =&gt; <span class="k">this</span>.off(ev, cb);           <span class="c">// unsubscribe handle</span>
     }
     off(ev, cb) { <span class="k">this</span>.map.get(ev)?.delete(cb); }
-    emit(ev, ...args) { <span class="k">this</span>.map.get(ev)?.forEach((cb) =&gt; <span class="f">cb</span>(...args)); }
-}</code></pre>
-        <p>Using a <code>Set</code> dedupes listeners and makes <code>off</code> O(1). Returning an unsubscribe function is the ergonomic touch devs like.</p>
+    emit(ev, ...args) {
+        <span class="k">this</span>.map.get(ev)?.forEach((cb) =&gt; <span class="f">cb</span>(...args));
+    }
+}
+
+<span class="c">// usage</span>
+<span class="k">const</span> bus = <span class="k">new</span> EventEmitter();
+<span class="k">const</span> unsubscribe = bus.on(<span class="s">'user:login'</span>, user =&gt; <span class="f">console</span>.log(<span class="s">`${user} logged in`</span>));
+bus.emit(<span class="s">'user:login'</span>, <span class="s">'sara'</span>);   <span class="c">// "sara logged in"</span>
+unsubscribe();                          <span class="c">// clean removal, no need to keep the callback reference</span></code></pre>
+        <p>Two small polish moves that matter: use a <code>Set</code> instead of an array so duplicate registrations are natural no-ops and <code>off</code> is O(1); return an unsubscribe function from <code>on</code>, exactly the pattern React's <code>useEffect</code> cleanup uses. <b>Follow-ups:</b> add <code>once(ev, cb)</code>, and guard so a throwing listener doesn't stop the rest from running.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="deep clone implement recursion cycle map set">
       <summary><span class="qix">Q16</span><span class="qtext">Implement <code>deepClone</code> handling cycles.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Walk the whole object tree and make a fresh copy of everything. The tricky bit is <em>cycles</em> — an object referencing itself, or two objects referencing each other — because naive recursion would loop forever. The trick is to keep a map of "already cloned" objects and reuse them.</div>
         <pre><code><span class="k">function</span> <span class="f">deepClone</span>(obj, seen = <span class="k">new</span> <span class="f">WeakMap</span>()) {
     <span class="k">if</span> (obj === <span class="k">null</span> || <span class="k">typeof</span> obj !== <span class="s">'object'</span>) <span class="k">return</span> obj;
-    <span class="k">if</span> (seen.has(obj)) <span class="k">return</span> seen.get(obj);   <span class="c">// cycle</span>
+    <span class="k">if</span> (seen.has(obj)) <span class="k">return</span> seen.get(obj);        <span class="c">// cycle — reuse the copy</span>
     <span class="k">const</span> copy = <span class="f">Array</span>.isArray(obj) ? [] : {};
-    seen.set(obj, copy);
+    seen.set(obj, copy);                            <span class="c">// register before recursing</span>
     <span class="k">for</span> (<span class="k">const</span> k <span class="k">of</span> <span class="f">Reflect</span>.ownKeys(obj))
         copy[k] = <span class="f">deepClone</span>(obj[k], seen);
     <span class="k">return</span> copy;
-}</code></pre>
-        <p>The <code>WeakMap</code> of already-cloned objects breaks circular references. Mention that <code>structuredClone</code> is the built-in production answer.</p>
+}
+
+<span class="c">// test with a cycle</span>
+<span class="k">const</span> a = { name: <span class="s">'a'</span> };
+a.self = a;                    <span class="c">// self-reference</span>
+<span class="k">const</span> clone = <span class="f">deepClone</span>(a);
+clone.self === clone;          <span class="c">// true — cycle preserved correctly, no infinite loop</span>
+clone !== a;                   <span class="c">// true — genuinely a separate object</span></code></pre>
+        <p>Why a <code>WeakMap</code>: it doesn't prevent garbage collection of clone-source objects and allows objects as keys. Note the order — register the copy in <code>seen</code> <em>before</em> recursing into children, so a self-reference finds the (still-empty) copy already there instead of recursing forever.</p>
+        <p><b>In production:</b> <code>structuredClone(obj)</code> is the built-in — handles Dates/Maps/Sets/typed arrays/cycles for you. Show the manual version to prove you understand it, then mention the built-in.</p>
       </div>
     </details>
   </section>
-
-  <!-- ============ TYPESCRIPT ============ -->
   <section class="cat" id="ts" data-cat="ts">
     <h2><span class="ix">03</span> TypeScript</h2>
     <p class="cat-sub">Types that make a large RN codebase safe to refactor.</p>
@@ -306,39 +476,69 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
     <details class="qa" data-tags="generics type parameter constraint reuse">
       <summary><span class="qix">Q17</span><span class="qtext">When and how do you reach for generics?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Generics preserve the relationship between input and output types instead of widening to <code>any</code>. Constrain them with <code>extends</code> to keep them safe.</p>
+        <div class="plain"><b>In plain terms.</b> A generic is a placeholder type — "whatever type you give me in, I'll give the matching type back out." It lets one function stay type-safe for many different types instead of either duplicating it or falling back to <code>any</code> and losing safety.</div>
+        <pre><code><span class="c">// without generics — loses the specific type</span>
+<span class="k">function</span> <span class="f">first</span>(arr: any[]): any { <span class="k">return</span> arr[0]; }
+<span class="k">const</span> x = <span class="f">first</span>([1, 2, 3]);   <span class="c">// x: any — TypeScript can't help you anymore</span>
+
+<span class="c">// with generics — the relationship is preserved</span>
+<span class="k">function</span> <span class="f">first</span>&lt;T&gt;(arr: T[]): T { <span class="k">return</span> arr[0]; }
+<span class="k">const</span> y = <span class="f">first</span>([1, 2, 3]);   <span class="c">// y: number — inferred automatically</span></code></pre>
+        <p>Constrain generics with <code>extends</code> when you need to guarantee some capability of the type:</p>
         <pre><code><span class="k">function</span> <span class="f">prop</span>&lt;T, K <span class="k">extends keyof</span> T&gt;(obj: T, key: K): T[K] {
     <span class="k">return</span> obj[key];
 }
-<span class="f">prop</span>({ id: 1, name: <span class="s">'x'</span> }, <span class="s">'name'</span>);  <span class="c">// inferred string</span></code></pre>
+<span class="f">prop</span>({ id: 1, name: <span class="s">'x'</span> }, <span class="s">'name'</span>);   <span class="c">// inferred as string</span>
+<span class="c">// prop({ id: 1 }, 'nope');   // compile error — 'nope' isn't a key</span></code></pre>
+        <p><b>Why it matters:</b> generics are what let a single <code>useState&lt;T&gt;()</code>, <code>FlatList&lt;T&gt;</code>, or API-client function stay fully typed across every different data shape it's used with in your app.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="utility types partial pick omit record readonly returntype">
       <summary><span class="qix">Q18</span><span class="qtext">Which built-in utility types do you use most?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>Partial&lt;T&gt;</code> (all optional, for patches), <code>Required&lt;T&gt;</code>, <code>Pick&lt;T,K&gt;</code> / <code>Omit&lt;T,K&gt;</code> (shape subsets, e.g. a DTO from a model), <code>Record&lt;K,V&gt;</code> (typed maps), <code>Readonly&lt;T&gt;</code>, and <code>ReturnType</code>/<code>Parameters</code>/<code>Awaited</code> for deriving types from functions. They keep one source of truth — derive variants instead of duplicating interfaces.</p>
+        <div class="plain"><b>In plain terms.</b> Instead of writing near-duplicate interfaces by hand for every variant of a type you need (an update payload, a public-facing DTO), these transform an existing type automatically — one source of truth, many derived shapes.</div>
+        <pre><code><span class="k">interface</span> User { id: <span class="t">string</span>; name: <span class="t">string</span>; email: <span class="t">string</span>; }
+
+<span class="k">type</span> UserPatch = Partial&lt;User&gt;;              <span class="c">// { id?: string; name?: string; email?: string }</span>
+<span class="k">type</span> UserPreview = Pick&lt;User, <span class="s">'id'</span> | <span class="s">'name'</span>&gt;;  <span class="c">// { id: string; name: string }</span>
+<span class="k">type</span> UserNoEmail = Omit&lt;User, <span class="s">'email'</span>&gt;;    <span class="c">// everything except email</span>
+<span class="k">type</span> UsersById = Record&lt;<span class="t">string</span>, User&gt;;        <span class="c">// { [id: string]: User }</span>
+<span class="k">type</span> ReadonlyUser = Readonly&lt;User&gt;;           <span class="c">// all fields become immutable</span>
+
+<span class="c">// derive from a function's own signature — one source of truth</span>
+<span class="k">function</span> <span class="f">fetchUser</span>(id: <span class="t">string</span>) { <span class="k">return</span> api.get&lt;User&gt;(<span class="s">`/users/${id}`</span>); }
+<span class="k">type</span> FetchUserReturn = <span class="f">ReturnType</span>&lt;<span class="k">typeof</span> fetchUser&gt;;   <span class="c">// Promise&lt;User&gt;</span></code></pre>
+        <p><b>Why it matters:</b> when your API response type changes, every derived type (form state, patch payloads, previews) stays in sync automatically instead of drifting out of date across the codebase.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="narrowing type guard discriminated union typeof in instanceof">
       <summary><span class="qix">Q19</span><span class="qtext">How do you narrow a union type safely?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>TS narrows via <code>typeof</code>, <code>instanceof</code>, <code>in</code>, equality checks, and <b>discriminated unions</b> — a shared literal <code>kind</code> field the compiler keys off:</p>
+        <div class="plain"><b>In plain terms.</b> A union type says "this could be one of several shapes." Narrowing is proving to the compiler <em>which</em> shape you actually have at a given point, so it lets you safely access fields specific to that shape.</div>
+        <p>The most reliable pattern is a <b>discriminated union</b> — every variant shares one literal field the compiler can key off:</p>
         <pre><code><span class="k">type</span> Result =
   | { kind: <span class="s">'ok'</span>; value: <span class="t">number</span> }
   | { kind: <span class="s">'err'</span>; message: <span class="t">string</span> };
 
 <span class="k">function</span> <span class="f">show</span>(r: Result) {
-    <span class="k">if</span> (r.kind === <span class="s">'ok'</span>) <span class="k">return</span> r.value;  <span class="c">// narrowed</span>
-    <span class="k">return</span> r.message;
+    <span class="k">if</span> (r.kind === <span class="s">'ok'</span>) <span class="k">return</span> r.value;      <span class="c">// narrowed to the 'ok' branch — .value is valid</span>
+    <span class="k">return</span> r.message;                       <span class="c">// narrowed to the 'err' branch — .message is valid</span>
+    <span class="c">// r.value here would be a compile error — TS knows it's not 'ok'</span>
 }</code></pre>
-        <p>For custom guards, write a function returning <code>x is Foo</code>. This mirrors Kotlin sealed-class <code>when</code> exhaustiveness.</p>
+        <p>Other narrowing tools: <code>typeof</code> for primitives, <code>instanceof</code> for classes, <code>in</code> for checking a property exists, and custom type guards that return <code>x is Foo</code>:</p>
+        <pre><code><span class="k">function</span> <span class="f">isError</span>(x: <span class="t">unknown</span>): x <span class="k">is</span> Error {
+    <span class="k">return</span> x <span class="k">instanceof</span> Error;
+}
+<span class="k">try</span> { risky(); } <span class="k">catch</span> (e) {
+    <span class="k">if</span> (<span class="f">isError</span>(e)) <span class="f">console</span>.log(e.message);   <span class="c">// e is narrowed to Error inside this block</span>
+}</code></pre>
+        <p>This mirrors Kotlin's sealed-class <code>when</code> exhaustiveness — the same "make impossible states unrepresentable" idea, expressed with structural types instead of a class hierarchy.</p>
       </div>
     </details>
   </section>
 
-  <!-- ============ REACT ============ -->
   <section class="cat" id="react" data-cat="react">
     <h2><span class="ix">04</span> React</h2>
     <p class="cat-sub">Render model, hooks and performance — shared by React and React Native.</p>
@@ -346,76 +546,167 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
     <details class="qa" data-tags="virtual dom reconciliation diffing fiber keys">
       <summary><span class="qix">Q20</span><span class="qtext">What is reconciliation and why are keys important?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>On a state change React builds a new element tree and <b>diffs</b> it against the previous one (the Fiber tree), computing the minimal set of real mutations. It compares by element <em>type</em> and position; matching types are updated in place, different types are torn down and rebuilt.</p>
-        <p><b>Keys</b> identify list items across renders so React can match them by identity instead of index — without stable keys, inserting at the top reuses the wrong DOM/native nodes, loses input focus/animation state, and can corrupt component state. Never use array index as key for reorderable lists.</p>
+        <div class="plain"><b>In plain terms.</b> When state changes, React doesn't rebuild the real UI from scratch — it builds a lightweight description of what the UI <em>should</em> look like, compares it to the previous description, and applies only the differences. That comparison process is reconciliation.</div>
+        <p>React compares elements by <b>type and position</b>. Matching types get updated in place (fast); different types get torn down and rebuilt from scratch (expensive — loses state, focus, animation).</p>
+        <pre><code><span class="c">// without a key, reordering this list confuses React</span>
+{items.map(item =&gt; &lt;Row data={item} /&gt;)}          <span class="c">// ✗ no key — React falls back to matching by position</span>
+
+<span class="c">// with a stable key, React tracks each row by identity</span>
+{items.map(item =&gt; &lt;Row key={item.id} data={item} /&gt;)}   <span class="c">// ✓</span></code></pre>
+        <p><b>Concretely what breaks without keys:</b> if you insert a new item at the <em>top</em> of a list without stable keys, React (matching by position) thinks item 1 changed into item 2, item 2 changed into item 3, and so on — every row updates, any input focus or animation state on those rows is lost, and you pay for far more DOM work than the single actual insertion needed. Never use array index as a key for a reorderable list — index <em>is</em> position, so it defeats the whole point.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="hooks rules order conditional top level">
       <summary><span class="qix">Q21</span><span class="qtext">Why must hooks be called unconditionally at the top level?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>React tracks hook state by <b>call order</b>, not by name — it's an index into a per-component list. Calling a hook inside a condition/loop shifts indices between renders, so state gets associated with the wrong hook. Hence the two rules: only call hooks at the top level, and only from React functions/custom hooks. The ESLint plugin enforces this.</p>
+        <div class="plain"><b>In plain terms.</b> React doesn't know your hooks by name — it tracks them by the <em>order</em> they were called in, like a numbered list. If that order changes between renders, React hands the wrong stored state to the wrong hook.</div>
+        <pre><code><span class="c">// ✗ breaks the rule — the call order can change between renders</span>
+<span class="k">function</span> <span class="f">Bad</span>({ show }) {
+    <span class="k">if</span> (show) {
+        <span class="k">const</span> [x, setX] = <span class="f">useState</span>(0);   <span class="c">// only called sometimes — shifts every hook after it</span>
+    }
+    <span class="k">const</span> [y, setY] = <span class="f">useState</span>(1);
+}
+
+<span class="c">// ✓ correct — always called, condition moves inside</span>
+<span class="k">function</span> <span class="f">Good</span>({ show }) {
+    <span class="k">const</span> [x, setX] = <span class="f">useState</span>(0);
+    <span class="k">const</span> [y, setY] = <span class="f">useState</span>(1);
+    <span class="k">if</span> (!show) <span class="k">return null</span>;   <span class="c">// condition affects render output, not hook order</span>
+}</code></pre>
+        <p>In the broken version, if <code>show</code> flips from true to false between renders, React's internal hook list shifts by one slot — <code>y</code>'s state now gets read from where <code>x</code>'s used to be. The rule ("only call hooks at the top level, only from React functions") exists specifically to keep that numbered list stable. The ESLint plugin catches this automatically.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="usememo usecallback memoization referential equality performance">
       <summary><span class="qix">Q22</span><span class="qtext"><code>useMemo</code> vs <code>useCallback</code> — and when NOT to use them.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>useMemo</code> caches a computed <em>value</em>; <code>useCallback(fn, deps)</code> caches a <em>function reference</em> (it's <code>useMemo(() =&gt; fn, deps)</code>). The point is <b>referential stability</b>: a stable prop/dep prevents memoized children (<code>React.memo</code>) from re-rendering and keeps <code>useEffect</code> deps from re-firing.</p>
-        <div class="callout">Don't sprinkle them everywhere. Memoization has its own cost and stale-deps risk. Reach for them when (1) a child is wrapped in <code>React.memo</code> and needs stable props, (2) the value is genuinely expensive, or (3) it's an effect dependency. React 19's compiler auto-memoizes much of this.</div>
+        <div class="plain"><b>In plain terms.</b> Both are "don't redo this unless the inputs actually changed." <code>useMemo</code> caches a computed <em>value</em>; <code>useCallback</code> caches a <em>function reference</em> so it doesn't count as "new" on every render.</div>
+        <pre><code><span class="k">function</span> <span class="f">ProductList</span>({ items, onSelect }) {
+    <span class="c">// without useMemo: this expensive sort reruns on EVERY render,</span>
+    <span class="c">// even ones caused by unrelated state elsewhere in the app</span>
+    <span class="k">const</span> sorted = items.slice().sort(expensiveCompare);
+
+    <span class="c">// with useMemo: only reruns when 'items' actually changes</span>
+    <span class="k">const</span> sortedMemo = <span class="f">useMemo</span>(() =&gt; items.slice().sort(expensiveCompare), [items]);
+
+    <span class="c">// without useCallback: a NEW function object every render —</span>
+    <span class="c">// breaks React.memo on <Row>, which re-renders anyway</span>
+    <span class="k">return</span> sortedMemo.map(item =&gt;
+        &lt;Row key={item.id} item={item} onSelect={() =&gt; onSelect(item.id)} /&gt;
+    );
+}</code></pre>
+        <p>The point is <b>referential stability</b>: a stable prop/dependency prevents a memoized child (<code>React.memo</code>) from re-rendering unnecessarily, and keeps a <code>useEffect</code> dependency array from re-firing when nothing meaningful changed.</p>
+        <div class="callout"><b>Don't sprinkle them everywhere.</b> Memoization has its own cost (comparing deps, holding cached values) and a real risk of stale closures if you get the deps array wrong. Reach for them when a child is genuinely wrapped in <code>React.memo</code> and needs stable props, when the computation is genuinely expensive, or when it's an effect dependency. React 19's compiler auto-memoizes much of this, reducing how often you need to reach for these manually.</div>
       </div>
     </details>
 
     <details class="qa" data-tags="useeffect dependency array cleanup lifecycle stale closure">
       <summary><span class="qix">Q23</span><span class="qtext">Mental model for <code>useEffect</code> deps and cleanup.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Think "synchronize with an external system", not "lifecycle". The effect re-runs whenever a dependency changes; the returned cleanup runs before the next run and on unmount. Every value from render used inside must be in the deps — omitting them causes <b>stale closures</b> (you read an old value). Patterns: empty deps = run once (mount); cleanup unsubscribes listeners/timers/requests.</p>
+        <div class="plain"><b>In plain terms.</b> Think "synchronize with an external system," not "lifecycle method." The effect re-runs whenever a dependency changes; the returned cleanup function runs before the next run and on unmount — it's how you keep an outside system (a subscription, a timer) in sync with your component's current props/state.</div>
         <pre><code><span class="f">useEffect</span>(() =&gt; {
     <span class="k">const</span> sub = api.subscribe(id, setData);
-    <span class="k">return</span> () =&gt; sub.unsubscribe();   <span class="c">// cleanup on id change/unmount</span>
-}, [id]);</code></pre>
-        <p>If you only use the latest value in a callback, a <code>ref</code> avoids re-subscribing. Don't put derived data in effects — compute it during render.</p>
+    <span class="k">return</span> () =&gt; sub.unsubscribe();   <span class="c">// cleanup: unsubscribe the OLD id before subscribing to the new one</span>
+}, [id]);   <span class="c">// re-run whenever 'id' changes</span></code></pre>
+        <p>Every value from render that's used inside the effect must be listed in the deps array — omitting one causes a <b>stale closure</b>, where the effect keeps reading an old value forever:</p>
+        <pre><code><span class="c">// ✗ stale closure — 'count' is captured once and never updates</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> id = <span class="f">setInterval</span>(() =&gt; <span class="f">console</span>.log(count), 1000);
+    <span class="k">return</span> () =&gt; <span class="f">clearInterval</span>(id);
+}, []);   <span class="c">// missing 'count' — this always logs the initial value</span>
+
+<span class="c">// ✓ fixed — depend on count, or use the functional update form</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> id = <span class="f">setInterval</span>(() =&gt; <span class="f">console</span>.log(count), 1000);
+    <span class="k">return</span> () =&gt; <span class="f">clearInterval</span>(id);
+}, [count]);</code></pre>
+        <p>If you only need the <em>latest</em> value inside a callback without re-subscribing every time it changes, a <code>ref</code> sidesteps the problem. Don't compute derived data inside an effect — compute it directly during render instead.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="context provider rerender performance state management">
       <summary><span class="qix">Q24</span><span class="qtext">What's the performance pitfall of Context, and fixes?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Every consumer re-renders when the Provider's <code>value</code> changes by reference — and an inline object/array makes a new reference every render, re-rendering all consumers. Fixes: memoize the value, split contexts (state vs dispatch, or by domain) so unrelated consumers don't wake up, or use a selector-based store (Zustand/Redux/Jotai) for high-frequency state. Context is great for low-frequency, app-wide values (theme, auth, locale); it's not a state manager.</p>
+        <div class="plain"><b>In plain terms.</b> Every consumer of a Context re-renders whenever the Provider's <code>value</code> changes <em>by reference</em>. If you build that value inline on every render, it's a "new" object every time even if the actual data didn't change — so every consumer re-renders for no reason.</div>
+        <pre><code><span class="c">// ✗ new object literal every render — every consumer re-renders every time</span>
+&lt;ThemeContext.Provider value={{ color, setColor }}&gt;
+
+<span class="c">// ✓ memoized — same reference unless color/setColor actually changed</span>
+<span class="k">const</span> value = <span class="f">useMemo</span>(() =&gt; ({ color, setColor }), [color]);
+&lt;ThemeContext.Provider value={value}&gt;</code></pre>
+        <p>Beyond memoizing the value, split contexts by how often they change — separate state from dispatch, or split by domain — so a consumer that only needs "dispatch" doesn't re-render every time unrelated "state" changes:</p>
+        <pre><code><span class="k">const</span> StateContext = createContext(<span class="k">null</span>);
+<span class="k">const</span> DispatchContext = createContext(<span class="k">null</span>);   <span class="c">// dispatch never changes — zero re-renders from this one</span></code></pre>
+        <p>For genuinely high-frequency state (form fields, animation values), reach for a selector-based store (Zustand, Redux, Jotai) instead — they let a component subscribe to just the slice it needs. Context is great for low-frequency, app-wide values (theme, auth, locale); it's not a general-purpose state manager.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="custom hook reuse logic encapsulation">
       <summary><span class="qix">Q25</span><span class="qtext">Write a custom hook — and what's the rule for one?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>A custom hook is a function starting with <code>use</code> that composes other hooks to share <em>logic</em> (not markup). Each call gets isolated state.</p>
+        <div class="plain"><b>In plain terms.</b> A custom hook is just a function starting with <code>use</code> that composes other hooks to share <em>logic</em> across components — not markup, just behaviour. Each component that calls it gets its own, isolated copy of that state.</div>
         <pre><code><span class="k">function</span> <span class="f">useDebouncedValue</span>(value, delay = 300) {
     <span class="k">const</span> [v, setV] = <span class="f">useState</span>(value);
     <span class="f">useEffect</span>(() =&gt; {
         <span class="k">const</span> t = <span class="f">setTimeout</span>(() =&gt; <span class="f">setV</span>(value), delay);
-        <span class="k">return</span> () =&gt; <span class="f">clearTimeout</span>(t);
+        <span class="k">return</span> () =&gt; <span class="f">clearTimeout</span>(t);   <span class="c">// cancel the stale timeout on each new keystroke</span>
     }, [value, delay]);
     <span class="k">return</span> v;
+}
+
+<span class="c">// usage — debounces search input without duplicating the effect logic per screen</span>
+<span class="k">function</span> <span class="f">SearchBox</span>() {
+    <span class="k">const</span> [query, setQuery] = <span class="f">useState</span>(<span class="s">''</span>);
+    <span class="k">const</span> debounced = <span class="f">useDebouncedValue</span>(query, 300);
+    <span class="f">useEffect</span>(() =&gt; { <span class="k">if</span> (debounced) api.search(debounced); }, [debounced]);
+    <span class="k">return</span> &lt;input value={query} onChange={e =&gt; setQuery(e.target.value)} /&gt;;
 }</code></pre>
+        <p><b>Why it matters:</b> this is the JS analogue of a Kotlin extension function or a shared utility — logic gets reused without duplicating the underlying <code>useState</code>/<code>useEffect</code> wiring in every screen that needs it.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="controlled uncontrolled component form ref">
       <summary><span class="qix">Q26</span><span class="qtext">Controlled vs uncontrolled components?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Controlled: React state is the single source of truth — the input's <code>value</code> comes from state and <code>onChange</code> updates it. Predictable, easy validation, but re-renders per keystroke. Uncontrolled: the DOM/native holds the value and you read it via a <code>ref</code> when needed — less code, fewer renders, harder to validate live. Default to controlled; use uncontrolled (or refs) for performance-sensitive or simple one-shot reads.</p>
+        <div class="plain"><b>In plain terms.</b> Controlled: React state is the source of truth for the input's value. Uncontrolled: the DOM/native view itself holds the value, and you only reach in with a <code>ref</code> when you actually need to read it.</div>
+        <pre><code><span class="c">// controlled — React re-renders on every keystroke, but validation/formatting is trivial</span>
+<span class="k">const</span> [name, setName] = <span class="f">useState</span>(<span class="s">''</span>);
+&lt;input value={name} onChange={e =&gt; setName(e.target.value)} /&gt;
+
+<span class="c">// uncontrolled — no re-render per keystroke, read the value only when needed</span>
+<span class="k">const</span> ref = <span class="f">useRef</span>();
+&lt;input ref={ref} defaultValue={<span class="s">''</span>} /&gt;
+<span class="k">const</span> handleSubmit = () =&gt; <span class="f">console</span>.log(ref.current.value);</code></pre>
+        <p>Default to controlled — predictable, easy to validate live, easy to reset. Reach for uncontrolled (or a ref-based read) in performance-sensitive forms with many fields, or simple one-shot reads where you don't need live validation on every keystroke.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="suspense lazy code splitting error boundary concurrent">
       <summary><span class="qix">Q27</span><span class="qtext">What do Suspense and error boundaries give you?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Suspense</b> lets a subtree "wait" for something (lazy-loaded code via <code>React.lazy</code>, or data with a Suspense-enabled fetcher) and shows a <code>fallback</code> until ready — declarative loading states without scattered flags. <b>Error boundaries</b> are class components implementing <code>getDerivedStateFromError</code>/<code>componentDidCatch</code> that catch render-time errors in their subtree and show a fallback instead of crashing the whole tree. They don't catch errors in event handlers or async code — handle those with try/catch.</p>
+        <div class="plain"><b>In plain terms.</b> <b>Suspense</b> lets part of the UI "wait" for something — like a chunk of code still downloading — and shows a fallback until it's ready, without you managing a loading flag by hand. <b>Error boundaries</b> catch a crash in part of the tree and show a fallback instead of taking down the whole app.</div>
+        <pre><code><span class="c">// Suspense — code-splitting a heavy screen</span>
+<span class="k">const</span> Settings = React.lazy(() =&gt; import(<span class="s">'./Settings'</span>));
+&lt;Suspense fallback={&lt;Spinner /&gt;}&gt;
+    &lt;Settings /&gt;
+&lt;/Suspense&gt;
+
+<span class="c">// Error boundary — must be a class component (no hook equivalent yet)</span>
+<span class="k">class</span> ErrorBoundary <span class="k">extends</span> React.Component {
+    state = { hasError: <span class="k">false</span> };
+    <span class="k">static</span> getDerivedStateFromError() { <span class="k">return</span> { hasError: <span class="k">true</span> }; }
+    componentDidCatch(error, info) { logToService(error, info); }
+    render() {
+        <span class="k">if</span> (<span class="k">this</span>.state.hasError) <span class="k">return</span> &lt;FallbackUI /&gt;;
+        <span class="k">return</span> <span class="k">this</span>.props.children;
+    }
+}</code></pre>
+        <p><b>Important limit:</b> error boundaries only catch errors during <em>rendering</em> — not inside event handlers or async code. A <code>throw</code> inside an <code>onClick</code> handler won't be caught; wrap that logic in a normal <code>try/catch</code> instead.</p>
       </div>
     </details>
   </section>
-
-  <!-- ============ REACT NATIVE ============ -->
   <section class="cat" id="rn" data-cat="rn">
     <h2><span class="ix">05</span> React Native</h2>
     <p class="cat-sub">The bridge, the New Architecture, threading and performance.</p>
@@ -423,115 +714,224 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
     <details class="qa" data-tags="react native threads js ui shadow main thread architecture">
       <summary><span class="qix">Q28</span><span class="qtext">What threads does React Native run on?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> RN splits work across three lanes: one thread runs your JavaScript, one draws the native UI, and one computes layout. Jank almost always traces back to one of these being blocked or overloaded.</div>
         <ul>
-          <li><b>JS thread</b> — runs your React code, business logic, the render pass.</li>
-          <li><b>Native/UI (main) thread</b> — draws native views, handles gestures and platform UI.</li>
-          <li><b>Shadow thread</b> — computes layout with Yoga (Flexbox) off the main thread.</li>
+          <li><b>JS thread</b> — runs your React code, business logic, and the render pass that decides what the UI should look like.</li>
+          <li><b>Native/UI (main) thread</b> — actually draws native views, handles touch gestures, and runs platform UI.</li>
+          <li><b>Shadow thread</b> — computes layout with Yoga (RN's Flexbox engine), off the main thread.</li>
         </ul>
-        <p>Jank usually comes from blocking the JS thread (heavy work, too many re-renders) or chatty JS↔native traffic. Keep the JS thread free; move animations to the UI thread (Reanimated).</p>
+        <pre><code><span class="c">// this blocks the JS thread — every component update queues behind it</span>
+<span class="k">function</span> <span class="f">processHugeList</span>(items) {
+    <span class="k">return</span> items.map(expensiveTransform);   <span class="c">// synchronous, thousands of items — freezes JS</span>
+}
+<span class="c">// fix: chunk the work, or move it to a native module / worklet</span></code></pre>
+        <p><b>Why it matters:</b> jank usually comes from blocking the JS thread (heavy synchronous work, too many re-renders) or from chatty JS↔native traffic. Keep the JS thread free of heavy computation, and move animations to the UI thread with Reanimated instead of driving them from JS.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="old architecture bridge serialization async batched json">
       <summary><span class="qix">Q29</span><span class="qtext">How did the old "bridge" work and what was wrong with it?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>The legacy bridge passed messages between JS and native as <b>asynchronous, batched, JSON-serialized</b> payloads. Three costs: everything was async (no synchronous calls), every message paid serialize/deserialize overhead, and high-frequency traffic (fast lists, gestures, animations driven from JS) congested the bridge → dropped frames. It was also eager — all native modules initialized at startup.</p>
+        <div class="plain"><b>In plain terms.</b> JS and native code live in separate worlds and can't call each other directly. The old "bridge" was a message-passing system between them — every call became a JSON message queued up and sent across, asynchronously, in batches.</div>
+        <p class="analogy">Like two offices communicating only by mailed letters, batched once a day, rather than being able to walk down the hall and ask a question directly. Every "call" had to be written up, sent, and waited on — even for something as simple as "what's the width of this view right now?"</p>
+        <p>Three concrete costs of this design: everything was <b>async</b> — you couldn't ask native "what's this view's size?" and get an answer back in the same tick; every message paid <b>serialize/deserialize</b> overhead (converting to and from JSON); and high-frequency traffic (fast scrolling lists, gestures, animations driven from JS) could congest the bridge and drop frames. It was also <b>eager</b> — every native module initialized at app startup whether you used it or not, hurting cold start.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="new architecture jsi fabric turbomodules codegen hermes">
       <summary><span class="qix">Q30</span><span class="qtext">Explain the New Architecture: JSI, Fabric, TurboModules.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The New Architecture replaces the mail-by-letter bridge with a direct phone line: JS can hold a reference to a native object and call it synchronously, no JSON round-trip, no queue. Everything else (Fabric, TurboModules) is built on top of that one change.</div>
         <ul>
-          <li><b>JSI (JavaScript Interface)</b> — a lightweight C++ layer that lets JS hold references to native (C++/host) objects and call them <b>directly and synchronously</b>, no JSON bridge. It's the foundation everything else sits on.</li>
-          <li><b>Fabric</b> — the new rendering system. The shadow tree lives in C++ and is shared, enabling synchronous layout reads and better interop; concurrent-React-friendly.</li>
-          <li><b>TurboModules</b> — native modules exposed over JSI and <b>lazily loaded</b> on first use (faster startup), with type-safe interfaces.</li>
-          <li><b>Codegen</b> — generates the native↔JS type-safe glue from your TS spec files.</li>
-          <li><b>Hermes</b> — the default JS engine, optimized for RN (fast startup, low memory, bytecode precompilation).</li>
+          <li><b>JSI (JavaScript Interface)</b> — a lightweight C++ layer letting JS hold direct references to native (C++/host) objects and call them <b>synchronously</b>. This is the foundation everything else sits on.</li>
+          <li><b>Fabric</b> — the new rendering system. The shadow tree lives in C++ and is shared between JS and native, enabling synchronous layout reads and tighter interop — and it's built to work well with concurrent React.</li>
+          <li><b>TurboModules</b> — native modules exposed over JSI, <b>lazily loaded</b> on first actual use instead of all at startup, with type-safe interfaces.</li>
+          <li><b>Codegen</b> — generates the native↔JS type-safe glue code automatically from your TypeScript spec files, so the types on both sides can't drift apart.</li>
+          <li><b>Hermes</b> — the default JS engine, optimized specifically for RN (fast startup, low memory, precompiled bytecode).</li>
         </ul>
-        <p>Net effect: synchronous, type-safe, lower-overhead JS↔native communication and smoother high-frequency UI.</p>
+        <pre><code><span class="c">// TurboModule spec — Codegen generates the native glue from this</span>
+<span class="k">export interface</span> Spec <span class="k">extends</span> TurboModule {
+    getDeviceName(): <span class="t">string</span>;
+    playSound(path: <span class="t">string</span>): Promise&lt;<span class="t">void</span>&gt;;
+}
+<span class="k">export default</span> TurboModuleRegistry.getEnforcing&lt;Spec&gt;(<span class="s">'DeviceInfo'</span>);</code></pre>
+        <p><b>Net effect:</b> synchronous, type-safe, lower-overhead JS↔native communication — smoother high-frequency UI (scrolling, gestures, animations) and faster startup since modules load lazily instead of eagerly.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="flatlist flashlist performance virtualization windowing recycling">
       <summary><span class="qix">Q31</span><span class="qtext">FlatList vs FlashList — how do you make long lists smooth?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>FlatList</code> virtualizes (renders only items near the viewport) but <em>creates and destroys</em> item views as you scroll, which can drop frames on heavy rows. <b>FlashList</b> (Shopify) <em>recycles</em> views — conceptually like Android's RecyclerView — for far less work per frame.</p>
-        <p>Tuning levers: stable <code>keyExtractor</code>, <code>getItemLayout</code> / <code>estimatedItemSize</code> to skip measurement, memoized <code>renderItem</code> rows (<code>React.memo</code>), avoid anonymous functions/inline styles in rows, <code>removeClippedSubviews</code>, and downsized images. This is the RN analogue of the RecyclerView jank work I did on Android.</p>
+        <div class="plain"><b>In plain terms.</b> Both only render items near the visible viewport instead of the entire list ("virtualization"). The difference is what happens as you scroll: <code>FlatList</code> creates and destroys row views as they enter and leave the screen; <code>FlashList</code> reuses a fixed pool of views and just refills them — far less work per frame.</div>
+        <pre><code><span class="k">import</span> { FlashList } <span class="k">from</span> <span class="s">'@shopify/flash-list'</span>;
+
+&lt;FlashList
+    data={items}
+    renderItem={({ item }) =&gt; &lt;Row item={item} /&gt;}
+    keyExtractor={item =&gt; item.id}          <span class="c">// stable identity across renders</span>
+    estimatedItemSize={80}                  <span class="c">// skip a measurement pass — biggest perf win</span>
+/&gt;</code></pre>
+        <p>Tuning levers, in rough order of impact: give <code>estimatedItemSize</code> (FlashList) / <code>getItemLayout</code> (FlatList) so the list skips measuring every row; use a stable <code>keyExtractor</code>; memoize <code>renderItem</code> rows with <code>React.memo</code> so scrolling doesn't re-render unrelated rows; avoid creating new inline functions/styles inside each row (they defeat memoization, same trap as Q22); downsize images before rendering them at list scale.</p>
+        <p>This is the RN analogue of RecyclerView's view-recycling — <code>estimatedItemSize</code> plays the same role as skipping <code>onMeasure</code> passes on Android, and memoized rows play the same role as a lean <code>onBindViewHolder</code>.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="reanimated worklet ui thread animation gesture handler">
       <summary><span class="qix">Q32</span><span class="qtext">Why does Reanimated run animations on the UI thread?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Driving animations from JS means every frame crosses to native — if the JS thread stalls, the animation stutters. Reanimated runs animation logic in <b>worklets</b>: small JS functions (marked <code>'worklet'</code>) executed on the UI thread via JSI, reading/writing <code>shared values</code> there. The animation keeps hitting 60fps even while the JS thread is busy. Pair with <code>react-native-gesture-handler</code> so gestures are also handled natively for instant response.</p>
+        <div class="plain"><b>In plain terms.</b> If you compute each animation frame in JS, every frame has to cross the JS↔native gap — and if the JS thread is ever busy (loading data, re-rendering something else), the animation stutters or freezes mid-motion. Reanimated instead runs the animation logic directly on the UI thread, so it keeps going smoothly no matter what JS is doing.</div>
+        <pre><code><span class="k">import</span> Animated, { useSharedValue, useAnimatedStyle, withSpring } <span class="k">from</span> <span class="s">'react-native-reanimated'</span>;
+
+<span class="k">function</span> <span class="f">Card</span>() {
+    <span class="k">const</span> offset = useSharedValue(0);
+    <span class="k">const</span> style = useAnimatedStyle(() =&gt; ({
+        transform: [{ translateX: offset.value }],   <span class="c">// runs on the UI thread, not JS</span>
+    }));
+    <span class="k">const</span> onPress = () =&gt; { offset.value = withSpring(100); };
+    <span class="k">return</span> &lt;Animated.View style={style} /&gt;;
+}</code></pre>
+        <p>The mechanism: <code>useAnimatedStyle</code> is a <b>worklet</b> — a small JS function marked to run on the UI thread via JSI, reading/writing <code>shared values</code> that live there too. The animation keeps hitting 60fps even while the JS thread is fully occupied elsewhere. Pair with <code>react-native-gesture-handler</code> so gestures are also recognized natively for instant response, not routed through JS first.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="native module bridge kotlin swift turbomodule expose">
       <summary><span class="qix">Q33</span><span class="qtext">How do you expose a native module to JS? (your Kotlin/Swift work)</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>You write platform code (Kotlin/Java on Android, Swift/Obj-C on iOS) implementing a module interface, mark methods callable from JS, and return results via promises/callbacks (old arch) or directly via JSI (TurboModules). On the New Architecture you declare a TS spec and Codegen produces type-safe bindings.</p>
-        <p>Concretely I bridged on-device ML inference and a dual-engine Speech-to-Text/Text-to-Speech layer this way — the heavy native work (audio capture, model inference) runs natively and only the results cross to JS, keeping the JS thread light. The mental model is identical to writing an Android library, just with a JS-facing surface.</p>
+        <div class="plain"><b>In plain terms.</b> You write real platform code — Kotlin on Android, Swift on iOS — implementing a defined module interface, and expose specific methods for JS to call. The heavy lifting happens natively; only the results cross over to JS.</div>
+        <pre><code><span class="c">// Android — Kotlin native module (legacy bridge style, simplified)</span>
+<span class="k">class</span> SpeechModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+    override fun getName() = <span class="s">"SpeechModule"</span>
+
+    @ReactMethod
+    <span class="k">fun</span> speak(text: String, promise: Promise) {
+        <span class="k">try</span> {
+            ttsEngine.speak(text)
+            promise.resolve(<span class="k">null</span>)
+        } <span class="k">catch</span> (e: Exception) { promise.reject(<span class="s">"TTS_ERROR"</span>, e) }
+    }
+}</code></pre>
+        <pre><code><span class="c">// JS side — call it like any async function</span>
+<span class="k">import</span> { NativeModules } <span class="k">from</span> <span class="s">'react-native'</span>;
+<span class="k">await</span> NativeModules.SpeechModule.speak(<span class="s">'Hello'</span>);</code></pre>
+        <p>On the New Architecture you additionally declare a typed TS spec and Codegen produces the type-safe bindings automatically, instead of hand-writing the bridging by convention.</p>
+        <p><b>How this maps to my actual work:</b> I bridged on-device ML inference and a dual-engine Speech-to-Text/Text-to-Speech layer this way at Dream11 — the expensive work (audio capture, model inference) runs natively in Kotlin/Swift, and only the final result crosses to JS, which is exactly why the JS thread stayed responsive despite the heavy processing underneath. The mental model is identical to writing a standalone Android library, just with a JS-facing entry point bolted on.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="codepush ota over the air update hot update app store">
       <summary><span class="qix">Q34</span><span class="qtext">How does CodePush / OTA update work, and its limits?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>RN apps ship a JS bundle that the native shell loads at runtime. OTA tools (CodePush/Expo Updates) host a new bundle; the app downloads it and swaps it on next launch — so you can push JS/asset fixes <b>without an app-store review</b>. Limits: you can only update JS and assets, <b>not native code</b> (a new native module or RN upgrade needs a store release), and store policies require updates not to materially change the app's purpose. Use staged rollouts and mandatory-vs-optional flags. I set up CodePush + GitHub Actions pipelines for CriQ's multi-market releases.</p>
+        <div class="plain"><b>In plain terms.</b> An RN app ships a JS bundle that the native shell loads and runs at startup. OTA update tools let you swap that JS bundle for a newer one <em>without</em> going through the app store — the app just downloads the new bundle and uses it on the next launch.</div>
+        <pre><code><span class="c">// conceptual flow, e.g. with react-native-code-push</span>
+codePush.sync({
+    updateDialog: <span class="k">false</span>,
+    installMode: codePush.InstallMode.ON_NEXT_RESTART,
+});
+<span class="c">// on next app open: new JS bundle is already in place, no store review needed</span></code></pre>
+        <p>The key limit: you can only update <b>JS and assets</b>, not native code — a new native module, a native dependency bump, or an RN version upgrade still requires a full store release. Store policies also require that updates don't materially change the app's fundamental purpose (that's a store-review evasion risk, not a technical one). Use staged rollouts and a mandatory-vs-optional flag so a bad update doesn't hit 100% of users at once.</p>
+        <p><b>Applied directly on the resume:</b> I set up CodePush together with GitHub Actions pipelines for CriQ's multi-market releases, so JS-level fixes could reach users in both the Indian and international builds without waiting on two separate store review cycles.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="hermes engine jsc startup bytecode memory">
       <summary><span class="qix">Q35</span><span class="qtext">What does Hermes change vs JSC?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Hermes is a JS engine built for RN. It <b>precompiles JS to bytecode at build time</b>, so the device skips parse/compile on launch — meaningfully faster cold start, lower memory and smaller TTI, especially on low-end Android. It also has RN-aware GC and tooling. It's the default in modern RN. JSC (JavaScriptCore) was the older default and still works, but Hermes wins on startup/memory for typical apps.</p>
+        <div class="plain"><b>In plain terms.</b> A JS engine has to turn your source code into something runnable. JSC (the old default) does that parsing/compiling <em>on the device at launch</em>. Hermes does it ahead of time, at build, so the device just runs pre-compiled bytecode — skipping a step that used to happen on every cold start.</div>
+        <p>That precompilation is why Hermes meaningfully improves cold-start time, lowers memory usage, and shrinks time-to-interactive — especially noticeable on low-end Android devices where parsing JS on-device was a real bottleneck. It also has GC tuned for RN's usage pattern and better debugging tooling. Hermes is the default in modern RN; JSC still works but loses on startup and memory for typical apps.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="navigation react-navigation stack native stack performance">
       <summary><span class="qix">Q36</span><span class="qtext">React Navigation: native-stack vs JS stack, and performance.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><code>native-stack</code> uses the platform's native navigators (UINavigationController / Fragment) for true-native transitions, gestures and memory behavior — prefer it. The JS <code>stack</code> renders transitions in JS (more customizable, but can jank). Use <code>react-native-screens</code> so off-screen routes are detached from the native view hierarchy (less memory). Lazy-load heavy screens, and keep navigation params small/serializable.</p>
+        <div class="plain"><b>In plain terms.</b> <code>native-stack</code> hands screen transitions to the real platform navigator (UINavigationController on iOS, Fragment-based on Android), so they look and feel truly native and don't compete with the JS thread. The plain JS <code>stack</code> renders and animates transitions itself in JS — more customizable, but can jank under load.</div>
+        <pre><code><span class="k">import</span> { createNativeStackNavigator } <span class="k">from</span> <span class="s">'@react-navigation/native-stack'</span>;
+<span class="k">const</span> Stack = createNativeStackNavigator();
+
+&lt;Stack.Navigator&gt;
+    &lt;Stack.Screen name=<span class="s">"Home"</span> component={HomeScreen} /&gt;
+    &lt;Stack.Screen name=<span class="s">"Detail"</span> component={DetailScreen} /&gt;
+&lt;/Stack.Navigator&gt;</code></pre>
+        <p>Default to <code>native-stack</code>. Also use <code>react-native-screens</code> underneath so off-screen routes are fully detached from the native view hierarchy instead of just hidden — meaningfully less memory as your navigation stack grows deep. Lazy-load heavy screens (don't import them until navigated to), and keep navigation params small and serializable rather than passing large objects through routes.</p>
       </div>
     </details>
   </section>
 
-  <!-- ============ ANDROID <-> RN MAPPING ============ -->
   <section class="cat" id="map" data-cat="map">
     <h2><span class="ix">06</span> Android ↔ React Native</h2>
-    <p class="cat-sub">My differentiator — mapping native concepts to their RN equivalents.</p>
+    <p class="cat-sub">My differentiator — mapping native concepts to their RN equivalents, with side-by-side code.</p>
 
     <details class="qa" data-tags="recyclerview flashlist mapping list recycling">
       <summary><span class="qix">Q37</span><span class="qtext">RecyclerView ↔ FlashList — same idea?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Yes — both solve "render a huge list cheaply by reusing views". RecyclerView pools <code>ViewHolder</code>s and rebinds; FlashList recycles cells the same way (unlike FlatList, which mounts/unmounts). DiffUtil's role maps to React's keyed reconciliation. Knowing the native original makes the RN tuning intuitive: stable keys ≈ stable item ids, <code>estimatedItemSize</code> ≈ <code>getItemLayout</code>, memoized rows ≈ light <code>onBindViewHolder</code>.</p>
+        <div class="plain"><b>In plain terms.</b> Both solve "render a huge list cheaply by reusing views instead of creating new ones for every row." Once you understand one, the other's tuning knobs are immediately familiar — they're the same problem in two ecosystems.</div>
+        <pre><code><span class="c">// Android — RecyclerView + DiffUtil</span>
+<span class="k">class</span> Diff : DiffUtil.ItemCallback&lt;Item&gt;() {
+    override fun areItemsTheSame(a: Item, b: Item) = a.id == b.id
+}
+<span class="c">// getItemLayout equivalent: RecyclerView measures once per view TYPE, reuses it</span></code></pre>
+        <pre><code><span class="c">// React Native — FlashList, same underlying idea</span>
+&lt;FlashList
+    data={items}
+    keyExtractor={item =&gt; item.id}       <span class="c">// ≈ DiffUtil's areItemsTheSame</span>
+    estimatedItemSize={80}               <span class="c">// ≈ skipping RecyclerView's measure pass</span>
+    renderItem={({ item }) =&gt; &lt;Row item={item} /&gt;}   <span class="c">// ≈ onBindViewHolder</span>
+/&gt;</code></pre>
+        <p>Stable keys ≈ stable item ids; a memoized <code>renderItem</code> row ≈ a lean <code>onBindViewHolder</code> that does minimal work per bind; <code>estimatedItemSize</code>/<code>getItemLayout</code> both exist to let the list skip an expensive measurement pass. Knowing the native original makes the RN tuning intuitive rather than cargo-culted from documentation.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="coroutines async await javascript event loop concurrency mapping">
       <summary><span class="qix">Q38</span><span class="qtext">Kotlin coroutines ↔ JS async/await — where do they diverge?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Both write async code in sequential style. But Kotlin coroutines run on a real multi-threaded dispatcher pool with <b>structured concurrency</b> and cooperative cancellation; JS is single-threaded with a microtask-based event loop and no built-in cancellation (you reach for <code>AbortController</code>). So <code>Dispatchers.Default</code> for CPU work has no direct JS analogue — heavy JS work blocks the one thread, which is exactly why RN offloads to native modules or worklets. Coroutine scopes ≈ a discipline you must hand-roll in JS.</p>
+        <div class="plain"><b>In plain terms.</b> Both let you write asynchronous code that reads top-to-bottom instead of nested callbacks. The real difference: Kotlin coroutines run across a real multi-threaded pool with built-in structured cancellation; JS is fundamentally single-threaded, so "concurrency" there means interleaving, not parallel execution.</div>
+        <pre><code><span class="c">// Kotlin — CPU-bound work has a real dispatcher for it</span>
+viewModelScope.launch(Dispatchers.Default) {
+    <span class="k">val</span> result = heavyComputation()   <span class="c">// genuinely runs on another thread</span>
+}</code></pre>
+        <pre><code><span class="c">// JS — there's no thread-pool equivalent; heavy work still blocks the one JS thread</span>
+<span class="k">async function</span> <span class="f">heavyComputation</span>() {
+    <span class="k">return</span> expensiveLoop();   <span class="c">// this blocks everything else on the JS thread while it runs</span>
+}
+<span class="c">// the real fix in RN: move it to a native module, not just "await" it</span></code></pre>
+        <p>So <code>Dispatchers.Default</code> for CPU-bound work has no direct JS equivalent — there's no thread to hop to. That's exactly why RN offloads genuinely heavy computation to native modules or Reanimated worklets rather than trying to "async" its way out of blocking the JS thread. Coroutine <code>Job</code>/scope cancellation also has no built-in JS analogue — you reach for <code>AbortController</code> and have to wire cancellation manually.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="jni native module bridge interop mapping">
       <summary><span class="qix">Q39</span><span class="qtext">JNI / native bindings ↔ RN native modules &amp; JSI?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Both are FFI boundaries between a managed runtime and native code. JNI bridges JVM↔C/C++; RN's JSI bridges JS↔C++ (and from there to Kotlin/Swift). The shared lessons transfer directly: minimize boundary crossings, batch data, do heavy work on the native side, and watch object lifetimes/threading across the boundary. Having written native modules in Kotlin and Swift, the JSI model felt like the same problem with a different glue layer.</p>
+        <div class="plain"><b>In plain terms.</b> Both are bridges between a managed runtime and native code — JNI connects the JVM to C/C++; JSI connects JS to C++ (and from there to Kotlin/Swift). The engineering lessons transfer almost one-to-one.</div>
+        <ul>
+          <li><b>Minimize boundary crossings</b> — batch data instead of many small calls, in both JNI and JSI, because each crossing has real overhead.</li>
+          <li><b>Do heavy work on the native side</b> — the managed runtime (JVM or JS) should orchestrate, not compute.</li>
+          <li><b>Watch object lifetimes across the boundary</b> — JNI global references and JSI host objects both need explicit lifecycle management or you leak native memory the garbage collector can't see.</li>
+        </ul>
+        <p>Having written native modules in Kotlin and Swift for the Speech-to-Text/TTS work, the JSI model felt like solving the exact same class of problem (managed↔native handoff, careful about what crosses the boundary and how often) with a different glue layer on top.</p>
       </div>
     </details>
 
     <details class="qa" data-tags="jetpack compose react declarative ui recomposition rerender mapping">
       <summary><span class="qix">Q40</span><span class="qtext">Jetpack Compose ↔ React — declarative UI parallels.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Near one-to-one: <b>recomposition ≈ re-render</b> (both re-run UI functions when observed state changes and diff the result). <code>remember</code> ≈ <code>useState</code>/<code>useMemo</code>; <code>LaunchedEffect</code> ≈ <code>useEffect</code>; state hoisting is the same unidirectional pattern in both. Compose stability (skipping) ≈ <code>React.memo</code> + referential equality. Coming from Compose, React's render model needs almost no re-learning — which is why I pitch Android depth as a React-Native accelerant, not a context switch.</p>
+        <div class="plain"><b>In plain terms.</b> Compose and React solve UI the same way: describe the UI as a function of state, and let the framework figure out what actually needs to change on screen. Once you know one well, the other's core concepts map almost line-for-line.</div>
+        <pre><code><span class="c">// Compose</span>
+@Composable
+<span class="k">fun</span> Counter() {
+    <span class="k">var</span> count <span class="k">by</span> remember { mutableStateOf(0) }        <span class="c">// ≈ useState</span>
+    LaunchedEffect(count) { logCount(count) }             <span class="c">// ≈ useEffect</span>
+    Button(onClick = { count++ }) { Text(<span class="s">"$count"</span>) }
+}</code></pre>
+        <pre><code><span class="c">// React — same shape</span>
+<span class="k">function</span> <span class="f">Counter</span>() {
+    <span class="k">const</span> [count, setCount] = <span class="f">useState</span>(0);          <span class="c">// ≈ remember { mutableStateOf }</span>
+    <span class="f">useEffect</span>(() =&gt; { logCount(count); }, [count]);   <span class="c">// ≈ LaunchedEffect(count)</span>
+    <span class="k">return</span> &lt;Button onClick={() =&gt; setCount(count + 1)}&gt;{count}&lt;/Button&gt;;
+}</code></pre>
+        <p><b>recomposition ≈ re-render</b> — both re-run the UI function when observed state changes and diff the result rather than repainting everything. <code>remember</code> ≈ <code>useState</code>/<code>useMemo</code>; <code>LaunchedEffect</code> ≈ <code>useEffect</code>; state hoisting is the identical unidirectional-data-flow pattern in both. Compose's stability/skipping ≈ <code>React.memo</code> plus referential equality (Q22, Q33 on the Android page are the same underlying concept). Coming from Compose, React's render model needs almost no re-learning — which is exactly why Android depth is a genuine React Native accelerant, not a context switch.</p>
       </div>
     </details>
   </section>
-
   <div class="no-results">No questions match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
@@ -549,6 +949,7 @@ add(1)(2)(3); add(1, 2)(3); add(1)(2, 3);  <span class="c">// all 6</span></code
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
     </nav>
   </div>
