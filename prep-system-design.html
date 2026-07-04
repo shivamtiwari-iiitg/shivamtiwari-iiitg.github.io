@@ -19,6 +19,7 @@
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
       <a class="nav-cta" href="index.html">← Portfolio</a>
     </nav>
@@ -58,6 +59,7 @@
       <button class="fchip" data-target="framework">Framework</button>
       <button class="fchip" data-target="mobile">Mobile designs</button>
       <button class="fchip" data-target="web">Web designs</button>
+      <button class="fchip" data-target="cicd">CI/CD</button>
     </div>
   </div>
 </div>
@@ -69,74 +71,224 @@
     <a href="#framework">Framework &amp; basics</a>
     <a href="#mobile">Mobile designs</a>
     <a href="#web">Web designs</a>
+    <a href="#cicd">CI/CD &amp; delivery</a>
   </aside>
 
   <div>
 
   <!-- ============ FRAMEWORK ============ -->
+  <!-- ============ FRAMEWORK ============ -->
   <section class="cat" id="framework" data-cat="framework">
-    <h2><span class="ix">01</span> Framework &amp; fundamentals</h2>
-    <p class="cat-sub">How to drive the round, plus the cross-cutting decisions every mobile design needs.</p>
+    <h2><span class="ix">01</span> Framework &amp; how to drive the round</h2>
+    <p class="cat-sub">The repeatable skeleton every system design interview follows — with what to say, when, and why.</p>
 
-    <details class="qa" data-tags="framework approach requirements scope mobile system design steps">
-      <summary><span class="qix">D01</span><span class="qtext">A repeatable framework for a mobile system-design round.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="framework approach interview steps requirements scope how to drive">
+      <summary><span class="qix">D01</span><span class="qtext">The 45-minute mobile system design interview — how to drive it.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Mobile design rounds reward <b>client-side</b> reasoning, not just boxes-and-arrows backend. Drive it in this order:</p>
-        <ol>
-          <li><b>Clarify &amp; scope</b> — functional requirements, then non-functional (offline, latency, battery, data usage, app size, accessibility). State assumptions and constraints (platforms, scale, API ownership).</li>
-          <li><b>Define the API contract</b> — endpoints, pagination style, payload shape, error model. This anchors everything.</li>
-          <li><b>Client architecture</b> — layers (UI → domain → data), state model, threading, single source of truth.</li>
-          <li><b>Data &amp; caching</b> — memory/disk tiers, persistence (Room/SQLite), eviction, freshness/TTL, offline-first sync.</li>
-          <li><b>Deep dives</b> — the hard part the interviewer cares about (real-time, conflict resolution, media, list performance).</li>
-          <li><b>Non-functional polish</b> — performance, observability/metrics, security, rollout, failure modes.</li>
-        </ol>
-        <div class="callout">Spend the most time on the deep dive, and always close on trade-offs — "I chose X over Y because…". Seniority shows in the trade-offs, not the diagram.</div>
-      </div>
-    </details>
-
-    <details class="qa" data-tags="pagination offset cursor keyset infinite scroll api">
-      <summary><span class="qix">D02</span><span class="qtext">Offset vs cursor pagination — which for an infinite feed?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
-      <div class="answer">
-        <p><b>Offset</b> (<code>?page=3&amp;size=20</code>) is simple but breaks on live data — inserts/deletes shift offsets, causing duplicates or skipped items, and deep offsets are slow on the DB. <b>Cursor/keyset</b> (<code>?after=&lt;opaque_token&gt;</code>) encodes the last item's sort key, so the next page is "everything after this point" — stable under inserts and O(log n) on an indexed column. Use cursor pagination for feeds and chat. The client stores the next cursor with the cached page and requests the next on scroll.</p>
-      </div>
-    </details>
-
-    <details class="qa" data-tags="caching strategy memory disk lru ttl stale-while-revalidate http">
-      <summary><span class="qix">D03</span><span class="qtext">Design a multi-tier client caching strategy.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
-      <div class="answer">
-        <p>Three tiers, read top-down, write bottom-up:</p>
+        <div class="plain"><b>In plain terms.</b> An interviewer who gives you a blank-slate problem is testing whether you impose structure. The best candidates drive the 45 minutes like a structured conversation, not a monologue — they state assumptions, get quick buy-in, then go deep on the interesting parts.</div>
+        <p><b>The six-phase skeleton (approximate time allocation):</b></p>
         <ul>
-          <li><b>Memory (LRU)</b> — hot objects/bitmaps, fastest, lost on process death. Bound by size.</li>
-          <li><b>Disk</b> — SQLite/Room for structured data, a disk LRU for blobs/images. Survives restarts.</li>
-          <li><b>Network</b> — source of truth, with HTTP caching (ETag/<code>Cache-Control</code>) at the OkHttp layer.</li>
+          <li><b>1. Clarify &amp; scope (5 min)</b> — ask before you draw. Functional requirements (what does it do?), then non-functional (scale, offline, latency, battery, data usage, a11y). Nail down what's in vs out of scope and say it aloud. Interviewers reward candidates who ask precise questions.</li>
+          <li><b>2. API contract (5 min)</b> — define the surface: endpoints, request/response shapes, pagination style, error model, auth. This anchors the rest and signals systems thinking.</li>
+          <li><b>3. High-level design / HLD (10 min)</b> — draw the components: client layers, server, database, CDN. Describe data flow for the main use case. Keep it high-level, no classes yet.</li>
+          <li><b>4. Client architecture deep-dive (15 min)</b> — this is the mobile-specific part interviewers care most about. Layer structure, state model, threading, caching strategy, offline behavior. Spend the most time here.</li>
+          <li><b>5. LLD / specific deep-dives (5 min)</b> — key classes, interfaces, data models for the hardest part. Don't try to spec the whole thing — pick the component the interviewer seems most interested in.</li>
+          <li><b>6. Trade-offs &amp; non-functionals (5 min)</b> — explicitly state what you'd do differently at larger scale, what you chose NOT to do and why, failure modes, observability. Seniority shows in trade-offs.</li>
         </ul>
-        <p>Freshness policies: <b>cache-first</b> (speed, may be stale), <b>network-first</b> (freshness, slower), and <b>stale-while-revalidate</b> (show cache instantly, refresh in background, emit the update) — usually the best UX. Drive it through the repository so the UI just observes a <code>Flow</code>. Add per-entity TTLs and invalidation on writes.</p>
+        <div class="callout"><b>The mobile-specific lens:</b> web SD rounds focus on servers and databases. Mobile rounds want the client architecture — layers, single source of truth, threading, caching, lifecycle, memory. Always answer through that lens first, even if backend comes up.</div>
       </div>
     </details>
 
-    <details class="qa" data-tags="offline first sync conflict resolution queue outbox last write wins">
-      <summary><span class="qix">D04</span><span class="qtext">How do you build offline-first with conflict resolution?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="pagination offset cursor keyset infinite scroll">
+      <summary><span class="qix">D02</span><span class="qtext">Offset vs cursor pagination — design and trade-offs.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Make the local DB the source of truth; the UI never waits on the network. Writes go through an <b>outbox</b> pattern:</p>
-        <ol>
-          <li>Write optimistically to the local DB and mark the row <code>pending</code> (with a client-generated id).</li>
-          <li>Enqueue a mutation in an outbox table; a <code>WorkManager</code> job drains it when connectivity returns, with exponential backoff and idempotency keys.</li>
-          <li>On success, reconcile the server id and clear <code>pending</code>; on permanent failure, surface a retry/needs-attention state.</li>
-        </ol>
-        <p><b>Conflict resolution:</b> simplest is last-write-wins via server timestamps/versions; better is per-field merge or, for collaborative data, CRDTs/OT. Always send a version/<code>updatedAt</code> so the server can detect conflicts. Show clear pending/failed indicators rather than silently dropping edits.</p>
+        <div class="plain"><b>In plain terms.</b> Offset says "give me items 20–40." Cursor says "give me items after this specific one." Cursor is better for feeds because live data (new inserts) breaks offset indexing.</div>
+        <pre><code><span class="c">// Offset — simple, breaks on live data</span>
+GET /api/posts?page=3&amp;size=20
+<span class="c">// Problem: if 5 posts are inserted before page 2, page 3 now repeats items from page 2</span>
+
+<span class="c">// Cursor — stable</span>
+GET /api/posts?after=eyJpZCI6MTA1fQ==&amp;size=20
+<span class="c">// Server decodes cursor → finds posts with id &lt; 105, orders descending</span>
+<span class="c">// New inserts don't affect positions of older items</span></code></pre>
+        <p><b>Client storage pattern (Android / RN):</b> store <code>nextCursor</code> alongside cached pages in Room. On resume, use the stored cursor to top-up from network.</p>
+        <pre><code><span class="c">// Room DAO</span>
+@Query(<span class="s">"SELECT * FROM post ORDER BY id DESC LIMIT :limit"</span>)
+<span class="k">fun</span> page(limit: Int): List&lt;Post&gt;
+
+@Query(<span class="s">"SELECT * FROM post WHERE id &lt; :cursor ORDER BY id DESC LIMIT :limit"</span>)
+<span class="k">fun</span> pageAfter(cursor: Long, limit: Int): List&lt;Post&gt;</code></pre>
       </div>
     </details>
 
-    <details class="qa" data-tags="auth token refresh access refresh jwt 401 interceptor secure storage">
-      <summary><span class="qix">D05</span><span class="qtext">Design token auth with silent refresh on mobile.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="caching strategy memory disk lru ttl stale while revalidate">
+      <summary><span class="qix">D03</span><span class="qtext">Design a multi-tier caching strategy — HLD + LLD.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p>Short-lived <b>access token</b> + long-lived <b>refresh token</b>. The access token is attached by an interceptor; on a <code>401</code>, an <b>authenticator</b> uses the refresh token to get a new access token and retries the request.</p>
+        <div class="plain"><b>In plain terms.</b> Three tiers, fastest to slowest: memory (lost on app kill) → disk (survives restarts) → network. Reads go top-down; writes go bottom-up. The policy per tier determines how fresh vs cheap each response is.</div>
+        <p><b>HLD:</b></p>
+        <pre><code>UI → ViewModel → Repository
+                    ↓
+         [1] Memory LRU cache (hot objects, bounded)
+                    ↓ miss
+         [2] Disk / Room (structured data) + DiskLRU (blobs)
+                    ↓ miss or stale
+         [3] Network (OkHttp + HTTP cache layer)
+                    ↓
+              Server → CDN</code></pre>
+        <p><b>LLD — Android:</b></p>
+        <pre><code><span class="k">class</span> ArticleRepository(
+    <span class="k">private val</span> memCache: LruCache&lt;String, Article&gt;,
+    <span class="k">private val</span> dao: ArticleDao,
+    <span class="k">private val</span> api: ArticleApi
+) {
+    <span class="k">fun</span> observe(id: String): Flow&lt;Article&gt; = flow {
+        <span class="c">// 1. Emit memory cache immediately</span>
+        memCache[id]?.let { emit(it); <span class="k">return</span>@flow }
+
+        <span class="c">// 2. Emit disk while network fetches</span>
+        emitAll(dao.observe(id)
+            .onStart {
+                <span class="c">// 3. Kick off network refresh in parallel</span>
+                viewModelScope.launch(Dispatchers.IO) {
+                    <span class="k">val</span> fresh = api.article(id)
+                    dao.upsert(fresh)           <span class="c">// disk update → Flow re-emits</span>
+                    memCache.put(id, fresh)     <span class="c">// warm memory tier</span>
+                }
+            }
+        )
+    }
+}</code></pre>
+        <p><b>LLD — React/RN (React Query):</b></p>
+        <pre><code><span class="k">const</span> { data } = useQuery({
+    queryKey: [<span class="s">'article'</span>, id],
+    queryFn: () =&gt; api.article(id),
+    staleTime: 60_000,          <span class="c">// serve cached for 1min, then revalidate</span>
+    gcTime: 5 * 60_000,         <span class="c">// keep in memory 5min after last use</span>
+    initialData: diskCache.get(id),   <span class="c">// hydrate from persisted cache</span>
+});</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="offline first sync conflict resolution outbox queue">
+      <summary><span class="qix">D04</span><span class="qtext">Offline-first with conflict resolution — HLD + LLD.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The local database is the source of truth; the UI never waits on the network. Writes go to an "outbox" table first; a background job drains it to the server when connectivity returns.</div>
+        <p><b>HLD:</b></p>
+        <pre><code>User action → Repository
+                ↓
+     1. Write to local DB (immediate, optimistic)
+     2. Insert into Outbox table (pending mutation)
+     3. UI observes DB → instant update
+                ↓ (background)
+     WorkManager drains Outbox → POST to server
+     Server returns canonical id/timestamp
+     Repository updates local row: pending → synced</code></pre>
+        <p><b>LLD — Android (Room + WorkManager):</b></p>
+        <pre><code><span class="c">// Outbox entity</span>
+@Entity
+<span class="k">data class</span> OutboxEntry(
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    <span class="k">val</span> entityType: String,    <span class="c">// "post", "comment", "reaction"</span>
+    <span class="k">val</span> payload: String,       <span class="c">// JSON</span>
+    <span class="k">val</span> status: Status = Status.PENDING,
+    <span class="k">val</span> retries: Int = 0
+)
+
+<span class="c">// Repository write — atomic: both in one transaction</span>
+@Transaction
+<span class="k">suspend fun</span> createPost(post: Post) {
+    postDao.insert(post.copy(syncStatus = SyncStatus.PENDING))
+    outboxDao.insert(OutboxEntry(entityType = <span class="s">"post"</span>, payload = post.toJson()))
+}
+
+<span class="c">// WorkManager sync job</span>
+<span class="k">class</span> SyncWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override <span class="k">suspend fun</span> doWork(): Result {
+        <span class="k">val</span> entries = outboxDao.pendingEntries()
+        entries.forEach { entry -&gt;
+            <span class="k">try</span> {
+                api.sync(entry.payload)
+                outboxDao.markSynced(entry.id)
+            } <span class="k">catch</span> (e: Exception) {
+                outboxDao.incrementRetry(entry.id)
+                <span class="k">if</span> (entry.retries &gt;= 3) outboxDao.markFailed(entry.id)
+            }
+        }
+        <span class="k">return</span> Result.success()
+    }
+}</code></pre>
+        <p><b>Conflict resolution strategies:</b></p>
         <ul>
-          <li>Store refresh tokens in secure storage — Android Keystore / iOS Keychain, never plain prefs.</li>
-          <li><b>Single-flight</b> the refresh: if many requests 401 at once, only one refresh runs (a mutex), others await its result — otherwise you stampede the refresh endpoint and may rotate tokens out of sync.</li>
-          <li>On refresh failure (revoked/expired), clear the session and route to login.</li>
-          <li>Support token rotation and server-side revocation; consider certificate pinning for the auth endpoints.</li>
+          <li><b>Last-write-wins:</b> server timestamp decides. Simple, loses concurrent edits. Good for most non-collaborative data.</li>
+          <li><b>Per-field merge:</b> server merges changed fields independently. Better for settings/profile edits where fields are independent.</li>
+          <li><b>CRDT:</b> data types that merge commutatively — no single winner needed. Best for collaborative editing (too complex for most apps).</li>
         </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="auth token refresh silent 401 interceptor secure storage">
+      <summary><span class="qix">D05</span><span class="qtext">Token auth with silent refresh — HLD + LLD.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Short-lived access tokens (15min) + long-lived refresh tokens (30 days). A 401 triggers a token refresh transparently — the original request retries with the new token, and the user never sees a login page mid-session.</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Request → OkHttp/Axios Interceptor
+    ↓ adds "Authorization: Bearer &lt;access&gt;"
+API call → 401?
+    ↓ yes
+Authenticator / Response Interceptor
+    ↓ single-flight mutex (only ONE refresh at a time)
+POST /auth/refresh { refreshToken }
+    ↓ success
+Store new access + refresh tokens
+Retry original request
+    ↓ fail (refresh expired)
+Clear session → navigate to Login</code></pre>
+        <p><b>LLD — Android (OkHttp Authenticator):</b></p>
+        <pre><code><span class="k">class</span> TokenAuthenticator(
+    <span class="k">private val</span> tokenStore: TokenStore,
+    <span class="k">private val</span> authApi: AuthApi
+) : Authenticator {
+    <span class="k">private val</span> mutex = Mutex()
+
+    override fun authenticate(route: Route?, response: Response): Request? {
+        <span class="c">// Single-flight: only one refresh runs even if 10 requests 401 simultaneously</span>
+        <span class="k">return</span> runBlocking {
+            mutex.withLock {
+                <span class="c">// Already refreshed while waiting? Skip</span>
+                <span class="k">val</span> current = tokenStore.accessToken
+                <span class="k">if</span> (current != response.request.header(<span class="s">"Authorization"</span>)?.drop(7)) {
+                    <span class="k">return</span>@withLock response.request.newBuilder()
+                        .header(<span class="s">"Authorization"</span>, <span class="s">"Bearer $current"</span>).build()
+                }
+                <span class="k">try</span> {
+                    <span class="k">val</span> refreshed = authApi.refresh(tokenStore.refreshToken)
+                    tokenStore.save(refreshed)
+                    response.request.newBuilder()
+                        .header(<span class="s">"Authorization"</span>, <span class="s">"Bearer ${refreshed.accessToken}"</span>).build()
+                } <span class="k">catch</span> (e: Exception) {
+                    tokenStore.clear(); <span class="c">// force logout</span>
+                    <span class="k">null</span>
+                }
+            }
+        }
+    }
+}</code></pre>
+        <p><b>LLD — React/RN (Axios interceptor):</b></p>
+        <pre><code><span class="k">let</span> refreshPromise: Promise&lt;<span class="t">string</span>&gt; | <span class="k">null</span> = <span class="k">null</span>;   <span class="c">// single-flight</span>
+
+axios.interceptors.response.use(<span class="k">null</span>, <span class="k">async</span> (error) =&gt; {
+    <span class="k">if</span> (error.response?.status !== 401 || error.config._retry) <span class="k">throw</span> error;
+    error.config._retry = <span class="k">true</span>;
+    <span class="k">if</span> (!refreshPromise) {
+        refreshPromise = authApi.refresh(getRefreshToken())
+            .then(t =&gt; { saveTokens(t); <span class="k">return</span> t.accessToken; })
+            .finally(() =&gt; { refreshPromise = <span class="k">null</span>; });
+    }
+    <span class="k">const</span> token = <span class="k">await</span> refreshPromise;
+    error.config.headers.Authorization = <span class="s">`Bearer ${token}`</span>;
+    <span class="k">return</span> axios(error.config);
+});</code></pre>
+        <p><b>Storage:</b> Android Keystore (EncryptedSharedPreferences), iOS Keychain — never plain SharedPreferences or localStorage for tokens.</p>
       </div>
     </details>
   </section>
@@ -144,121 +296,583 @@
   <!-- ============ MOBILE DESIGNS ============ -->
   <section class="cat" id="mobile" data-cat="mobile">
     <h2><span class="ix">02</span> Mobile system designs</h2>
-    <p class="cat-sub">Worked client-side designs — the bread and butter of mobile rounds.</p>
+    <p class="cat-sub">Full HLD + LLD + platform-specific code. Walk through each one as you would in a real interview.</p>
 
-    <details class="qa" data-tags="image loading library glide coil cache memory disk downsample request lifecycle">
-      <summary><span class="qix">D06</span><span class="qtext">Design an image-loading library (Glide / Coil).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="image loading library glide coil cache memory disk lifecycle">
+      <summary><span class="qix">D06</span><span class="qtext">Design an image-loading library (Glide / Coil) — HLD + LLD.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Requirements:</b> load a URL into an ImageView/Composable fast, cache aggressively, downsample to target size, cancel on view recycle, never OOM, support transformations.</p>
-        <p><b>Pipeline (request → result):</b></p>
-        <ol>
-          <li><b>Request</b> — key = URL + target size + transformations. Check <b>memory LRU</b> (decoded bitmaps) → return instantly on hit.</li>
-          <li>Miss → check <b>disk LRU</b> (encoded bytes). Hit → decode with sampling → put in memory cache.</li>
-          <li>Miss → <b>fetch</b> over the network (dedupe concurrent requests for the same key), write bytes to disk.</li>
-          <li><b>Decode</b> off the main thread, downsampling via <code>inSampleSize</code> to the target dimensions to cap memory.</li>
-          <li><b>Deliver</b> on the main thread; apply a placeholder/error and a crossfade.</li>
-        </ol>
-        <p><b>Lifecycle:</b> tie each request to the view/lifecycle so scrolling a row off-screen cancels its in-flight request (critical for list performance — the RecyclerView/FlashList connection). Bound both caches; size the memory cache from <code>maxMemory</code>. Use a bitmap pool to reduce GC churn. Trade-offs: memory cache size vs OOM risk; aggressive prefetch vs data usage.</p>
+        <div class="plain"><b>Clarifications to make in the interview:</b> bitmap in memory or vector? Max concurrent downloads? Lifecycle awareness required? Transformations (resize, crop, filters)?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Request(url, target: ImageView/Composable, size)
+    ↓
+Key = hash(url + size + transformations)
+    ↓
+[1] Memory LRU cache → hit: set bitmap → done
+    ↓ miss
+[2] Disk LRU cache → hit: decode → set → update memory
+    ↓ miss
+[3] Deduplication layer → one in-flight request per key
+    ↓
+[4] Network → download bytes → write to disk
+    ↓
+[5] Decode thread → BitmapFactory.decodeStream(opts)
+    → downsample to target size via inSampleSize
+    ↓
+[6] Transformation pipeline (crop, round corners, blur)
+    ↓
+[7] Main thread → setImageBitmap (cancel if view recycled)</code></pre>
+        <p><b>LLD — Android (Kotlin):</b></p>
+        <pre><code><span class="k">class</span> ImageLoader(maxMemKb: Int) {
+    <span class="k">private val</span> memCache = <span class="k">object</span> : LruCache&lt;String, Bitmap&gt;(maxMemKb) {
+        override fun sizeOf(k: String, v: Bitmap) = v.byteCount / 1024
+    }
+    <span class="k">private val</span> diskCache = DiskLruCache.open(cacheDir, maxDiskKb)
+    <span class="k">private val</span> inFlight = ConcurrentHashMap&lt;String, Deferred&lt;Bitmap?&gt;&gt;()
+
+    <span class="k">fun</span> load(url: String, into: ImageView, size: Size) {
+        <span class="k">val</span> key = cacheKey(url, size)
+        <span class="c">// Cancel any previous request on this view</span>
+        into.tag?.let { (it <span class="k">as</span>? Job)?.cancel() }
+
+        <span class="k">val</span> job = ioScope.launch {
+            <span class="k">val</span> bmp = memCache[key]
+                ?: diskCache.get(key)?.also { memCache.put(key, it) }
+                ?: fetchAndDecode(url, size, key)
+            withContext(Main) {
+                <span class="k">if</span> (into.tag == coroutineContext[Job]) into.setImageBitmap(bmp)
+            }
+        }
+        into.tag = job
+    }
+}
+
+<span class="k">private suspend fun</span> fetchAndDecode(url: String, size: Size, key: String): Bitmap? {
+    <span class="c">// Deduplicate: reuse in-flight request for same key</span>
+    <span class="k">return</span> inFlight.getOrPut(key) {
+        ioScope.async {
+            httpClient.stream(url).use { stream -&gt;
+                <span class="k">val</span> opts = BitmapFactory.Options()
+                opts.inJustDecodeBounds = <span class="k">true</span>
+                BitmapFactory.decodeStream(stream, null, opts)
+                opts.inSampleSize = calcSampleSize(opts, size)
+                opts.inJustDecodeBounds = <span class="k">false</span>
+                BitmapFactory.decodeStream(reopened, null, opts)
+                    .also { diskCache.put(key, it) }
+            }
+        }
+    }.also { inFlight.remove(key) }.await()
+}</code></pre>
+        <p><b>LLD — React Native (JavaScript layer over native):</b></p>
+        <pre><code><span class="c">// In RN, use Expo's Image or @shopify/react-native-skia for custom loaders.</span>
+<span class="c">// The JS-only pattern for a cache key + placeholder:</span>
+<span class="k">function</span> <span class="f">CachedImage</span>({ uri, style }) {
+    <span class="k">const</span> [src, setSrc] = <span class="f">useState</span>(cache.get(uri) || uri);
+    <span class="k">return</span> (
+        &lt;Image
+            source={{ uri: src }}
+            style={style}
+            resizeMethod=<span class="s">"resize"</span>      <span class="c">// downscale on decode thread, not GPU</span>
+            onError={() =&gt; setSrc(PLACEHOLDER_URI)}
+        /&gt;
+    );
+}</code></pre>
+        <p><b>Trade-offs:</b> aggressive memory caching prevents OOM but risks evicting large bitmaps unexpectedly — bound to 1/8 of maxMemory. Disk dedupe saves bandwidth but the dedup map can grow — bound by size and TTL. Lifecycle tie-in (cancel on view recycle) is critical for list scroll performance.</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="chat messaging offline sync realtime websocket delivery status ordering">
-      <summary><span class="qix">D07</span><span class="qtext">Design a real-time chat / messaging feature.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="chat messaging offline realtime websocket delivery receipt ordering">
+      <summary><span class="qix">D07</span><span class="qtext">Design real-time chat — HLD + LLD (Android, RN, React).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Requirements:</b> send/receive in real time, offline send, correct ordering, delivery/read receipts, history pagination, media.</p>
-        <p><b>Transport:</b> a persistent <b>WebSocket</b> (or platform push for wake-ups) for low-latency bidirectional messages; fall back to long-poll. Heartbeats + reconnect with backoff; resume by passing the last-seen message id.</p>
-        <p><b>Client model:</b> local SQLite is the source of truth, UI observes a <code>Flow</code> per conversation (cursor-paginated). Sending uses the outbox pattern: insert with a client id and <code>sending</code> status → optimistic render → socket/REST send → server returns canonical id + timestamp → update status to <code>sent/delivered/read</code>.</p>
-        <p><b>Ordering:</b> order by server timestamp + a tiebreaker; use a monotonic sequence per conversation so a late-arriving message inserts correctly. <b>Receipts</b> are just lightweight events updating message rows. <b>Sync on reconnect:</b> pull everything after the last synced cursor. Media uploads go through the upload design (D09) and reference a blob id.</p>
+        <div class="plain"><b>Clarify:</b> 1:1 or group? Max group size? Read receipts? Media? Offline send? Push for background? History pagination depth?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Client ←→ WebSocket Gateway ←→ Message Service ←→ Kafka
+                                       ↓
+                                 Message DB (Cassandra)
+                                       ↓
+                                 Push (FCM/APNs) when recipient offline
+
+Client DB (SQLite/Room):
+  messages(id, conversationId, senderId, body, status, serverTimestamp, clientId)
+  conversations(id, lastMessage, lastTimestamp, unreadCount)
+
+Message flow:
+1. User sends → write locally (status=SENDING, clientId=uuid)
+2. POST /messages or WS send
+3. Server returns {id, serverTimestamp} → update row (status=SENT)
+4. Server pushes to recipient via WS → recipient stores
+5. Recipient sends ACK → sender updates status=DELIVERED
+6. Recipient opens conversation → sends SEEN → status=READ</code></pre>
+        <p><b>LLD — Android:</b></p>
+        <pre><code>@Entity
+<span class="k">data class</span> Message(
+    @PrimaryKey val id: String,
+    <span class="k">val</span> clientId: String,       <span class="c">// idempotency key for dedup</span>
+    <span class="k">val</span> conversationId: String,
+    <span class="k">val</span> body: String,
+    <span class="k">val</span> status: MessageStatus,  <span class="c">// SENDING, SENT, DELIVERED, READ, FAILED</span>
+    <span class="k">val</span> serverTimestamp: Long?,  <span class="c">// null until server confirms</span>
+    <span class="k">val</span> clientTimestamp: Long   <span class="c">// for optimistic ordering</span>
+)
+
+<span class="k">class</span> ChatRepository(
+    <span class="k">private val</span> dao: MessageDao,
+    <span class="k">private val</span> ws: WebSocketClient,
+    <span class="k">private val</span> api: ChatApi
+) {
+    <span class="k">fun</span> messages(convId: String) = dao.observeMessages(convId)  <span class="c">// Flow&lt;List&lt;Message&gt;&gt;</span>
+
+    <span class="k">suspend fun</span> send(convId: String, body: String) {
+        <span class="k">val</span> clientId = UUID.randomUUID().toString()
+        <span class="c">// 1. Optimistic insert</span>
+        dao.insert(Message(id = clientId, clientId = clientId, status = SENDING, ...))
+        <span class="k">try</span> {
+            <span class="c">// 2. Send via WS or REST</span>
+            <span class="k">val</span> confirmed = api.sendMessage(convId, body, clientId)
+            dao.update(clientId, serverId = confirmed.id, status = SENT)
+        } <span class="k">catch</span> (e: Exception) { dao.update(clientId, status = FAILED) }
+    }
+
+    <span class="k">fun</span> handleIncoming(msg: WsMessage) {
+        dao.insertOrIgnore(msg.toEntity())    <span class="c">// idempotent via clientId</span>
+        ws.send(AckFrame(msg.id))
+    }
+}</code></pre>
+        <p><b>LLD — React / React Native:</b></p>
+        <pre><code><span class="c">// WebSocket management hook</span>
+<span class="k">function</span> <span class="f">useChatSocket</span>(conversationId) {
+    <span class="k">const</span> queryClient = useQueryClient();
+    <span class="f">useEffect</span>(() =&gt; {
+        <span class="k">const</span> ws = <span class="k">new</span> WebSocket(<span class="s">`wss://api.app/ws/chat/${conversationId}`</span>);
+        ws.onmessage = ({ data }) =&gt; {
+            <span class="k">const</span> msg = JSON.parse(data);
+            queryClient.setQueryData(
+                [<span class="s">'messages'</span>, conversationId],
+                (prev = []) =&gt; [...prev, msg]   <span class="c">// optimistic insert</span>
+            );
+        };
+        ws.onclose = () =&gt; <span class="f">scheduleReconnect</span>();
+        <span class="k">return</span> () =&gt; ws.close();
+    }, [conversationId]);
+}</code></pre>
+        <p><b>Ordering gotcha:</b> never use <code>clientTimestamp</code> for display order in a multi-sender conversation — clocks drift. Use server timestamp as the primary sort key, falling back to client timestamp only for the sender's own optimistically-inserted messages before confirmation arrives.</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="news feed timeline infinite scroll prefetch cache pagination feed">
-      <summary><span class="qix">D08</span><span class="qtext">Design an infinite feed / timeline (e.g. ShareChat/Moj).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="news feed infinite scroll paging prefetch cache timeline ShareChat Moj">
+      <summary><span class="qix">D08</span><span class="qtext">Design an infinite feed — HLD + LLD (Android + RN).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Requirements:</b> smooth infinite scroll, fresh content, offline view of last feed, mixed media, low jank at 180M-MAU scale.</p>
-        <ul>
-          <li><b>Pagination:</b> cursor-based; server returns a page + next cursor + ranking already applied (push-vs-pull fanout is a backend concern — note it but keep client focus).</li>
-          <li><b>Paging 3 + RemoteMediator:</b> network writes pages into Room; the UI's <code>PagingSource</code> reads from Room → offline-first, single source of truth, automatic load states and retry.</li>
-          <li><b>Prefetch:</b> trigger the next page a few items before the end; <b>preload media</b> for upcoming rows (bounded) so images/video are ready.</li>
-          <li><b>List performance:</b> recycled rows (RecyclerView/FlashList), stable keys, view-type-specific holders, image requests cancelled on recycle, no work in <code>onBind</code>.</li>
-          <li><b>Freshness:</b> pull-to-refresh resets the cursor; show "new posts" pill when newer content exists. Dedupe by id across pages.</li>
-          <li><b>Video:</b> autoplay only the most-visible item, preload ±1, release players off-screen (player pool).</li>
-        </ul>
+        <div class="plain"><b>Clarify:</b> ranking server-side or client? Mixed media types? Offline viewing of last feed? Real-time new posts?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Client → GET /feed?after=&lt;cursor&gt;&amp;limit=20
+              ↓
+         Ranking Service (pre-ranked by server)
+              ↓
+         Feed items (posts, ads, promoted)
+              ↓
+         Response: { items: [...], nextCursor: "..." }
+
+Client storage:
+  feed_item(id, position, type, payload, cursor_page)
+  feed_meta(lastCursor, lastFetched)
+
+Read path:  Room Flow → UI
+Write path: RemoteMediator fetches → inserts to Room → Flow re-emits</code></pre>
+        <p><b>LLD — Android (Paging 3 + Room):</b></p>
+        <pre><code><span class="c">// RemoteMediator handles the network→Room write</span>
+<span class="k">class</span> FeedRemoteMediator(
+    <span class="k">private val</span> dao: FeedDao,
+    <span class="k">private val</span> api: FeedApi
+) : RemoteMediator&lt;Int, FeedItem&gt;() {
+    override <span class="k">suspend fun</span> load(loadType: LoadType, state: PagingState&lt;Int, FeedItem&gt;): MediatorResult {
+        <span class="k">val</span> cursor = <span class="k">when</span> (loadType) {
+            REFRESH -&gt; <span class="k">null</span>
+            PREPEND -&gt; <span class="k">return</span> MediatorResult.Success(endOfPaginationReached = <span class="k">true</span>)
+            APPEND -&gt; dao.lastCursor() ?: <span class="k">return</span> MediatorResult.Success(<span class="k">true</span>)
+        }
+        <span class="k">return</span> <span class="k">try</span> {
+            <span class="k">val</span> page = api.feed(cursor)
+            <span class="k">if</span> (loadType == REFRESH) dao.clearAll()
+            dao.insertAll(page.items)
+            dao.saveCursor(page.nextCursor)
+            MediatorResult.Success(endOfPaginationReached = page.nextCursor == <span class="k">null</span>)
+        } <span class="k">catch</span> (e: Exception) { MediatorResult.Error(e) }
+    }
+}
+
+<span class="c">// ViewModel</span>
+<span class="k">val</span> feed = Pager(PagingConfig(pageSize = 20)) { dao.pagingSource() }
+    .flow
+    .cachedIn(viewModelScope)</code></pre>
+        <p><b>LLD — React Native (FlatList / FlashList):</b></p>
+        <pre><code><span class="k">const</span> { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: [<span class="s">'feed'</span>],
+    queryFn: ({ pageParam }) =&gt; api.feed({ after: pageParam }),
+    getNextPageParam: (last) =&gt; last.nextCursor,
+});
+
+<span class="k">const</span> items = data?.pages.flatMap(p =&gt; p.items) ?? [];
+
+&lt;FlashList
+    data={items}
+    renderItem={({ item }) =&gt; &lt;FeedCard item={item} /&gt;}
+    keyExtractor={item =&gt; item.id}
+    estimatedItemSize={200}
+    onEndReachedThreshold={0.3}
+    onEndReached={() =&gt; { <span class="k">if</span> (hasNextPage) fetchNextPage(); }}
+    ListFooterComponent={isFetchingNextPage ? &lt;Spinner /&gt; : <span class="k">null</span>}
+/&gt;</code></pre>
+        <p><b>Performance notes:</b> memoize <code>renderItem</code> with <code>React.memo</code>; pre-load images for upcoming rows (Coil/Glide's preload API on Android, Expo Image preload on RN); for video in the feed, maintain a player pool of 2–3 ExoPlayer instances and assign on scroll to the most-visible video item.</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="file photo upload resumable chunked background progress retry workmanager">
-      <summary><span class="qix">D09</span><span class="qtext">Design a resilient photo / file upload system.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="photo file upload resumable chunked background progress workmanager">
+      <summary><span class="qix">D09</span><span class="qtext">Design resilient photo upload — HLD + LLD (Android + RN).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Requirements:</b> upload large media reliably on flaky networks, survive app/process death, show progress, allow retry, don't block the UI.</p>
-        <ul>
-          <li><b>Pre-process:</b> compress/resize on a background thread before upload to save bytes and time.</li>
-          <li><b>Resumable, chunked upload:</b> split into chunks; track which chunks succeeded so a drop resumes from the last good chunk (tus/S3 multipart style). The server assembles on completion.</li>
-          <li><b>Durability:</b> run the upload in <code>WorkManager</code> (or a foreground service for user-initiated, must-finish-now uploads) so it survives backgrounding/reboot, with network constraints and exponential backoff.</li>
-          <li><b>Direct-to-storage:</b> client requests a pre-signed URL, uploads straight to object storage (offload from app servers), then notifies the backend with the blob id.</li>
-          <li><b>UX:</b> optimistic local entry with a progress indicator; idempotency key so retries don't create duplicates; clear failed state with manual retry.</li>
-        </ul>
+        <div class="plain"><b>Clarify:</b> Max file size? Resume on kill? Progress visibility? Compression / format conversion?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>User picks photo → Client
+    ↓
+1. Compress/resize on IO thread (target ~1MB for photos)
+2. POST /uploads/initiate → server returns uploadId + presigned S3 URL
+3. Split into 5MB chunks
+4. Upload chunks to S3 via presigned URLs (parallel, max 3 at once)
+5. Record uploaded chunk IDs locally (persist to survive kill)
+6. POST /uploads/complete { uploadId, chunks } → server assembles
+7. POST /posts { mediaUrl } → create the post</code></pre>
+        <p><b>LLD — Android (WorkManager + Room):</b></p>
+        <pre><code>@Entity
+<span class="k">data class</span> UploadJob(
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    <span class="k">val</span> localPath: String,
+    <span class="k">val</span> uploadId: String? = <span class="k">null</span>,
+    <span class="k">val</span> completedChunks: List&lt;Int&gt; = emptyList(),
+    <span class="k">val</span> status: UploadStatus = UploadStatus.QUEUED,
+    <span class="k">val</span> idempotencyKey: String = UUID.randomUUID().toString()
+)
+
+<span class="k">class</span> UploadWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override <span class="k">suspend fun</span> doWork(): Result {
+        <span class="k">val</span> jobId = inputData.getString(<span class="s">"jobId"</span>) ?: <span class="k">return</span> Result.failure()
+        <span class="k">val</span> job = uploadDao.get(jobId)
+
+        <span class="c">// Resume: skip already-uploaded chunks</span>
+        <span class="k">val</span> uploadId = job.uploadId ?: api.initiate(job.idempotencyKey).also {
+            uploadDao.update(job.copy(uploadId = it))
+        }
+
+        chunks(job.localPath)
+            .filter { it.index !<span class="k">in</span> job.completedChunks }
+            .forEach { chunk -&gt;
+                api.uploadChunk(uploadId, chunk)
+                uploadDao.markChunkDone(jobId, chunk.index)  <span class="c">// persist immediately</span>
+            }
+
+        api.complete(uploadId)
+        uploadDao.update(job.copy(status = UploadStatus.DONE))
+        <span class="k">return</span> Result.success()
+    }
+}
+
+<span class="c">// Schedule — survives app kill, retries on network</span>
+WorkManager.getInstance(context).enqueue(
+    OneTimeWorkRequestBuilder&lt;UploadWorker&gt;()
+        .setConstraints(Constraints(NetworkType.CONNECTED))
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
+        .setInputData(workDataOf(<span class="s">"jobId"</span> <span class="k">to</span> job.id))
+        .build()
+)</code></pre>
+        <p><b>LLD — React Native:</b></p>
+        <pre><code><span class="k">async function</span> <span class="f">uploadPhoto</span>(uri, onProgress) {
+    <span class="k">const</span> { uploadId, url } = <span class="k">await</span> api.initiate();
+    <span class="k">const</span> formData = <span class="k">new</span> FormData();
+    formData.append(<span class="s">'file'</span>, { uri, type: <span class="s">'image/jpeg'</span>, name: <span class="s">'photo.jpg'</span> });
+    <span class="k">await</span> axios.put(url, formData, {
+        headers: { <span class="s">'Content-Type'</span>: <span class="s">'multipart/form-data'</span> },
+        onUploadProgress: (e) =&gt; onProgress(e.loaded / e.total),
+    });
+    <span class="k">return</span> api.complete(uploadId);
+}
+<span class="c">// For true background upload on RN: react-native-background-upload</span>
+<span class="c">// which uses URLSession on iOS (survives app kill) and equivalent on Android</span></code></pre>
+      </div>
+    </details>
+    <details class="qa" data-tags="push notification FCM APNs client side registration delivery deep link">
+      <summary><span class="qix">D10</span><span class="qtext">Design push notifications — HLD + LLD (Android + RN).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>Clarify:</b> User-controlled categories? Analytics (delivered/opened)? Deep-link targets? Silent background sync pushes as well as display pushes?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>App launch → register with FCM/APNs → get device token
+         → POST /devices { token, platform, userId }
+         → stored in Devices table (userId → [tokens])
+
+Event triggers push (new message, promo, etc.)
+         → Notification Service → FCM/APNs API → device
+
+Two push types:
+  Display push: FCM/APNs shows notification in system tray
+  Data push: wakes app silently (background fetch) to sync data</code></pre>
+        <p><b>LLD — Android (FirebaseMessagingService):</b></p>
+        <pre><code><span class="k">class</span> AppMessagingService : FirebaseMessagingService() {
+    override fun onNewToken(token: String) {
+        <span class="c">// Token rotates — always re-register</span>
+        lifecycleScope.launch { api.registerDevice(token, Platform.ANDROID) }
+    }
+
+    override fun onMessageReceived(msg: RemoteMessage) {
+        <span class="k">when</span> (msg.data[<span class="s">"type"</span>]) {
+            <span class="s">"new_message"</span> -&gt; {
+                <span class="c">// Data push: sync the conversation silently</span>
+                WorkManager.getInstance(this).enqueue(SyncConversationRequest(msg.data[<span class="s">"convId"</span>]!!))
+            }
+            <span class="s">"promo"</span> -&gt; {
+                <span class="c">// Display push: build and show notification</span>
+                NotificationCompat.Builder(this, CHANNEL_PROMOTIONS)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(msg.notification?.title)
+                    .setContentText(msg.notification?.body)
+                    .setContentIntent(deepLinkIntent(msg.data[<span class="s">"target"</span>]))  <span class="c">// ← deep link</span>
+                    .setAutoCancel(<span class="k">true</span>)
+                    .build()
+                    .let { nm.notify(System.currentTimeMillis().toInt(), it) }
+            }
+        }
+    }
+
+    <span class="k">private fun</span> deepLinkIntent(target: String?): PendingIntent {
+        <span class="k">val</span> uri = Uri.parse(target ?: <span class="s">"app://home"</span>)
+        <span class="k">return</span> NavDeepLinkBuilder(this)
+            .setGraph(R.navigation.nav_graph)
+            .setDestination(R.id.feedFragment)
+            .setArguments(bundleOf(<span class="s">"deepLink"</span> <span class="k">to</span> uri.toString()))
+            .createPendingIntent()
+    }
+}</code></pre>
+        <p><b>LLD — React Native:</b></p>
+        <pre><code><span class="k">import</span> messaging <span class="k">from</span> <span class="s">'@react-native-firebase/messaging'</span>;
+
+<span class="c">// Register and handle token</span>
+<span class="k">async function</span> <span class="f">setupPush</span>() {
+    <span class="k">const</span> status = <span class="k">await</span> messaging().requestPermission();
+    <span class="k">if</span> (status !== messaging.AuthorizationStatus.AUTHORIZED) <span class="k">return</span>;
+    <span class="k">const</span> token = <span class="k">await</span> messaging().getToken();
+    <span class="k">await</span> api.registerDevice({ token, platform: Platform.OS });
+
+    <span class="c">// Refresh token</span>
+    messaging().onTokenRefresh(newToken =&gt; api.registerDevice({ token: newToken, platform: Platform.OS }));
+}
+
+<span class="c">// Handle foreground messages (app open)</span>
+messaging().onMessage(<span class="k">async</span> msg =&gt; {
+    <span class="k">if</span> (msg.data?.type === <span class="s">'new_message'</span>) syncConversation(msg.data.convId);
+    <span class="k">else</span> showInAppAlert(msg.notification);
+});
+
+<span class="c">// Handle background → foreground tap (deep link)</span>
+messaging().onNotificationOpenedApp(msg =&gt; {
+    navigation.navigate(resolveDeepLink(msg.data?.target));
+});</code></pre>
+        <p><b>Notification channels (Android 8+):</b> always create separate channels for messages, promos, and system — users can mute promos without losing message alerts.</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="push notification fcm apns token delivery deep link silent">
-      <summary><span class="qix">D10</span><span class="qtext">Design a push notification system (client side).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="analytics SDK event tracking batching persist queue offline">
+      <summary><span class="qix">D11</span><span class="qtext">Design an analytics SDK — HLD + LLD (Android + RN).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Registration:</b> get an FCM/APNs token on launch, send it to the backend mapped to the user+device; refresh on token rotation and on logout invalidate it. <b>Delivery:</b> backend → FCM/APNs → device. Handle two types: <b>display</b> notifications (system shows them) and <b>data/silent</b> pushes (wake the app to sync, subject to OS background limits — coalesce, don't abuse battery).</p>
-        <p><b>Client handling:</b> a messaging service receives the payload, builds a channel-categorized notification, and sets a <b>deep link</b>/PendingIntent so a tap routes to the right screen with the right back stack. Group/bundle related notifications, respect per-channel user prefs, and track delivered/opened for analytics. Add a server-side notification center fetch so users who had pushes off still see history.</p>
+        <div class="plain"><b>Clarify:</b> First-party or wrapping a third-party? Guaranteed delivery or best-effort? PII handling? Sampling for high-volume events?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>track(event, props)
+    ↓
+Enrichment layer (sessionId, userId, appVersion, timestamp, deviceInfo)
+    ↓
+Event queue (in-memory ring buffer, max 100 events)
+    ↓ (on: size threshold || time interval || app background)
+Persist batch to Room (outbox pattern)
+    ↓ WorkManager
+POST /events [compressed JSON batch]
+    ↓ 2xx
+Delete batch from Room</code></pre>
+        <p><b>LLD — Android:</b></p>
+        <pre><code><span class="k">object</span> Analytics {
+    <span class="k">private val</span> queue = Channel&lt;Event&gt;(capacity = 100, onBufferOverflow = DROP_OLDEST)
+    <span class="k">private val</span> scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    <span class="k">fun</span> init() {
+        scope.launch {
+            <span class="k">val</span> batch = mutableListOf&lt;Event&gt;()
+            <span class="k">while</span> (isActive) {
+                withTimeoutOrNull(30_000) {         <span class="c">// flush every 30s or on size</span>
+                    <span class="k">while</span> (batch.size &lt; 50) {
+                        batch.add(queue.receive())
+                    }
+                }
+                <span class="k">if</span> (batch.isNotEmpty()) {
+                    eventDao.insertAll(batch.map { it.toEntity() })
+                    batch.clear()
+                }
+            }
+        }
+        <span class="c">// Periodic flush via WorkManager</span>
+    }
+
+    <span class="k">fun</span> track(name: String, props: Map&lt;String, Any&gt; = emptyMap()) {
+        queue.trySend(Event(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            props = props + session.context(),    <span class="c">// auto-enrich</span>
+            timestamp = System.currentTimeMillis()
+        ))
+    }
+}
+
+<span class="c">// FlushWorker</span>
+<span class="k">class</span> AnalyticsFlushWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+    override <span class="k">suspend fun</span> doWork(): Result {
+        <span class="k">val</span> batch = eventDao.unsynced(limit = 200)
+        <span class="k">if</span> (batch.isEmpty()) <span class="k">return</span> Result.success()
+        <span class="k">return</span> <span class="k">try</span> {
+            api.postEvents(batch)
+            eventDao.delete(batch.map { it.id })
+            Result.success()
+        } <span class="k">catch</span> (e: Exception) { Result.retry() }
+    }
+}</code></pre>
+        <p><b>LLD — React Native:</b></p>
+        <pre><code><span class="k">class</span> Analytics {
+    queue = []; flushTimer = <span class="k">null</span>;
+
+    track(name, props = {}) {
+        <span class="k">this</span>.queue.push({ name, props: { ...props, ...this.context() }, ts: Date.now() });
+        <span class="k">if</span> (<span class="k">this</span>.queue.length &gt;= 50) <span class="k">this</span>.flush();
+        <span class="k">else if</span> (!<span class="k">this</span>.flushTimer) <span class="k">this</span>.flushTimer = <span class="f">setTimeout</span>(() =&gt; <span class="k">this</span>.flush(), 30000);
+    }
+
+    <span class="k">async</span> flush() {
+        <span class="f">clearTimeout</span>(<span class="k">this</span>.flushTimer); <span class="k">this</span>.flushTimer = <span class="k">null</span>;
+        <span class="k">const</span> batch = <span class="k">this</span>.queue.splice(0, 100);    <span class="c">// drain up to 100</span>
+        <span class="k">if</span> (!batch.length) <span class="k">return</span>;
+        <span class="k">try</span> { <span class="k">await</span> api.postEvents(batch); }
+        <span class="k">catch</span> { <span class="k">this</span>.queue.unshift(...batch); }    <span class="c">// re-queue on failure</span>
+    }
+}
+<span class="k">export const</span> analytics = <span class="k">new</span> Analytics();</code></pre>
       </div>
     </details>
 
-    <details class="qa" data-tags="analytics sdk event tracking batching queue offline flush schema">
-      <summary><span class="qix">D11</span><span class="qtext">Design an analytics / event-tracking SDK.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="overlay intervention framework popup orchestration priority ShareChat">
+      <summary><span class="qix">D12</span><span class="qtext">Design an app-wide overlay / intervention framework (my ShareChat work) — HLD + LLD.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Requirements:</b> capture events with low overhead, never lose events (offline), never block the UI, batch efficiently, be resilient to crashes.</p>
-        <ul>
-          <li><b>API:</b> simple <code>track(event, props)</code>; enrich automatically with session, device, app version, timestamp.</li>
-          <li><b>Persist first:</b> write each event to a local queue (SQLite/Room) <em>before</em> anything else, off the main thread — so a crash or kill doesn't lose data.</li>
-          <li><b>Batching &amp; flush:</b> flush on size threshold, time interval, or app background; send compressed batches. Use <code>WorkManager</code> for guaranteed delivery with backoff; delete rows only after a 2xx.</li>
-          <li><b>Reliability:</b> idempotency/dedupe ids, bounded queue with drop-oldest policy to cap disk, retry with jitter, sampling for high-volume events.</li>
-          <li><b>Privacy:</b> consent gating, PII scrubbing, opt-out. Versioned event schema.</li>
-        </ul>
-        <p>This is a registry-friendly design — multibinding a set of trackers (the Hilt <code>@IntoSet</code> pattern) lets features add events without coupling.</p>
+        <div class="plain"><b>The problem:</b> 20+ features each want to show overlays (popups, tooltips, snackbars). Without a central arbiter they stack, collide, and fire at bad moments. Goal: one system that decides what shows, when, and in what order.</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Feature modules → InterventionManager.enqueue(Intervention)
+                        ↓
+              Priority Queue (ordered by priority + time)
+                        ↓
+              Arbitration rules:
+                - max one overlay at a time
+                - only show in allowed screens/states
+                - honor per-intervention frequency caps (Room: shown_at, shown_count)
+                - honor global pacing (max N overlays per session)
+                - remote-config gate (feature flag)
+                        ↓
+              InterventionHost (Activity/Fragment/ComposeHost)
+              renders current intervention from StateFlow
+                        ↓
+              User dismisses → notify queue → dequeue next</code></pre>
+        <p><b>LLD — Android (Kotlin Coroutines Actor):</b></p>
+        <pre><code><span class="k">data class</span> Intervention(
+    <span class="k">val</span> id: String,
+    <span class="k">val</span> priority: Int,
+    <span class="k">val</span> type: InterventionType,
+    <span class="k">val</span> eligibleScreens: Set&lt;String&gt;,
+    <span class="k">val</span> cooldownMs: Long = 0,
+    <span class="k">val</span> maxPerSession: Int = Int.MAX_VALUE,
+)
+
+<span class="k">class</span> InterventionManager @Inject constructor(
+    <span class="k">private val</span> remoteConfig: RemoteConfig,
+    <span class="k">private val</span> dao: InterventionDao,
+    <span class="k">private val</span> lifecycleState: StateFlow&lt;LifecycleState&gt;
+) {
+    <span class="k">private val</span> _current = MutableStateFlow&lt;Intervention?&gt;(<span class="k">null</span>)
+    <span class="k">val</span> current = _current.asStateFlow()
+
+    <span class="c">// Actor: serializes all enqueue/dismiss operations — no locks needed</span>
+    <span class="k">private val</span> actor = CoroutineScope(Dispatchers.Default).actor&lt;Cmd&gt; {
+        <span class="k">val</span> queue = PriorityQueue&lt;Intervention&gt;(compareByDescending { it.priority })
+        <span class="k">for</span> (cmd <span class="k">in</span> channel) {
+            <span class="k">when</span> (cmd) {
+                <span class="k">is</span> Cmd.Enqueue -&gt; <span class="k">if</span> (isEligible(cmd.item)) queue.add(cmd.item)
+                <span class="k">is</span> Cmd.Dismiss -&gt; { dao.record(cmd.id); _current.value = <span class="k">null</span> }
+            }
+            <span class="k">if</span> (_current.value == <span class="k">null</span> &amp;&amp; lifecycleState.value == RESUMED) {
+                _current.value = queue.poll()
+            }
+        }
+    }
+
+    <span class="k">fun</span> enqueue(item: Intervention) { actor.trySend(Cmd.Enqueue(item)) }
+    <span class="k">fun</span> dismiss(id: String) { actor.trySend(Cmd.Dismiss(id)) }
+
+    <span class="k">private suspend fun</span> isEligible(item: Intervention): Boolean {
+        <span class="k">val</span> record = dao.get(item.id) ?: <span class="k">return</span> remoteConfig.isEnabled(item.id)
+        <span class="k">return</span> record.shownCount &lt; item.maxPerSession
+            &amp;&amp; System.currentTimeMillis() - record.lastShownAt &gt; item.cooldownMs
+    }
+}</code></pre>
+        <p><b>Company-wide adoption pattern:</b> each feature registers its interventions via <code>@IntoSet</code> multibinding — the manager collects them without knowing any individual feature. Features don't know each other exists; the manager arbitrates centrally. This is what enabled adoption across 20+ features at ShareChat without coupling.</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="overlay intervention framework popup orchestration priority queue lifecycle">
-      <summary><span class="qix">D12</span><span class="qtext">Design an app-wide overlay / intervention framework (my work).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="feature flag remote config kill switch A/B rollout">
+      <summary><span class="qix">D13</span><span class="qtext">Design a feature-flag / remote-config system — HLD + LLD (Android + RN).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Problem:</b> many features want to show overlays (popups, tooltips, coach-marks, snackbars, bottom sheets, force-update dialogs) across the app. Without coordination they collide, stack, or fire at bad moments. Goal: one system that arbitrates <em>what</em> shows, <em>when</em>, and in <em>what order</em>, lifecycle-aware and remotely controllable.</p>
-        <p><b>Design:</b></p>
-        <ul>
-          <li><b>Central orchestrator</b> — a single coordinator (I used a Kotlin <b>Coroutines Actor</b> to serialize requests without locks) owns a <b>priority queue</b> of intervention requests. Producers <code>enqueue(Intervention)</code>; the actor decides the next to display.</li>
-          <li><b>Intervention contract</b> — id, priority, type, eligibility predicate, display constraints (which screens/states it's allowed on), cooldown/frequency caps, and a remote-config gate.</li>
-          <li><b>Lifecycle awareness</b> — only show when a valid host surface is in <code>RESUMED</code>; pause/resume the queue with the foreground surface; never show over an incompatible screen.</li>
-          <li><b>Arbitration rules</b> — at most one overlay at a time; higher priority preempts or queues; honor per-intervention frequency caps and global pacing so users aren't spammed.</li>
-          <li><b>State &amp; UI</b> — MVI state drives a host that renders the current intervention; results (shown/dismissed/clicked) feed back for analytics and caps. Dagger-Hilt wires producers via multibinding so features register interventions without the core knowing them.</li>
-        </ul>
-        <p><b>Trade-offs:</b> centralization gives consistency and control but every feature must route through it (governance cost); serializing via an actor avoids race conditions at the cost of one logical owner. Adopted company-wide at ShareChat for exactly this reliability/UX consistency.</p>
-      </div>
-    </details>
+        <div class="plain"><b>Clarify:</b> Client-side or server-side evaluation? Sticky bucketing for A/B? Kill-switch latency requirement?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>App launch → GET /config { userId, appVersion, platform }
+                ↓
+         Server evaluates rules (bucket by userId hash for stable A/B)
+                ↓
+         Returns: { flags: { "new_feed_ui": true, "max_retries": 3 } }
+                ↓
+         Client caches to disk (DataStore/MMKV)
+         Stale TTL: 1 hour → background refresh
+         Fallbacks: hard-coded defaults in app for each flag
 
-    <details class="qa" data-tags="live streaming video player playback adaptive bitrate buffering prefetch">
-      <summary><span class="qix">D13</span><span class="qtext">Design video playback for a short-video / livestream feed.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
-      <div class="answer">
-        <p><b>Requirements:</b> instant start, smooth scroll-to-next, low rebuffering on poor networks, battery/data conscious.</p>
-        <ul>
-          <li><b>Adaptive bitrate (HLS/DASH)</b> — the player picks a rendition matching current bandwidth, stepping down to avoid stalls. Server provides multiple renditions.</li>
-          <li><b>Player pool</b> — reuse a small set of ExoPlayer instances across the list (like view recycling); never one player per row.</li>
-          <li><b>Prefetch</b> — warm the next 1–2 videos (initial segments) while the current plays, so swiping is instant; cap prefetch on cellular.</li>
-          <li><b>Autoplay policy</b> — play only the most-visible item; pause/release off-screen; mute by default.</li>
-          <li><b>Caching</b> — a bounded media cache for recently seen segments; resume position tracking.</li>
-          <li><b>Live specifics</b> — low-latency HLS, sync to live edge, graceful degradation, and a separate real-time channel (Agora/WebRTC) for interactive low-latency streams.</li>
-        </ul>
-      </div>
-    </details>
+Kill switch: short TTL (60s) + server-push via silent push to force refresh</code></pre>
+        <p><b>LLD — Android:</b></p>
+        <pre><code><span class="k">class</span> FeatureFlags @Inject constructor(
+    <span class="k">private val</span> store: DataStore&lt;Preferences&gt;,
+    <span class="k">private val</span> api: ConfigApi,
+    <span class="k">private val</span> defaults: FlagDefaults
+) {
+    <span class="c">// Typed accessor — compile-time flag name, type-safe default</span>
+    <span class="k">fun</span> &lt;T&gt; get(flag: Flag&lt;T&gt;): T {
+        <span class="k">val</span> cached = store.data.first().get(flag.key)
+        <span class="k">return</span> flag.deserialize(cached) ?: flag.default
+    }
 
-    <details class="qa" data-tags="feature flags remote config kill switch rollout ab test">
-      <summary><span class="qix">D14</span><span class="qtext">Design a feature-flag / remote-config system for the client.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
-      <div class="answer">
-        <p><b>Goal:</b> toggle features, run A/B tests, and kill-switch bad code without a release. <b>Client:</b> fetch a config blob on launch (and periodically), cache it locally, and expose typed accessors with safe defaults baked into the app (so first launch / offline still works). <b>Evaluation</b> can be server-side (server returns the resolved variant per user — consistent, simpler client) or client-side (rules + user attributes evaluated locally — works offline). Apply changes at a safe boundary (next screen/launch) to avoid mid-session flips. Add bucketing by stable user id for sticky A/B assignment, exposure logging for analytics, and a remote <b>kill switch</b> evaluated early in startup. Trade-off: fetch-on-launch freshness vs a flash of default behavior — mitigate with a short cached TTL and background refresh.</p>
+    <span class="k">suspend fun</span> refresh() {
+        <span class="k">val</span> remote = api.fetchConfig()
+        store.edit { prefs -&gt;
+            remote.flags.forEach { (k, v) -&gt; prefs[stringPreferencesKey(k)] = v }
+        }
+    }
+
+    <span class="c">// Apply flags at a safe boundary — next screen transition, not mid-flow</span>
+}
+
+<span class="c">// Usage</span>
+<span class="k">if</span> (featureFlags.get(Flags.NEW_FEED_UI)) showNewFeed() <span class="k">else</span> showOldFeed()</code></pre>
+        <p><b>LLD — React Native (same pattern):</b></p>
+        <pre><code><span class="k">const</span> { data: flags = DEFAULT_FLAGS } = useQuery({
+    queryKey: [<span class="s">'feature-flags'</span>],
+    queryFn: () =&gt; api.config(),
+    staleTime: 60 * 60 * 1000,    <span class="c">// 1h cache</span>
+    initialData: () =&gt; configPersist.read(),   <span class="c">// disk cache as initial data</span>
+});
+
+<span class="c">// In a component</span>
+<span class="k">const</span> showNewFeed = flags[<span class="s">'new_feed_ui'</span>] ?? DEFAULT_FLAGS[<span class="s">'new_feed_ui'</span>];</code></pre>
       </div>
     </details>
   </section>
@@ -266,51 +880,298 @@
   <!-- ============ WEB DESIGNS ============ -->
   <section class="cat" id="web" data-cat="web">
     <h2><span class="ix">03</span> Web system designs</h2>
-    <p class="cat-sub">Frontend-leaning web problems that round out a full-stack mobile profile.</p>
+    <p class="cat-sub">Frontend-leaning web problems with HLD + LLD in React/TypeScript.</p>
 
-    <details class="qa" data-tags="typeahead autocomplete search debounce cache trie ranking web">
-      <summary><span class="qix">D15</span><span class="qtext">Design a typeahead / autocomplete (web).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="typeahead autocomplete search debounce cache prefix trie">
+      <summary><span class="qix">D14</span><span class="qtext">Design typeahead / autocomplete — HLD + LLD (React).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Client:</b> debounce input (~200–300ms), require a min length, <code>distinctUntilChanged</code>, and <b>cancel stale requests</b> (AbortController) so only the latest query renders — the web twin of <code>flatMapLatest</code>. Cache results per prefix in an LRU so backspacing is instant. Handle keyboard navigation (↑/↓/Enter), ARIA combobox roles, and a loading/empty state.</p>
-        <p><b>Server:</b> a prefix index — a <b>trie</b> or an inverted index (Elasticsearch) — returns top-K suggestions ranked by popularity/personalization, served from an edge cache/CDN since suggestions are highly cacheable. Precompute top completions per prefix for hot terms. Trade-off: client cache freshness vs server load; debounce latency vs request volume.</p>
+        <div class="plain"><b>Clarify:</b> Local data or API? Max latency? Keyboard navigation required? Client-side caching strategy?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>User types → debounce(200ms) → dedup → AbortController cancels stale
+    ↓
+Client prefix cache (LRU, keyed by query prefix)
+    ↓ miss
+GET /suggest?q=cat&amp;limit=5 → CDN cached (short TTL)
+    ↓
+Trie-indexed or Elasticsearch prefix search
+    ↓
+Response: { suggestions: [{text, score}] }
+
+Render: ARIA combobox, keyboard nav (↑↓ Enter Esc),
+        highlight matching prefix in results</code></pre>
+        <p><b>LLD — React + TypeScript:</b></p>
+        <pre><code><span class="k">function</span> <span class="f">useAutocomplete</span>(minLength = 2) {
+    <span class="k">const</span> [query, setQuery] = <span class="f">useState</span>(<span class="s">''</span>);
+    <span class="k">const</span> [suggestions, setSuggestions] = <span class="f">useState</span>&lt;string[]&gt;([]);
+    <span class="k">const</span> [selected, setSelected] = <span class="f">useState</span>(-1);
+    <span class="k">const</span> cacheRef = <span class="f">useRef</span>(<span class="k">new</span> <span class="f">Map</span>&lt;<span class="t">string</span>, <span class="t">string</span>[]&gt;());
+    <span class="k">const</span> abortRef = <span class="f">useRef</span>&lt;AbortController&gt;();
+
+    <span class="k">const</span> search = <span class="f">useMemo</span>(
+        () =&gt; <span class="f">debounce</span>(<span class="k">async</span> (q: <span class="t">string</span>) =&gt; {
+            <span class="k">if</span> (q.length &lt; minLength) { setSuggestions([]); <span class="k">return</span>; }
+            <span class="k">if</span> (cacheRef.current.has(q)) { setSuggestions(cacheRef.current.get(q)!); <span class="k">return</span>; }
+            abortRef.current?.abort();
+            abortRef.current = <span class="k">new</span> AbortController();
+            <span class="k">try</span> {
+                <span class="k">const</span> res = <span class="k">await</span> <span class="f">fetch</span>(<span class="s">`/suggest?q=${q}`</span>, { signal: abortRef.current.signal });
+                <span class="k">const</span> data: { suggestions: <span class="t">string</span>[] } = <span class="k">await</span> res.json();
+                cacheRef.current.set(q, data.suggestions);
+                setSuggestions(data.suggestions);
+            } <span class="k">catch</span> (e) { <span class="k">if</span> ((e <span class="k">as</span> Error).name !== <span class="s">'AbortError'</span>) <span class="k">throw</span> e; }
+        }, 200),
+        [minLength]
+    );
+
+    <span class="k">const</span> handleKeyDown = (e: React.KeyboardEvent) =&gt; {
+        <span class="k">if</span> (e.key === <span class="s">'ArrowDown'</span>) setSelected(s =&gt; <span class="f">Math</span>.min(s + 1, suggestions.length - 1));
+        <span class="k">if</span> (e.key === <span class="s">'ArrowUp'</span>) setSelected(s =&gt; <span class="f">Math</span>.max(s - 1, -1));
+        <span class="k">if</span> (e.key === <span class="s">'Escape'</span>) setSuggestions([]);
+    };
+
+    <span class="k">return</span> { query, setQuery, suggestions, selected, handleKeyDown, onChange: search };
+}
+
+<span class="c">// Accessible render</span>
+&lt;div role=<span class="s">"combobox"</span> aria-expanded={suggestions.length &gt; 0} aria-haspopup=<span class="s">"listbox"</span>&gt;
+    &lt;input
+        aria-autocomplete=<span class="s">"list"</span>
+        aria-controls=<span class="s">"suggestions"</span>
+        aria-activedescendant={selected &gt;= 0 ? <span class="s">`option-${selected}`</span> : <span class="k">undefined</span>}
+        onKeyDown={handleKeyDown}
+    /&gt;
+    &lt;ul id=<span class="s">"suggestions"</span> role=<span class="s">"listbox"</span>&gt;
+        {suggestions.map((s, i) =&gt; (
+            &lt;li key={s} id={<span class="s">`option-${i}`</span>} role=<span class="s">"option"</span> aria-selected={i === selected}&gt;
+                &lt;Highlight text={s} query={query} /&gt;
+            &lt;/li&gt;
+        ))}
+    &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
       </div>
     </details>
 
-    <details class="qa" data-tags="rate limiter token bucket sliding window leaky bucket throttle client">
-      <summary><span class="qix">D16</span><span class="qtext">Design a rate limiter (and the client-side throttle).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="rate limiter token bucket sliding window client server">
+      <summary><span class="qix">D15</span><span class="qtext">Design a rate limiter — HLD + LLD (client + server).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Algorithms:</b></p>
-        <ul>
-          <li><b>Token bucket</b> — tokens refill at a fixed rate; each request spends one; allows bursts up to bucket size. Most common.</li>
-          <li><b>Leaky bucket</b> — requests drain at a constant rate; smooths bursts.</li>
-          <li><b>Fixed window</b> — count per window; simple but allows 2× burst at window edges.</li>
-          <li><b>Sliding window log/counter</b> — accurate, more memory.</li>
-        </ul>
-        <p><b>Distributed:</b> keep counters in Redis (atomic <code>INCR</code>/Lua) keyed by user/IP/API-key so all servers share state. Return <code>429</code> with <code>Retry-After</code>. <b>Client side:</b> respect <code>Retry-After</code>, back off with jitter, and throttle/debounce outgoing calls so you don't self-DDoS — the same token-bucket idea applied locally.</p>
+        <div class="plain"><b>Clarify:</b> Per-user, per-IP, or per-API-key? Distributed (multi-server)? Hard reject or queue?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Algorithms:
+  Token bucket: tokens refill at rate R, each request spends 1, burst up to bucket size
+  Sliding window: count requests in rolling time window, reject if over limit
+
+Server (distributed):
+  Redis key: "rl:{userId}:{windowStart}"
+  INCR atomically → compare to limit → reject with 429 + Retry-After header
+
+Client:
+  Respect Retry-After header
+  Exponential backoff with jitter on 429
+  Proactive client-side throttle to avoid hitting the limit at all</code></pre>
+        <p><b>LLD — Server (Node.js + Redis):</b></p>
+        <pre><code><span class="k">async function</span> <span class="f">slidingWindowLimit</span>(userId: <span class="t">string</span>, limit = 100, windowMs = 60000) {
+    <span class="k">const</span> now = Date.now();
+    <span class="k">const</span> windowStart = now - windowMs;
+    <span class="k">const</span> key = <span class="s">`rl:${userId}`</span>;
+
+    <span class="k">const</span> [count] = <span class="k">await</span> redis.pipeline()
+        .zremrangebyscore(key, <span class="s">'-inf'</span>, windowStart)  <span class="c">// remove old entries</span>
+        .zadd(key, now, <span class="s">`${now}-${Math.random()}`</span>)   <span class="c">// add this request</span>
+        .zcard(key)                                     <span class="c">// count in window</span>
+        .expire(key, windowMs / 1000)
+        .exec();
+
+    <span class="k">if</span> (count &gt; limit) {
+        <span class="k">const</span> oldest = <span class="k">await</span> redis.zrange(key, 0, 0, <span class="s">'WITHSCORES'</span>);
+        <span class="k">const</span> retryAfter = <span class="f">Math</span>.ceil((+oldest[1] + windowMs - now) / 1000);
+        <span class="k">throw</span> { status: 429, retryAfter };
+    }
+}</code></pre>
+        <p><b>LLD — Client React (proactive throttle + 429 handling):</b></p>
+        <pre><code><span class="k">class</span> RateLimitedClient {
+    <span class="k">private</span> tokens = 10;
+    <span class="k">private</span> lastRefill = Date.now();
+    <span class="k">private</span> readonly refillRate = 10 / 60000;  <span class="c">// 10 tokens per minute</span>
+
+    <span class="k">async</span> request&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;): Promise&lt;T&gt; {
+        <span class="k">this</span>.refill();
+        <span class="k">if</span> (<span class="k">this</span>.tokens &lt; 1) <span class="k">throw new</span> Error(<span class="s">'client rate limited'</span>);
+        <span class="k">this</span>.tokens--;
+        <span class="k">try</span> { <span class="k">return await</span> fn(); }
+        <span class="k">catch</span> (e: <span class="t">any</span>) {
+            <span class="k">if</span> (e.status === 429) {
+                <span class="k">const</span> wait = (e.retryAfter ?? 60) * 1000;
+                <span class="k">await</span> sleep(wait);
+                <span class="k">return</span> <span class="k">this</span>.request(fn);   <span class="c">// retry once after waiting</span>
+            }
+            <span class="k">throw</span> e;
+        }
+    }
+
+    <span class="k">private</span> refill() {
+        <span class="k">const</span> elapsed = Date.now() - <span class="k">this</span>.lastRefill;
+        <span class="k">this</span>.tokens = <span class="f">Math</span>.min(10, <span class="k">this</span>.tokens + elapsed * <span class="k">this</span>.refillRate);
+        <span class="k">this</span>.lastRefill = Date.now();
+    }
+}</code></pre>
       </div>
     </details>
 
-    <details class="qa" data-tags="image cdn delivery resize transform edge cache responsive">
-      <summary><span class="qix">D17</span><span class="qtext">Design an image CDN / delivery service.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="collaborative editor CRDT OT real-time sync Google Docs">
+      <summary><span class="qix">D16</span><span class="qtext">Design a collaborative editor — HLD + LLD (React).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Goal:</b> deliver the right-sized, right-format image fast worldwide. Origin stores the master; an image service does <b>on-the-fly transforms</b> from URL params (<code>?w=400&amp;format=webp&amp;q=80</code>) — resize, crop, format negotiation (WebP/AVIF by <code>Accept</code> header), DPR-aware sizing. Results cache at the <b>edge (CDN)</b> keyed by the transform URL, so the transform runs once per variant. Add <b>responsive</b> delivery (<code>srcset</code>/<code>sizes</code>), lazy loading, LQIP/blur-up placeholders, and signed URLs to prevent transform abuse. Trade-off: generate-on-demand (flexible, first-hit latency) vs pre-generate common sizes (fast, storage cost) — usually do both: pre-warm hot sizes, generate the long tail on demand.</p>
+        <div class="plain"><b>Clarify:</b> Rich text or plain? Max concurrent editors? Offline editing? Conflict strategy — OT or CRDT?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Approach A (OT): All ops go through a central server that transforms concurrent ops
+Approach B (CRDT / Yjs): Ops merge commutatively — peer-to-peer or via relay, no server transform
+
+Client → Yjs Document (local, reactive)
+    ↓ (Y.js providers)
+WebSocket provider → server relay → other clients
+IndexedDB provider → persistence (offline editing)</code></pre>
+        <p><b>LLD — React (Yjs + TipTap):</b></p>
+        <pre><code><span class="k">import</span> * <span class="k">as</span> Y <span class="k">from</span> <span class="s">'yjs'</span>;
+<span class="k">import</span> { WebsocketProvider } <span class="k">from</span> <span class="s">'y-websocket'</span>;
+<span class="k">import</span> { IndexeddbPersistence } <span class="k">from</span> <span class="s">'y-indexeddb'</span>;
+<span class="k">import</span> { useEditor } <span class="k">from</span> <span class="s">'@tiptap/react'</span>;
+<span class="k">import</span> Collaboration <span class="k">from</span> <span class="s">'@tiptap/extension-collaboration'</span>;
+<span class="k">import</span> CollaborationCursor <span class="k">from</span> <span class="s">'@tiptap/extension-collaboration-cursor'</span>;
+
+<span class="k">function</span> <span class="f">CollabEditor</span>({ docId, userId }) {
+    <span class="k">const</span> ydoc = <span class="f">useMemo</span>(() =&gt; <span class="k">new</span> Y.Doc(), []);
+
+    <span class="f">useEffect</span>(() =&gt; {
+        <span class="c">// Persist to IndexedDB for offline editing</span>
+        <span class="k">const</span> idb = <span class="k">new</span> IndexeddbPersistence(<span class="s">`doc-${docId}`</span>, ydoc);
+        <span class="c">// Sync via WebSocket when online</span>
+        <span class="k">const</span> ws = <span class="k">new</span> WebsocketProvider(<span class="s">`wss://collab.api/docs/${docId}`</span>, docId, ydoc, {
+            connect: navigator.onLine,
+        });
+        <span class="k">const</span> onOnline = () =&gt; ws.connect();
+        <span class="k">const</span> onOffline = () =&gt; ws.disconnect();
+        window.addEventListener(<span class="s">'online'</span>, onOnline);
+        window.addEventListener(<span class="s">'offline'</span>, onOffline);
+        <span class="k">return</span> () =&gt; { ws.destroy(); idb.destroy(); };
+    }, [docId, ydoc]);
+
+    <span class="k">const</span> editor = <span class="f">useEditor</span>({
+        extensions: [
+            Collaboration.configure({ document: ydoc }),
+            CollaborationCursor.configure({
+                provider: wsProviderRef.current,
+                user: { name: userId, color: <span class="s">'#FFB257'</span> },    <span class="c">// remote cursors</span>
+            }),
+        ],
+    });
+
+    <span class="k">return</span> &lt;EditorContent editor={editor} /&gt;;
+}</code></pre>
+        <p><b>Why CRDT (Yjs) over OT:</b> OT requires a central server that's always available to sequence ops; CRDT merges any two states in any order, so offline editing then sync just works. The trade-off is more memory (each CRDT document carries history for merging) and less fine-grained conflict resolution for complex semantics (hard to express "don't insert inside a deleted range").</p>
       </div>
     </details>
 
-    <details class="qa" data-tags="collaborative editor crdt operational transform realtime sync google docs">
-      <summary><span class="qix">D18</span><span class="qtext">Design a collaborative editor (Google-Docs-style) — the sync core.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="image CDN delivery responsive optimize WebP resize edge transform">
+      <summary><span class="qix">D17</span><span class="qtext">Design an image CDN / delivery service — HLD + LLD (React).</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <p><b>Challenge:</b> many users edit the same document concurrently; everyone must converge to the same state despite latency and offline edits.</p>
-        <p><b>Two approaches:</b></p>
-        <ul>
-          <li><b>Operational Transformation (OT)</b> — clients send operations (insert/delete at index); a server transforms each op against concurrent ones so they apply consistently. Proven (Google Docs) but the transform logic is famously tricky.</li>
-          <li><b>CRDTs</b> — data types (e.g. RGA/Yjs) that merge commutatively, so order doesn't matter and you can merge peer-to-peer and offline without a central transformer. More memory/metadata, simpler convergence — the modern default.</li>
-        </ul>
-        <p><b>Transport:</b> WebSocket for low-latency op broadcast; presence/cursors as ephemeral metadata. <b>Offline:</b> buffer local ops and merge on reconnect (CRDTs shine here). Persist with periodic snapshots + op log for fast load and history. Show remote cursors and selections for awareness.</p>
+        <div class="plain"><b>Clarify:</b> Transform on-the-fly or pre-generate? What transform set (resize, crop, format)? Budget for edge compute?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Client requests: /img/{id}?w=400&amp;h=300&amp;fmt=webp&amp;q=80
+                    ↓
+          CDN edge node
+          Cache key = full URL (including transform params)
+                    ↓ miss
+          Image Transform Service (runs at edge or origin)
+          - Fetch master from object storage (S3/GCS)
+          - Apply transforms: resize → crop → format convert
+          - Return + cache at edge (long TTL via Cache-Control: public, max-age=31536000)
+                    ↓ hit (next request with same params)
+          Served from CDN cache, no origin hit</code></pre>
+        <p><b>LLD — React (responsive image component):</b></p>
+        <pre><code><span class="k">interface</span> ImgProps { id: <span class="t">string</span>; alt: <span class="t">string</span>; sizes: <span class="t">string</span>; aspectRatio?: <span class="t">string</span>; }
+
+<span class="k">function</span> <span class="f">CDNImage</span>({ id, alt, sizes, aspectRatio = <span class="s">'16/9'</span> }: ImgProps) {
+    <span class="k">const</span> base = <span class="s">`https://img.cdn.app/${id}`</span>;
+    <span class="k">const</span> fmt = <span class="s">'webp'</span>;
+
+    <span class="k">return</span> (
+        &lt;div style={{ aspectRatio }}&gt;
+            &lt;img
+                src={<span class="s">`${base}?w=800&amp;fmt=${fmt}&amp;q=80`</span>}
+                srcSet={[400, 800, 1200, 1600]
+                    .map(w =&gt; <span class="s">`${base}?w=${w}&amp;fmt=${fmt}&amp;q=80 ${w}w`</span>)
+                    .join(<span class="s">', '</span>)}
+                sizes={sizes}   <span class="c">// e.g. "(max-width: 768px) 100vw, 50vw"</span>
+                alt={alt}
+                loading=<span class="s">"lazy"</span>
+                decoding=<span class="s">"async"</span>   <span class="c">// decode off main thread</span>
+                style={{ width: <span class="s">'100%'</span>, height: <span class="s">'100%'</span>, objectFit: <span class="s">'cover'</span> }}
+            /&gt;
+        &lt;/div&gt;
+    );
+}
+
+<span class="c">// Usage</span>
+&lt;CDNImage
+    id=<span class="s">"photo-abc123"</span>
+    alt=<span class="s">"Tournament banner"</span>
+    sizes=<span class="s">"(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"</span>
+/&gt;</code></pre>
+        <p><b>LCP optimization:</b> the above-the-fold hero image should use <code>loading="eager"</code> and <code>fetchpriority="high"</code>, and a <code>&lt;link rel="preload"&gt;</code> in the <code>&lt;head&gt;</code> to tell the browser to fetch it before the JS parser even reaches the <code>&lt;img&gt;</code> tag.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="infinite scroll web react intersection observer virtual list">
+      <summary><span class="qix">D18</span><span class="qtext">Design an infinite scroll feed (web) — HLD + LLD (React).</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>Clarify:</b> Heterogeneous row heights? Backward navigation (restore scroll position)? Virtual DOM or real DOM?</div>
+        <p><b>HLD:</b></p>
+        <pre><code>Client renders a viewport window of rows (e.g. 10 visible at a time)
+IntersectionObserver on a sentinel div triggers next-page load
+For 10,000+ items: react-virtual or react-window renders only visible rows
+API: cursor-paginated (GET /feed?after=cursor&amp;limit=20)</code></pre>
+        <p><b>LLD — React (react-query + IntersectionObserver + react-virtual):</b></p>
+        <pre><code><span class="k">function</span> <span class="f">InfiniteFeed</span>() {
+    <span class="k">const</span> { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+        queryKey: [<span class="s">'feed'</span>],
+        queryFn: ({ pageParam }) =&gt; api.feed({ after: pageParam }),
+        getNextPageParam: last =&gt; last.nextCursor,
+    });
+
+    <span class="k">const</span> items = <span class="f">useMemo</span>(() =&gt;
+        data?.pages.flatMap(p =&gt; p.items) ?? [], [data]
+    );
+
+    <span class="c">// Virtualizer — only renders visible rows in the DOM</span>
+    <span class="k">const</span> rowVirtualizer = useVirtualizer({
+        count: items.length + (hasNextPage ? 1 : 0),  <span class="c">// +1 for loader sentinel</span>
+        getScrollElement: () =&gt; containerRef.current,
+        estimateSize: () =&gt; 200,   <span class="c">// estimated row height</span>
+        overscan: 3,               <span class="c">// render 3 extra rows above/below viewport</span>
+    });
+
+    <span class="f">useEffect</span>(() =&gt; {
+        <span class="k">const</span> lastRow = rowVirtualizer.getVirtualItems().at(-1);
+        <span class="k">if</span> (lastRow?.index &gt;= items.length - 1 &amp;&amp; hasNextPage) fetchNextPage();
+    }, [rowVirtualizer.getVirtualItems(), hasNextPage]);
+
+    <span class="k">return</span> (
+        &lt;div ref={containerRef} style={{ overflow: <span class="s">'auto'</span>, height: <span class="s">'100vh'</span> }}&gt;
+            &lt;div style={{ height: rowVirtualizer.getTotalSize() }}&gt;
+                {rowVirtualizer.getVirtualItems().map(vRow =&gt; (
+                    &lt;div key={vRow.key} style={{ transform: <span class="s">`translateY(${vRow.start}px)`</span>, position: <span class="s">'absolute'</span>, width: <span class="s">'100%'</span> }}&gt;
+                        {vRow.index &lt; items.length
+                            ? &lt;FeedCard item={items[vRow.index]} /&gt;
+                            : &lt;LoadingSpinner /&gt;}
+                    &lt;/div&gt;
+                ))}
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+}</code></pre>
+        <p><b>Scroll position restoration:</b> when users navigate back, React Query's cache means data is instantly available. Restore scroll position by storing <code>scrollTop</code> in a ref or sessionStorage before navigation, and calling <code>scrollTo(0, savedPos)</code> after re-mount.</p>
       </div>
     </details>
   </section>
-
   <div class="no-results">No designs match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
@@ -328,6 +1189,7 @@
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
       <a href="prep-extras.html">Extras</a>
     </nav>
   </div>
