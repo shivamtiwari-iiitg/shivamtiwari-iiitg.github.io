@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>React Native, JS &amp; React — Tech Deep Dive · Shivam Tiwari</title>
-<meta name="description" content="Extensive React Native, JavaScript and React questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
+<meta name="description" content="Extensive React Native, JavaScript and React interview questions and coding challenges with solutions — event loop, closures, debounce/throttle, React hooks & reconciliation, RN New Architecture, Fabric, JSI." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -62,6 +62,9 @@
       <button class="fchip" data-target="react">React</button>
       <button class="fchip" data-target="rn">React Native</button>
       <button class="fchip" data-target="map">Android ↔ RN</button>
+      <button class="fchip" data-target="css">CSS &amp; Layout</button>
+      <button class="fchip" data-target="apiperf">API &amp; Performance</button>
+      <button class="fchip" data-target="debug">Debugging</button>
     </div>
   </div>
 </div>
@@ -76,6 +79,9 @@
     <a href="#react">React</a>
     <a href="#rn">React Native</a>
     <a href="#map">Android ↔ RN</a>
+    <a href="#css">CSS &amp; Layout</a>
+    <a href="#apiperf">API &amp; Performance</a>
+    <a href="#debug">Debugging</a>
   </aside>
 
   <div>
@@ -83,7 +89,7 @@
   <!-- ============ JS CORE ============ -->
   <section class="cat" id="js" data-cat="js">
     <h2><span class="ix">01</span> JavaScript core</h2>
-    <p class="cat-sub">The engine-level questions every JS/RN developer needs to know — explained from the ground up.</p>
+    <p class="cat-sub">The engine-level questions every JS/RN interview opens with — explained from the ground up.</p>
 
     <details class="qa" data-tags="event loop microtask macrotask task queue promise settimeout">
       <summary><span class="qix">Q01</span><span class="qtext">Explain the event loop, micro- vs macro-tasks.</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -258,7 +264,7 @@ a.tags;   <span class="c">// still ['js', 'ts'] — deep copy was independent</s
 
   <section class="cat" id="jscode" data-cat="jscode">
     <h2><span class="ix">02</span> JS coding challenges</h2>
-    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) — with the intuition first, then the code.</p>
+    <p class="cat-sub">The implement-from-scratch problems (bigfrontend-style) interviewers love — with the intuition first, then the code.</p>
 
     <details class="qa" data-tags="debounce implement leading trailing timer">
       <summary><span class="qix">Q09</span><span class="qtext">Implement <code>debounce(fn, wait)</code>.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
@@ -932,6 +938,728 @@ viewModelScope.launch(Dispatchers.Default) {
       </div>
     </details>
   </section>
+  <!-- ============ JS DEEPER ============ -->
+  <section class="cat" id="js-deep" data-cat="js">
+    <h2><span class="ix">07</span> JavaScript — deeper cuts</h2>
+    <p class="cat-sub">The follow-up questions after the basics — scope traps, type quirks, and function mechanics.</p>
+
+    <details class="qa" data-tags="settimeout var let loop closure scope iife">
+      <summary><span class="qix">Q41</span><span class="qtext">Why does <code>setTimeout</code> inside a <code>for</code> loop with <code>var</code> behave differently than with <code>let</code>?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> <code>var</code> creates one shared variable for the whole loop. Every callback closes over that same variable, so by the time any callback runs (after the loop finishes), they all read the final value. <code>let</code> creates a fresh, per-iteration binding — each callback gets its own private copy.</div>
+        <pre><code><span class="c">// var — one shared binding</span>
+<span class="k">for</span> (<span class="k">var</span> i = 0; i &lt; 3; i++) {
+    <span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(i), 0);
+}
+<span class="c">// Output: 3 3 3 — loop finished (i=3) before any callback ran</span>
+
+<span class="c">// let — fresh binding per iteration</span>
+<span class="k">for</span> (<span class="k">let</span> j = 0; j &lt; 3; j++) {
+    <span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(j), 0);
+}
+<span class="c">// Output: 0 1 2 — each callback closes over its own j</span></code></pre>
+        <p>The old workaround before <code>let</code> was an IIFE to create a new scope per iteration:</p>
+        <pre><code><span class="k">for</span> (<span class="k">var</span> i = 0; i &lt; 3; i++) {
+    (<span class="k">function</span>(captured) {
+        <span class="f">setTimeout</span>(() =&gt; <span class="f">console</span>.log(captured), 0);
+    })(i);
+}
+<span class="c">// Output: 0 1 2 — the IIFE call creates a new scope, capturing the current value</span></code></pre>
+        <p><b>Why it matters:</b> this is the single most common closure interview gotcha, and a real source of bugs in event listeners registered inside loops.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="const object array mutation immutable freeze">
+      <summary><span class="qix">Q42</span><span class="qtext">What happens when you try to modify a <code>const</code> object vs a <code>const</code> array?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> <code>const</code> locks the <em>binding</em>, not the value. You can't point the name at a different object or array, but you can freely change what's <em>inside</em> the object or array.</div>
+        <pre><code><span class="k">const</span> user = { name: <span class="s">'Sara'</span> };
+user.name = <span class="s">'Ana'</span>;          <span class="c">// ✓ mutation is fine — we're not reassigning 'user'</span>
+user.role = <span class="s">'admin'</span>;        <span class="c">// ✓ adding properties is fine too</span>
+<span class="c">// user = { name: 'Ana' };   // ✗ TypeError — reassigning the binding</span>
+
+<span class="k">const</span> nums = [1, 2, 3];
+nums.push(4);                <span class="c">// ✓ [1, 2, 3, 4]</span>
+nums[0] = 99;               <span class="c">// ✓ [99, 2, 3, 4]</span>
+<span class="c">// nums = [1, 2, 3];         // ✗ TypeError</span></code></pre>
+        <p>For genuine deep immutability, use <code>Object.freeze()</code> — but note it's only one level deep:</p>
+        <pre><code><span class="k">const</span> config = <span class="f">Object</span>.freeze({ db: { host: <span class="s">'localhost'</span> } });
+config.timeout = 5000;     <span class="c">// silently ignored in strict mode → throws in strict</span>
+config.db.host = <span class="s">'prod'</span>;  <span class="c">// ✓ still mutates — freeze is shallow!</span></code></pre>
+        <p>For deep immutability in production, use a library like Immer or TypeScript's <code>Readonly&lt;T&gt;</code> to enforce it at the type level.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="typeof null object quirk null check history">
+      <summary><span class="qix">Q43</span><span class="qtext">Why does <code>typeof null</code> return <code>'object'</code> and how do you handle it?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> It's a decades-old bug in JavaScript that was never fixed because fixing it would break the web. The original implementation stored type tags in the low bits of a value's pointer — null's pointer was all zeros, which happened to match the "object" tag.</div>
+        <pre><code><span class="k">typeof</span> <span class="k">null</span>        <span class="c">// 'object'  ← historical bug</span>
+<span class="k">typeof</span> <span class="k">undefined</span>   <span class="c">// 'undefined'</span>
+<span class="k">typeof</span> []          <span class="c">// 'object'  ← arrays are objects too</span>
+<span class="k">typeof</span> {}          <span class="c">// 'object'</span>
+<span class="k">typeof</span> <span class="k">function</span>(){} <span class="c">// 'function' ← only exception to the "all objects are 'object'" rule</span></code></pre>
+        <p>How to handle it — the three common checks and when to reach for each:</p>
+        <pre><code><span class="c">// Check for null specifically</span>
+x === <span class="k">null</span>
+
+<span class="c">// Check for null or undefined (the loose == shorthand)</span>
+x == <span class="k">null</span>    <span class="c">// true for both null and undefined, nothing else</span>
+
+<span class="c">// Check for a real object (not null, not array)</span>
+<span class="k">typeof</span> x === <span class="s">'object'</span> &amp;&amp; x !== <span class="k">null</span> &amp;&amp; !<span class="f">Array</span>.isArray(x)
+
+<span class="c">// Check for any non-primitive (object or function)</span>
+x !== <span class="k">null</span> &amp;&amp; (<span class="k">typeof</span> x === <span class="s">'object'</span> || <span class="k">typeof</span> x === <span class="s">'function'</span>)</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="array check isArray typeof instanceof">
+      <summary><span class="qix">Q44</span><span class="qtext">How do you reliably check if a variable is an array?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> <code>typeof</code> says "object" for arrays, null, and plain objects — not useful. <code>instanceof</code> breaks across iframes. <code>Array.isArray()</code> is the right answer — it works everywhere and handles all edge cases.</div>
+        <pre><code><span class="k">const</span> arr = [1, 2, 3];
+
+<span class="k">typeof</span> arr          <span class="c">// 'object' — useless for arrays</span>
+arr <span class="k">instanceof</span> Array <span class="c">// true — but breaks across iframes (different Array globals)</span>
+<span class="f">Array</span>.isArray(arr)  <span class="c">// true — canonical, works everywhere</span>
+<span class="f">Array</span>.isArray(<span class="k">null</span>)  <span class="c">// false — handles null without throwing</span>
+<span class="f">Array</span>.isArray({})   <span class="c">// false</span>
+<span class="f">Array</span>.isArray(<span class="s">'str'</span>) <span class="c">// false — strings are iterable but not arrays</span>
+
+<span class="c">// The iframe problem with instanceof:</span>
+<span class="c">// An array from a different frame has a different Array constructor,</span>
+<span class="c">// so [] instanceof Array is false across frame boundaries.</span>
+<span class="c">// Array.isArray checks the internal [[Class]], not the constructor — immune to this.</span></code></pre>
+        <p><b>Rule:</b> always use <code>Array.isArray()</code>. Check for array-like objects (NodeList, arguments) separately — they have <code>.length</code> but <code>Array.isArray</code> returns false.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="call apply bind this context explicit arguments">
+      <summary><span class="qix">Q45</span><span class="qtext">What's the difference between <code>call</code>, <code>apply</code>, and <code>bind</code>?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> All three set what <code>this</code> is inside a function. <code>call</code> and <code>apply</code> invoke immediately; <code>bind</code> returns a new function you call later. <code>call</code> and <code>apply</code> differ only in how you pass extra arguments.</div>
+        <pre><code><span class="k">function</span> <span class="f">greet</span>(greeting, punctuation) {
+    <span class="k">return</span> <span class="s">`${greeting}, ${this.name}${punctuation}`</span>;
+}
+<span class="k">const</span> user = { name: <span class="s">'Sara'</span> };
+
+<span class="c">// call — invoke now, args passed one by one</span>
+<span class="f">greet</span>.call(user, <span class="s">'Hello'</span>, <span class="s">'!'</span>);    <span class="c">// "Hello, Sara!"</span>
+
+<span class="c">// apply — invoke now, args passed as an array</span>
+<span class="f">greet</span>.apply(user, [<span class="s">'Hello'</span>, <span class="s">'!'</span>]);  <span class="c">// "Hello, Sara!"</span>
+
+<span class="c">// bind — return a NEW function, don't invoke yet</span>
+<span class="k">const</span> boundGreet = <span class="f">greet</span>.bind(user, <span class="s">'Hey'</span>);  <span class="c">// partially applied</span>
+<span class="f">boundGreet</span>(<span class="s">'?'</span>);   <span class="c">// "Hey, Sara?"</span></code></pre>
+        <p>Memory trick: <b>c</b>all uses <b>c</b>ommas; <b>a</b>pply uses an <b>a</b>rray. Real uses you'll reach for: <code>apply</code> to spread an unknown-length array as arguments (<code>Math.max.apply(null, numbers)</code>, though spread does this better now); <code>bind</code> to create a callback with a pre-set context or partial args for event listeners and setTimeout.</p>
+        <pre><code><span class="c">// Classic bind use-case: detached method needing its context</span>
+<span class="k">class</span> Timer {
+    n = 0;
+    tick() { <span class="k">this</span>.n++; <span class="f">console</span>.log(<span class="k">this</span>.n); }
+}
+<span class="k">const</span> t = <span class="k">new</span> Timer();
+<span class="f">setInterval</span>(t.tick.bind(t), 1000);   <span class="c">// without bind, 'this' inside tick is undefined</span></code></pre>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ REACT DEEPER ============ -->
+  <section class="cat" id="react-deep" data-cat="react">
+    <h2><span class="ix">08</span> React — deeper cuts</h2>
+    <p class="cat-sub">The follow-up questions after hooks basics — performance gotchas, memory, StrictMode and logic reuse.</p>
+
+    <details class="qa" data-tags="useCallback useMemo hurt performance when not to use">
+      <summary><span class="qix">Q46</span><span class="qtext">Why would you use <code>useCallback</code> and <code>useMemo</code>, and when do they hurt performance?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> They prevent re-doing expensive work or creating new object references on every render. But they themselves have a cost — deps comparison, extra memory — and can make things slower if used blindly on cheap operations.</div>
+        <pre><code><span class="c">// ✓ useCallback worth it: stable reference for a memoized child</span>
+<span class="k">const</span> MemoRow = React.memo(Row);   <span class="c">// only re-renders when props change</span>
+
+<span class="k">function</span> <span class="f">List</span>({ items }) {
+    <span class="c">// Without useCallback, handleDelete is a new function every render</span>
+    <span class="c">// → MemoRow's prop changed → it re-renders anyway → memo is useless</span>
+    <span class="k">const</span> handleDelete = <span class="f">useCallback</span>((id) =&gt; {
+        setItems(prev =&gt; prev.filter(x =&gt; x.id !== id));
+    }, []);   <span class="c">// empty deps: function identity is stable forever</span>
+
+    <span class="k">return</span> items.map(item =&gt; &lt;MemoRow key={item.id} item={item} onDelete={handleDelete} /&gt;);
+}
+
+<span class="c">// ✓ useMemo worth it: genuinely expensive computation</span>
+<span class="k">const</span> sorted = <span class="f">useMemo</span>(() =&gt;
+    items.slice().sort(complexCompareFn), [items]   <span class="c">// re-sorts only when items changes</span>
+);
+
+<span class="c">// ✗ useMemo NOT worth it: wrapping cheap operations</span>
+<span class="k">const</span> doubled = <span class="f">useMemo</span>(() =&gt; count * 2, [count]);   <span class="c">// slower than just writing count * 2</span></code></pre>
+        <p>When they <b>hurt</b>:</p>
+        <ul>
+          <li>Wrapping cheap operations — the deps comparison costs more than re-computing.</li>
+          <li>Wrong or missing deps — produces stale closures that are worse than no memoization.</li>
+          <li>Over-memoizing a whole tree — the mental overhead of tracking what's stable becomes a maintenance burden without a measurable perf win.</li>
+        </ul>
+        <p><b>Decision rule:</b> Profile first. If no concrete perf problem is visible with React DevTools Profiler, don't add them. React 19's compiler auto-memoizes most of this, further reducing the need.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="memory leak react component event listener subscription cleanup">
+      <summary><span class="qix">Q47</span><span class="qtext">How do you handle memory leaks in React applications?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A React memory leak usually means a component got unmounted but something it started (a subscription, timer, fetch) is still running and still holds a reference to the component's state setter — preventing the component tree from being garbage collected.</div>
+        <pre><code><span class="c">// ✗ Classic leak: async update after unmount</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="f">fetchUser</span>(id).then(user =&gt; setUser(user));   <span class="c">// component may unmount before fetch resolves</span>
+}, [id]);   <span class="c">// Warning: Can't perform a React state update on an unmounted component</span>
+
+<span class="c">// ✓ Fix: AbortController cancels the request when the component unmounts</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> controller = <span class="k">new</span> AbortController();
+    <span class="f">fetch</span>(<span class="s">`/api/user/${id}`</span>, { signal: controller.signal })
+        .then(r =&gt; r.json())
+        .then(setUser)
+        .catch(e =&gt; { <span class="k">if</span> (e.name !== <span class="s">'AbortError'</span>) <span class="k">throw</span> e; });
+    <span class="k">return</span> () =&gt; controller.abort();   <span class="c">// cleanup: cancel on unmount or id change</span>
+}, [id]);</code></pre>
+        <pre><code><span class="c">// ✗ Leak: event listener never removed</span>
+<span class="f">useEffect</span>(() =&gt; {
+    window.addEventListener(<span class="s">'resize'</span>, handleResize);
+    <span class="c">// no cleanup → listener accumulates every time component mounts</span>
+}, []);
+
+<span class="c">// ✓ Fix: return cleanup</span>
+<span class="f">useEffect</span>(() =&gt; {
+    window.addEventListener(<span class="s">'resize'</span>, handleResize);
+    <span class="k">return</span> () =&gt; window.removeEventListener(<span class="s">'resize'</span>, handleResize);
+}, []);</code></pre>
+        <p>Other common sources: WebSocket/SSE connections, <code>setInterval</code> without <code>clearInterval</code>, third-party library subscriptions, and <code>IntersectionObserver</code>. The pattern is always the same — return a cleanup function that tears down whatever the effect set up.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="useEffect cleanup return nothing undefined nothing returned">
+      <summary><span class="qix">Q48</span><span class="qtext">What happens if you don't return anything from a <code>useEffect</code>?</span><span class="diff easy">Easy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Nothing bad — it's fine. The cleanup function is optional. Not returning anything means "there's nothing to clean up." React only calls the cleanup if you provide one.</div>
+        <pre><code><span class="c">// ✓ Fine — no cleanup needed, no return needed</span>
+<span class="f">useEffect</span>(() =&gt; {
+    document.title = <span class="s">`${count} notifications`</span>;
+}, [count]);   <span class="c">// setting document.title has nothing to undo</span>
+
+<span class="c">// ✓ Fine — explicit undefined return</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="f">logPageView</span>();
+    <span class="k">return undefined</span>;   <span class="c">// same as no return</span>
+}, []);
+
+<span class="c">// ✗ WARNING: returning something that isn't a function</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">return</span> <span class="f">fetchData</span>();   <span class="c">// fetchData() returns a Promise, not a function — React warns</span>
+}, []);
+<span class="c">// Fix: mark the effect async inside, or use an IIFE</span>
+<span class="f">useEffect</span>(() =&gt; {
+    (<span class="k">async</span> () =&gt; { <span class="k">await</span> <span class="f">fetchData</span>(); })();   <span class="c">// IIFE is synchronous from useEffect's POV</span>
+}, []);</code></pre>
+        <p><b>The practical gotcha:</b> the warning people actually hit is returning a <em>Promise</em> (by making the effect callback <code>async</code>). React expects either nothing or a synchronous cleanup function — not a Promise. Making the outer callback async violates this.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="React.StrictMode double invoke useEffect development twice">
+      <summary><span class="qix">Q49</span><span class="qtext">Explain <code>React.StrictMode</code> and why your <code>useEffect</code> runs twice in development.</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> <code>StrictMode</code> is a development-only tool that deliberately double-invokes certain functions to help you find bugs. It mounts, then immediately unmounts and re-mounts each component, so if your effect leaks something during unmount (no proper cleanup), you'll see the symptom twice in dev instead of only after the user navigates back and forth.</div>
+        <pre><code><span class="c">// This double-mount cycle is what StrictMode does in React 18+ dev mode:</span>
+<span class="c">// 1. mount   → effect runs</span>
+<span class="c">// 2. unmount → cleanup runs</span>
+<span class="c">// 3. re-mount → effect runs again</span>
+
+<span class="c">// ✗ Not cleanup-safe — you'll see two WebSocket connections in dev</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> ws = <span class="k">new</span> WebSocket(<span class="s">'wss://...'</span>);
+    <span class="c">// no cleanup</span>
+}, []);
+
+<span class="c">// ✓ Cleanup-safe — StrictMode reveals it works correctly</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> ws = <span class="k">new</span> WebSocket(<span class="s">'wss://...'</span>);
+    <span class="k">return</span> () =&gt; ws.close();   <span class="c">// StrictMode unmount calls this → no double connection</span>
+}, []);</code></pre>
+        <p>StrictMode also detects deprecated API usage, warns about side effects in render, and flags unexpected mutations. <b>It's entirely dev-mode only</b> — the double-invoke doesn't happen in production. If your app breaks with StrictMode but works without, the double-invoke is surfacing a real bug (usually a missing cleanup), not causing a new one.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="share logic custom hooks composition without props context render props HOC">
+      <summary><span class="qix">Q50</span><span class="qtext">How do you share logic between components without props or context?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Custom hooks are the modern answer — extract shared stateful logic into a function starting with <code>use</code>, and any component that calls it gets its own isolated copy of that state.</div>
+        <pre><code><span class="c">// Custom hook — shared logic, isolated state per call site</span>
+<span class="k">function</span> <span class="f">useOnlineStatus</span>() {
+    <span class="k">const</span> [online, setOnline] = <span class="f">useState</span>(navigator.onLine);
+    <span class="f">useEffect</span>(() =&gt; {
+        <span class="k">const</span> on = () =&gt; setOnline(<span class="k">true</span>);
+        <span class="k">const</span> off = () =&gt; setOnline(<span class="k">false</span>);
+        window.addEventListener(<span class="s">'online'</span>, on);
+        window.addEventListener(<span class="s">'offline'</span>, off);
+        <span class="k">return</span> () =&gt; { window.removeEventListener(<span class="s">'online'</span>, on); window.removeEventListener(<span class="s">'offline'</span>, off); };
+    }, []);
+    <span class="k">return</span> online;
+}
+
+<span class="c">// Used in any component — each gets its own subscription</span>
+<span class="k">function</span> <span class="f">Header</span>() {
+    <span class="k">const</span> online = <span class="f">useOnlineStatus</span>();
+    <span class="k">return</span> &lt;div&gt;{online ? <span class="s">'Online'</span> : <span class="s">'Offline'</span>}&lt;/div&gt;;
+}</code></pre>
+        <p>The patterns that came before (and when they still apply):</p>
+        <ul>
+          <li><b>Higher-Order Components (HOC)</b> — wrap a component to inject props. Still used for cross-cutting concerns (authentication guards, analytics) but custom hooks handle most cases more clearly with less indirection.</li>
+          <li><b>Render props</b> — pass a function as a child that receives data. Largely replaced by hooks but occasionally useful when you need to share a render pattern as well as logic.</li>
+        </ul>
+        <p><b>Decision today:</b> if it's logic only (no UI), custom hook. If it's a shared UI pattern, composition (just render it). HOC/render props for legacy code or when you genuinely need to wrap at the component boundary.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ CSS & LAYOUT ============ -->
+  <section class="cat" id="css" data-cat="css">
+    <h2><span class="ix">09</span> CSS &amp; Layout</h2>
+    <p class="cat-sub">Layout mechanics, animation performance, and accessibility-aware visibility — the CSS questions that trip up most engineers.</p>
+
+    <details class="qa" data-tags="z-index stacking context conflict isolation">
+      <summary><span class="qix">Q51</span><span class="qtext">How do you handle z-index conflicts in large applications?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> z-index only works within the same <em>stacking context</em>. Every time you apply <code>position + z-index</code>, <code>opacity &lt; 1</code>, <code>transform</code>, or <code>filter</code> to an element, you create a new stacking context — and elements inside it can never appear above elements <em>outside</em> it, no matter how high their z-index is.</div>
+        <p class="analogy">Like floors in a building: you can rearrange furniture (z-index) however you want within your floor, but furniture on floor 2 can never appear above the floor 3 ceiling. Adding a <code>transform</code> to a parent drops everything inside to its own "floor."</p>
+        <pre><code><span class="c">/* Common trap: parent has transform, child can't escape it */</span>
+.card { transform: translateY(0); }    <span class="c">/* creates stacking context */</span>
+.card .tooltip { z-index: 9999; }     <span class="c">/* trapped inside .card's context */</span>
+
+<span class="c">/* Fix 1: move tooltip out of the stacking context (portal in React) */</span>
+<span class="c">/* Fix 2: avoid creating context on the parent */</span>
+.card { will-change: transform; }      <span class="c">/* avoids the stacking context from transform */</span></code></pre>
+        <p>Systematic solution for large apps:</p>
+        <pre><code><span class="c">/* CSS custom properties for a z-index scale */</span>
+:root {
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+}
+.modal { z-index: var(--z-modal); }    <span class="c">/* readable, managed, not 9999 vs 99999</span></code></pre>
+        <p>In React, use <code>createPortal</code> to render modals and tooltips directly into <code>document.body</code>, ensuring they're outside any ancestor stacking context:</p>
+        <pre><code>ReactDOM.createPortal(
+    &lt;Tooltip&gt;{content}&lt;/Tooltip&gt;,
+    document.body   <span class="c">// now in root stacking context, z-index works globally</span>
+)</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="visibility hidden display none screen reader accessibility aria">
+      <summary><span class="qix">Q52</span><span class="qtext">What's the difference between <code>visibility: hidden</code> and <code>display: none</code> for screen readers?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Both hide content visually, but they behave differently in layout and for assistive technology. Neither is a reliable way to hide content from screen readers — <code>aria-hidden</code> is the correct tool for that.</div>
+        <table><tr><th></th><th>display: none</th><th>visibility: hidden</th><th>opacity: 0</th></tr>
+        <tr><td>Layout space</td><td>removed</td><td>preserved</td><td>preserved</td></tr>
+        <tr><td>Screen readers</td><td>usually ignored</td><td>usually ignored</td><td>still readable</td></tr>
+        <tr><td>Animations</td><td>can't animate</td><td>animatable</td><td>animatable</td></tr></table>
+        <pre><code><span class="c">/* Hide from everyone including screen readers */</span>
+.hidden { display: none; }
+.hidden { visibility: hidden; }
+.hidden { aria-hidden: "true"; }   <span class="c">/* explicit and reliable */</span>
+
+<span class="c">/* Visually hidden but READABLE by screen readers (the accessibility pattern) */</span>
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+<span class="c">/* Visible to screen readers but hidden visually (opposite of .sr-only) */</span>
+.aria-hidden { aria-hidden: "true"; }   <span class="c">/* decorative icons, duplicated text */</span></code></pre>
+        <p><b>Why it matters:</b> CSS-based hiding is not a reliable accessibility control — browser and screen-reader combinations vary. Use <code>aria-hidden="true"</code> explicitly when you want something skipped, and the <code>.sr-only</code> pattern when you want something read but not seen (e.g. "Close" label on an icon-only button).</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="animation main thread CSS transform opacity will-change GPU compositor">
+      <summary><span class="qix">Q53</span><span class="qtext">How do you create smooth animations that don't block the main thread?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The browser has a "compositor" thread that can run some animations entirely separately from JavaScript. If your animation only changes <code>transform</code> or <code>opacity</code>, the compositor handles it and it stays smooth even when JS is busy. Any other property — width, height, background, left — forces the browser back to the main thread and can cause jank.</div>
+        <pre><code><span class="c">/* ✗ Janky: triggers layout (reflow) every frame */</span>
+.animate-bad {
+    animation: slide-bad 0.3s ease;
+}
+@keyframes slide-bad {
+    from { left: 0; }
+    to { left: 100px; }    <span class="c">/* left changes → layout recalculated every frame */</span>
+}
+
+<span class="c">/* ✓ Smooth: only transform — compositor thread, no layout */</span>
+.animate-good {
+    animation: slide-good 0.3s ease;
+}
+@keyframes slide-good {
+    from { transform: translateX(0); }
+    to { transform: translateX(100px); }   <span class="c">/* no layout pass needed */</span>
+}</code></pre>
+        <p>Promote elements to their own compositor layer for complex animations:</p>
+        <pre><code><span class="c">/* will-change hints the browser to create a GPU layer ahead of time */</span>
+.animated-card {
+    will-change: transform, opacity;   <span class="c">/* use sparingly — each layer costs GPU memory */</span>
+}
+<span class="c">/* Remove it when animation is done: element.style.willChange = 'auto'; */</span></code></pre>
+        <p>For JS-driven animations, use <code>requestAnimationFrame</code> rather than <code>setTimeout</code> — it syncs to the display refresh rate and automatically pauses when the tab is hidden:</p>
+        <pre><code><span class="k">function</span> <span class="f">animate</span>(timestamp) {
+    element.style.transform = <span class="s">`translateX(${progress(timestamp)}px)`</span>;
+    <span class="k">if</span> (!done) <span class="f">requestAnimationFrame</span>(animate);   <span class="c">// called at ~60fps, synced to display</span>
+}
+<span class="f">requestAnimationFrame</span>(animate);</code></pre>
+        <p>In React, prefer CSS transitions/animations over JS-driven ones. When you need complex gesture-driven animations in React Native, use Reanimated worklets (UI thread) — the same principle applied to mobile.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="margin collapse BFC block formatting context prevent why">
+      <summary><span class="qix">Q54</span><span class="qtext">Why does margin collapse happen and how do you prevent it?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> When two vertical margins touch — siblings stacked on top of each other, or a parent and its first/last child — CSS collapses them into a single margin equal to the larger of the two, rather than adding them together. It's a feature designed for readable typography, but it bites you in layouts where you expect padding.</div>
+        <pre><code><span class="c">/* Adjacent siblings collapse */</span>
+.box-a { margin-bottom: 20px; }
+.box-b { margin-top: 30px; }
+<span class="c">/* Gap between them: 30px, NOT 50px */</span>
+
+<span class="c">/* Parent-child collapse: if the parent has no border, padding, or BFC */</span>
+.parent { /* no padding, no border */ }
+.child { margin-top: 40px; }
+<span class="c">/* The 40px escapes the parent and applies to the parent itself */</span></code></pre>
+        <p>How to prevent it — creating a <b>Block Formatting Context (BFC)</b> stops margins from collapsing across the boundary:</p>
+        <pre><code><span class="c">/* Any of these creates a BFC and prevents collapse */</span>
+.parent {
+    overflow: hidden;     <span class="c">/* classic BFC hack */</span>
+    display: flow-root;   <span class="c">/* modern, purpose-built, no side effects */</span>
+    display: flex;        <span class="c">/* flex/grid containers are BFCs */</span>
+    display: grid;
+}
+
+<span class="c">/* Simpler fix: use padding instead of margin for spacing inside a container */</span>
+.parent { padding-top: 1px; }   <span class="c">/* even 1px stops the collapse */</span></code></pre>
+        <p>Note: margin collapse only happens with <em>vertical</em> (block-axis) margins, never horizontal. And it <em>doesn't</em> happen inside flex or grid containers — another reason to default to those for layout.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="responsive images aspect ratio srcset sizes picture object-fit">
+      <summary><span class="qix">Q55</span><span class="qtext">How do you make images responsive without breaking aspect ratios?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An image with <code>width: 100%</code> and no height constraint stretches to fill its container horizontally but keeps its intrinsic aspect ratio — that's the baseline. The problems come when you need a specific aspect ratio regardless of the image's natural dimensions, or when you need different image files for different screen sizes.</div>
+        <pre><code><span class="c">/* Baseline responsive image */</span>
+img {
+    max-width: 100%;    <span class="c">/* never wider than container */</span>
+    height: auto;       <span class="c">/* let browser calculate height to preserve ratio */</span>
+    display: block;     <span class="c">/* removes inline default whitespace gap */</span>
+}
+
+<span class="c">/* Fixed aspect ratio regardless of content size */</span>
+.image-container {
+    aspect-ratio: 16 / 9;    <span class="c">/* modern — browser handles the math */</span>
+    overflow: hidden;
+}
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;        <span class="c">/* fill the box, crop if needed, preserve ratio */</span>
+    object-position: center;  <span class="c">/* which part to show when cropping */</span>
+}</code></pre>
+        <p>For performance — serve different sizes to different screens:</p>
+        <pre><code>&lt;img
+    src="photo-800.jpg"
+    srcset="photo-400.jpg 400w, photo-800.jpg 800w, photo-1600.jpg 1600w"
+    sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 800px"
+    alt="Description"
+    loading="lazy"
+    width="800" height="450"    <span class="c">&lt;!-- set width+height to prevent layout shift --&gt;</span>
+/&gt;</code></pre>
+        <p><b>Why <code>width</code> and <code>height</code> matter:</b> the browser uses them to reserve space before the image loads, preventing Cumulative Layout Shift (CLS) — a Core Web Vital that affects SEO. Even if you set <code>height: auto</code> in CSS, the browser uses the intrinsic ratio from the attributes to hold space.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ API & PERFORMANCE ============ -->
+  <section class="cat" id="apiperf" data-cat="apiperf">
+    <h2><span class="ix">10</span> API, Performance &amp; Reliability</h2>
+    <p class="cat-sub">Race conditions, slow networks, infinite scroll, and production-grade resilience.</p>
+
+    <details class="qa" data-tags="race condition API stale fetch abort controller latest result">
+      <summary><span class="qix">Q56</span><span class="qtext">How do you handle race conditions in API calls?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> A race condition happens when two requests go out and the older one arrives <em>after</em> the newer one — so you render stale data as if it were current. The fix is ensuring only the latest request's result can update the UI.</div>
+        <pre><code><span class="c">// ✗ Race: fast typing causes stale results to overwrite fresh ones</span>
+<span class="k">function</span> <span class="f">SearchResults</span>({ query }) {
+    <span class="k">const</span> [results, setResults] = <span class="f">useState</span>([]);
+    <span class="f">useEffect</span>(() =&gt; {
+        api.search(query).then(setResults);   <span class="c">// "cat" resolves AFTER "cats" → shows old results</span>
+    }, [query]);
+}
+
+<span class="c">// ✓ Fix 1: AbortController — cancel the previous request outright</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">const</span> controller = <span class="k">new</span> AbortController();
+    api.search(query, { signal: controller.signal })
+        .then(setResults)
+        .catch(e =&gt; { <span class="k">if</span> (e.name !== <span class="s">'AbortError'</span>) setError(e); });
+    <span class="k">return</span> () =&gt; controller.abort();   <span class="c">// cancel on next query or unmount</span>
+}, [query]);
+
+<span class="c">// ✓ Fix 2: ignore stale — let request complete but don't apply its result</span>
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="k">let</span> stale = <span class="k">false</span>;
+    api.search(query).then(data =&gt; { <span class="k">if</span> (!stale) setResults(data); });
+    <span class="k">return</span> () =&gt; { stale = <span class="k">true</span>; };   <span class="c">// mark as stale on cleanup</span>
+}, [query]);
+
+<span class="c">// ✓ Fix 3: use a library (React Query, SWR) — they handle this automatically</span></code></pre>
+        <p><b>In React Native / mobile:</b> the Flow equivalent is <code>flatMapLatest</code> which cancels the in-flight inner flow when a new query arrives — the same pattern, same problem, different syntax (covered in the Android deep dive Q19).</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="slow internet offline strategy retry loading skeleton optimistic">
+      <summary><span class="qix">Q57</span><span class="qtext">What's your strategy for handling slow internet connections?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Design for the assumption that the network <em>will</em> be slow or intermittent — show cached content immediately, be honest about loading state, and don't let one slow request block the whole page.</div>
+        <ul>
+          <li><b>Show stale-while-revalidate:</b> render cached content instantly, refresh in the background.</li>
+          <li><b>Skeleton screens over spinners:</b> a skeleton retains the page shape and reduces perceived load time better than a blank spinner.</li>
+          <li><b>Optimistic UI:</b> apply a mutation locally before the server confirms it, then rollback on failure.</li>
+          <li><b>Request timeouts:</b> abort requests that take too long and show a retry prompt rather than waiting forever.</li>
+          <li><b>Progressive loading:</b> render the shell and what's cached, then fill in what requires a network trip.</li>
+        </ul>
+        <pre><code><span class="c">// Timeout pattern</span>
+<span class="k">const</span> withTimeout = (promise, ms) =&gt;
+    <span class="f">Promise</span>.race([
+        promise,
+        <span class="k">new</span> <span class="f">Promise</span>((_, reject) =&gt; <span class="f">setTimeout</span>(() =&gt; reject(<span class="k">new</span> <span class="f">Error</span>(<span class="s">'timeout'</span>)), ms))
+    ]);
+
+<span class="c">// Retry with exponential backoff</span>
+<span class="k">async function</span> <span class="f">fetchWithRetry</span>(url, retries = 3) {
+    <span class="k">for</span> (<span class="k">let</span> i = 0; i &lt;= retries; i++) {
+        <span class="k">try</span> { <span class="k">return await</span> <span class="f">fetch</span>(url); }
+        <span class="k">catch</span> (e) {
+            <span class="k">if</span> (i === retries) <span class="k">throw</span> e;
+            <span class="k">await new</span> <span class="f">Promise</span>(r =&gt; <span class="f">setTimeout</span>(r, 300 * 2 ** i));   <span class="c">// 300ms, 600ms, 1200ms</span>
+        }
+    }
+}
+
+<span class="c">// Detect connection quality</span>
+<span class="k">const</span> conn = navigator.connection;
+<span class="k">if</span> (conn?.effectiveType === <span class="s">'2g'</span> || conn?.saveData) { loadLowRes(); }</code></pre>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="infinite scroll intersection observer virtual list performance implementation">
+      <summary><span class="qix">Q58</span><span class="qtext">How do you implement infinite scrolling without performance issues?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The naive approach — append new DOM nodes indefinitely — eventually makes the page so slow it freezes. Two fixes: use <code>IntersectionObserver</code> to trigger loads instead of polling scroll events, and virtualize the list so only visible rows are actually in the DOM.</div>
+        <pre><code><span class="c">// Step 1: IntersectionObserver to trigger the next page load</span>
+<span class="k">function</span> <span class="f">InfiniteFeed</span>({ fetchNextPage, hasNextPage }) {
+    <span class="k">const</span> sentinelRef = <span class="f">useRef</span>();
+
+    <span class="f">useEffect</span>(() =&gt; {
+        <span class="k">const</span> observer = <span class="k">new</span> IntersectionObserver(([entry]) =&gt; {
+            <span class="k">if</span> (entry.isIntersecting &amp;&amp; hasNextPage) fetchNextPage();
+        }, { rootMargin: <span class="s">'200px'</span> });   <span class="c">// load 200px before sentinel is visible</span>
+
+        <span class="k">if</span> (sentinelRef.current) observer.observe(sentinelRef.current);
+        <span class="k">return</span> () =&gt; observer.disconnect();
+    }, [fetchNextPage, hasNextPage]);
+
+    <span class="k">return</span> (
+        &lt;div&gt;
+            {items.map(item =&gt; &lt;Row key={item.id} item={item} /&gt;)}
+            &lt;div ref={sentinelRef} style={{ height: 1 }} /&gt;   {/* load trigger */}
+        &lt;/div&gt;
+    );
+}</code></pre>
+        <pre><code><span class="c">// Step 2: For large lists, virtualize with react-window</span>
+<span class="k">import</span> { FixedSizeList } <span class="k">from</span> <span class="s">'react-window'</span>;
+
+<span class="k">const</span> <span class="f">Row</span> = ({ index, style }) =&gt; (
+    &lt;div style={style}&gt;Item {index}&lt;/div&gt;   <span class="c">// style MUST include the virtual position</span>
+);
+
+&lt;FixedSizeList height={600} itemCount={10000} itemSize={60} width="100%"&gt;
+    {Row}
+&lt;/FixedSizeList&gt;
+<span class="c">// Only ~10 DOM nodes regardless of itemCount=10000</span></code></pre>
+        <p><b>Avoid the scroll event:</b> <code>window.addEventListener('scroll', ...)</code> fires 60+ times per second, blocking the main thread. <code>IntersectionObserver</code> fires only when visibility actually changes, and it runs off the main thread.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="memory leak production detect profiler heap snapshot chrome devtools">
+      <summary><span class="qix">Q59</span><span class="qtext">How do you detect and handle memory leaks in production?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Production memory leaks show up as pages that gradually slow down and eventually crash — especially for long-running SPAs. You need both monitoring (to know it's happening) and tooling (to find what's leaking).</div>
+        <p><b>Detection:</b></p>
+        <ul>
+          <li>Monitor <code>performance.memory.usedJSHeapSize</code> in your analytics — a steady upward trend that never decreases on navigation indicates a leak.</li>
+          <li>Use real-user monitoring (Datadog, Sentry Performance) to track memory-related crashes.</li>
+        </ul>
+        <p><b>Investigation (Chrome DevTools):</b></p>
+        <pre><code><span class="c">// 1. Take a heap snapshot (DevTools → Memory → Heap snapshot)</span>
+<span class="c">// 2. Perform the action you suspect leaks (navigate to a route and back)</span>
+<span class="c">// 3. Force garbage collection (DevTools → Memory → collect garbage)</span>
+<span class="c">// 4. Take another snapshot</span>
+<span class="c">// 5. Compare: objects that grew and have no expected survivors are the leak</span>
+
+<span class="c">// Common culprits to look for in the snapshot:</span>
+<span class="c">// - Detached DOM nodes (elements removed from the DOM but still referenced)</span>
+<span class="c">// - Closures retaining component state (event listeners, observables)</span>
+<span class="c">// - Growing arrays/maps in module scope (global caches without eviction)</span></code></pre>
+        <p><b>Fix patterns:</b> WeakMap/WeakRef for caches (allows GC to collect entries); always clean up subscriptions; don't store React component refs in module-level variables; clear module-level caches when they're no longer needed.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="progressive enhancement no javascript graceful degradation server side">
+      <summary><span class="qix">Q60</span><span class="qtext">How do you make your website work when JavaScript fails to load?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Progressive enhancement — start with working HTML and CSS (which browsers handle before any JS loads), then layer JS on top for a better experience. Graceful degradation works backwards: build the JS-enhanced version, then ensure core functionality doesn't break without it.</div>
+        <pre><code><span class="c">&lt;!-- ✗ JS-only: nothing works without it --&gt;</span>
+&lt;button onclick="openMenu()"&gt;Menu&lt;/button&gt;
+&lt;div id="menu" style="display:none"&gt;...&lt;/div&gt;
+
+<span class="c">&lt;!-- ✓ Progressive: works with CSS only, enhanced with JS --&gt;</span>
+&lt;a href="#menu"&gt;Menu&lt;/a&gt;
+&lt;div id="menu"&gt;...&lt;/div&gt;   &lt;!-- linked by anchor, navigable without JS --&gt;
+
+&lt;!-- The checkbox hack: toggle CSS without JS --&gt;
+&lt;input type="checkbox" id="nav-toggle" class="sr-only"&gt;
+&lt;label for="nav-toggle"&gt;Menu&lt;/label&gt;
+&lt;nav class="sidebar"&gt;...&lt;/nav&gt;</code></pre>
+        <pre><code><span class="c">/* CSS handles the open state — no JS required */</span>
+#nav-toggle:checked ~ .sidebar { transform: translateX(0); }
+.sidebar { transform: translateX(-100%); transition: transform 0.3s; }</code></pre>
+        <p>For React/Next.js: use Server-Side Rendering (SSR) or Static Site Generation (SSG) so the initial HTML is fully rendered and meaningful. Add <code>&lt;noscript&gt;</code> fallbacks for critical interactive elements. Use native HTML elements (links, forms, buttons) that work without JS rather than <code>&lt;div onClick&gt;</code> everywhere. Critical paths (login, checkout) should work as plain HTML form submissions if needed.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEBUGGING SCENARIOS ============ -->
+  <section class="cat" id="debug" data-cat="debug">
+    <h2><span class="ix">11</span> Debugging &amp; Tricky Scenarios</h2>
+    <p class="cat-sub">Real engineering judgment — how to think through bugs that don't have a simple "check the docs" answer.</p>
+
+    <details class="qa" data-tags="mobile safari bug debug iOS webkit specific">
+      <summary><span class="qix">Q61</span><span class="qtext">User reports a bug that only happens on mobile Safari — how do you debug it?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Mobile Safari bugs are notoriously hard because you can't install other browsers on iOS, iOS Safari has its own WebKit quirks, and remote debugging requires physical hardware. The approach is systematic isolation — is it Safari, is it mobile viewport, is it iOS-specific, or is it a network condition?</div>
+        <p><b>Step 1 — reproduce and isolate:</b></p>
+        <ul>
+          <li>Reproduce on a real device first (iOS Simulator is useful but masks some real-world GPU/memory constraints and doesn't perfectly replicate Safari's engine).</li>
+          <li>Test on macOS Safari too — if it breaks there, it's a WebKit/Safari issue generally, not just mobile. If it only breaks on mobile, it's viewport, touch, or performance-related.</li>
+        </ul>
+        <p><b>Step 2 — remote debugging:</b></p>
+        <pre><code><span class="c">// Enable remote inspection:</span>
+<span class="c">// iOS Settings → Safari → Advanced → Web Inspector: ON</span>
+<span class="c">// macOS Safari → Develop → [your device name] → [your page]</span>
+<span class="c">// Now you have full DevTools on the iOS page from your Mac</span></code></pre>
+        <p><b>Common iOS Safari–specific causes:</b></p>
+        <ul>
+          <li><code>position: fixed</code> + soft keyboard — the virtual keyboard doesn't resize <code>window.innerHeight</code> in Safari (use CSS <code>svh</code>/<code>dvh</code> viewport units or the <code>visualViewport</code> API).</li>
+          <li>100vh includes the browser chrome in Safari — <code>height: 100dvh</code> excludes it correctly.</li>
+          <li>Date parsing: <code>new Date('2024-01-15')</code> returns Invalid Date in Safari — use <code>'2024/01/15'</code> or a library.</li>
+          <li>Flexbox <code>gap</code> in older Safari versions — add fallback margins.</li>
+          <li>Missing CSS features — check caniuse.com; Safari often lags by 1–2 years on features Chrome ships.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="slow old devices performance profiling CPU throttle low end">
+      <summary><span class="qix">Q62</span><span class="qtext">Your app is slow but only for users with older devices — what do you check?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Older devices have slower CPUs, less RAM, slower GPUs, and older browser engines. What feels instant on a development MacBook can be genuinely unusable on a 4-year-old mid-range Android or iPhone 8. Simulate, profile, then fix the highest-cost items.</div>
+        <p><b>Simulate the conditions:</b></p>
+        <pre><code><span class="c">// Chrome DevTools → Performance → CPU throttling: 6x (simulates mid-range Android)</span>
+<span class="c">// Chrome DevTools → Network → Slow 3G (simulates real-world connection)</span>
+<span class="c">// For Android: use a real low-end device or an emulator with low RAM config</span>
+<span class="c">// For React Native: use Flipper + the Performance monitor panel</span></code></pre>
+        <p><b>What to look for (in order of frequency):</b></p>
+        <ul>
+          <li><b>JS bundle size</b> — a large bundle takes longer to parse and execute on a slow CPU. Profile with Webpack Bundle Analyzer or source maps in Chrome DevTools Coverage tab.</li>
+          <li><b>Long tasks on the main thread</b> — anything over 50ms blocks input response. Check the Performance panel's main thread track for "Long Tasks" (red corner markers).</li>
+          <li><b>Render performance</b> — too many React re-renders, non-virtualized long lists, large DOM counts. React DevTools Profiler shows which components render longest.</li>
+          <li><b>Image decoding</b> — large unoptimized images kill CPU and GPU on old devices. Use WebP, lazy loading, and appropriately-sized images (<code>srcset</code>).</li>
+          <li><b>Animations triggering layout</b> — animating non-compositor properties (width, height, top, margin) forces layout on every frame. Fix by using only <code>transform</code> and <code>opacity</code>.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="API breaking change schema change handle gracefully version">
+      <summary><span class="qix">Q63</span><span class="qtext">How do you handle a situation where your API suddenly starts returning different data?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> APIs change — fields renamed, types changed, fields added or removed. The app should degrade gracefully (show what it can, not crash) while you fix the root cause. Defensive data access and runtime validation prevent a backend schema change from taking down the frontend.</div>
+        <pre><code><span class="c">// ✗ Crashes on unexpected shape</span>
+<span class="k">const</span> name = response.user.profile.name;   <span class="c">// TypeError if profile is null/undefined</span>
+
+<span class="c">// ✓ Optional chaining — returns undefined instead of throwing</span>
+<span class="k">const</span> name = response?.user?.profile?.name ?? <span class="s">'Unknown'</span>;
+
+<span class="c">// ✓ Type validation at the boundary with Zod</span>
+<span class="k">import</span> { z } <span class="k">from</span> <span class="s">'zod'</span>;
+<span class="k">const</span> UserSchema = z.object({
+    id: z.string(),
+    name: z.string().catch(<span class="s">'Unknown'</span>),   <span class="c">// fallback on parse failure</span>
+    email: z.string().optional(),
+});
+<span class="k">const</span> user = UserSchema.safeParse(response.user);
+<span class="k">if</span> (!user.success) <span class="f">logError</span>(user.error);   <span class="c">// alert but don't crash</span></code></pre>
+        <p>Longer-term defence: agree on API versioning (<code>/v1/</code>, <code>/v2/</code>), use contract testing (Pact) so backend changes that would break the frontend are caught pre-deploy, and monitor field usage in your analytics so you can detect a removed field that's still being read.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="dev prod difference environment bug debugging process works locally">
+      <summary><span class="qix">Q64</span><span class="qtext">A feature works in development but breaks in production — what's your debugging process?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> "Works in dev, breaks in prod" almost always means one of a small set of things: different environment variables, minification changing behaviour, a missing API key or CORS config, real network latency instead of localhost, or a timing issue that only surfaces at production speed.</div>
+        <p><b>Systematic checklist:</b></p>
+        <ul>
+          <li><b>Check the browser console first</b> — prod errors often don't surface in monitoring right away, but they're almost always logged. Check the Network tab too for failing API requests or 4xx/5xx responses.</li>
+          <li><b>Minification</b> — R8/Terser/webpack can rename, inline, or dead-code-eliminate things. Check for code that relies on <code>Function.name</code>, dynamic property access by string, or magic that breaks under minification.</li>
+          <li><b>Environment variables</b> — a missing <code>REACT_APP_*</code> or <code>process.env.*</code> variable becomes <code>undefined</code> in prod, which silently breaks comparisons and string building.</li>
+          <li><b>CORS and auth</b> — localhost doesn't hit the real CORS rules or auth flows. Verify prod API credentials and headers are in place.</li>
+          <li><b>Build the prod bundle locally</b> — <code>npm run build &amp;&amp; npx serve build</code> (React) or a release APK — running the prod build locally with local tools is the fastest way to reproduce a prod-only bug without deploying repeatedly.</li>
+          <li><b>Source maps</b> — generate and upload source maps to your error tracker (Sentry, Datadog) so minified production stack traces resolve to readable code.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="prioritize performance fixes limited time impact effort triage">
+      <summary><span class="qix">Q65</span><span class="qtext">How do you prioritize performance fixes when you have limited time?</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Measure first, fix the most impactful thing with the least effort, and prioritize user-visible improvements over numbers that look better on a dashboard but users don't feel.</div>
+        <p><b>Framework: impact × affected users / effort</b></p>
+        <ul>
+          <li><b>Find the actual bottleneck first.</b> Optimizing the wrong thing is the most common mistake. Profile with Lighthouse, WebPageTest, or React DevTools Profiler to identify what's actually slow — don't guess.</li>
+          <li><b>User-perceived metrics first.</b> Fix Largest Contentful Paint (LCP) before Time to Interactive (TTI), because users feel the first paint. Fix what creates the most friction in the actual happy path, not edge cases.</li>
+          <li><b>Quick wins first.</b> Image optimization (WebP, lazy loading, correct sizing) and code splitting typically yield large gains for low implementation cost. Ship those before tackling complex algorithmic optimizations.</li>
+          <li><b>Measure before and after.</b> Without a before/after measurement on the same metric, you don't know if you fixed anything — and you can't convince stakeholders the time was worth spending.</li>
+        </ul>
+        <pre><code><span class="c">// Priority order for a typical web app with limited time:</span>
+<span class="c">// 1. Image optimization   — often 40-60% of page weight, minimal code change</span>
+<span class="c">// 2. Code splitting        — defer JS bundles not needed for initial render</span>
+<span class="c">// 3. Critical CSS          — inline above-the-fold CSS, defer the rest</span>
+<span class="c">// 4. Cache headers         — set correctly once, free repeat-visit performance</span>
+<span class="c">// 5. Component virtualization — for known-long lists only</span>
+<span class="c">// 6. React render optimization — useMemo/memo — only after profiling confirms it's the bottleneck</span></code></pre>
+      </div>
+    </details>
+  </section>
+
   <div class="no-results">No questions match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
