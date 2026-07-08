@@ -27,6 +27,25 @@
 .related-link{font-family:var(--font-mono);font-size:13px;color:var(--azure);}
 .no-results.show{display:block;}
 @media(max-width:900px){ .strip.prep-stats-row{grid-template-columns:1fr 1fr;} }
+
+/* ---- Overflow safety net ----
+   Grid/flex children default to a min-width based on their content (an unbroken long
+   line inside <pre>, or .search's min-width:220px) and refuse to shrink below it even
+   with overflow:auto set — that's what was pushing the page wider than the viewport.
+   min-width:0 on the relevant containers lets them shrink to the available space so
+   overflow:auto on <pre> actually kicks in and scrolls internally instead of the whole
+   page overflowing horizontally. */
+html, body{max-width:100%;overflow-x:hidden;}
+.layout, .layout > main, .layout > aside{min-width:0;}
+.qa, .answer, .answer pre{min-width:0;}
+.answer pre{max-width:100%;box-sizing:border-box;}
+.answer pre code{white-space:pre;word-break:normal;}
+.toolbar-inner{min-width:0;}
+.search{min-width:0;flex:1 1 220px;}
+@media(max-width:480px){
+  .search{flex-basis:100%;}
+  .tool-btns{flex-basis:100%;justify-content:flex-end;}
+}
 </style>
 </head>
 <body>
