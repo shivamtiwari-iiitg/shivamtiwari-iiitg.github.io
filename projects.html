@@ -39,7 +39,7 @@
     <p>Eleven production systems, each with the architecture, the hardest problem, the trade-off I made, and what I'd change. Real mechanisms, real numbers, real dead ends — including the ones that didn't work first time.</p>
     <div class="prep-stats">
       <span><b>11</b> systems</span>
-      <span><b>3</b> companies</span>
+      <span><b>6+</b> yrs shipping</span>
       <span><b>180M+</b> MAU surfaces</span>
       <span>Architecture · trade-offs</span>
     </div>
@@ -85,8 +85,8 @@
     <h2><span class="ix">01</span> Messaging &amp; realtime</h2>
     <p class="cat-sub">Two chat surfaces, two completely different transports — because 1:1 and 1:N are different problems.</p>
 
-    <details class="qa" data-tags="DM direct message SSE server sent events Room OkHttp receipts ShareChat">
-      <summary><span class="qix">P01</span><span class="qtext">1:1 Direct Messages over SSE</span><span class="diff hard">ShareChat</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="DM direct message SSE server sent events Room OkHttp receipts">
+      <summary><span class="qix">P01</span><span class="qtext">1:1 Direct Messages over SSE</span><span class="diff hard">Social · 180M MAU</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Direct messages run over a dedicated Server-Sent-Events connection — one persistent stream per device, backed by a Room cache — with delivery and read receipts as a <em>separate</em> REST handshake, not carried on the SSE channel. Push in, pull/batch out.</div>
         <p><b>Architecture:</b></p>
@@ -115,8 +115,8 @@ ACK path (deliberately asymmetric — REST, not SSE):
       </div>
     </details>
 
-    <details class="qa" data-tags="chatroom group Firestore Agora live audio dynamic feature module DFM fanout ShareChat">
-      <summary><span class="qix">P02</span><span class="qtext">Group chatroom — Firestore fan-out + Agora live audio</span><span class="diff hard">ShareChat</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="chatroom group Firestore Agora live audio dynamic feature module DFM fanout">
+      <summary><span class="qix">P02</span><span class="qtext">Group chatroom — Firestore fan-out + Agora live audio</span><span class="diff hard">Social · 180M MAU</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Same "chat" surface as DMs, entirely different transport — because it's 1→N broadcast, not 1→1. The client posts over REST, the server writes one shared Firestore document, and Firestore's own replication fans it out to every listener including the sender. Live audio is a third layer: Agora carries the media, Firestore stays the control plane.</div>
         <p><b>Text path:</b></p>
@@ -157,8 +157,8 @@ Base app compiles against a small bridge interface + audio adapter
     <h2><span class="ix">02</span> Platform &amp; framework</h2>
     <p class="cat-sub">Systems other teams build on — where API design is the actual product.</p>
 
-    <details class="qa" data-tags="intervention framework actor coroutine arbitration priority queue MVI Orbit ShareChat">
-      <summary><span class="qix">P03</span><span class="qtext">Interventions Framework — cross-screen arbitration engine</span><span class="diff hard">ShareChat</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="intervention framework actor coroutine arbitration priority queue MVI Orbit">
+      <summary><span class="qix">P03</span><span class="qtext">Interventions Framework — cross-screen arbitration engine</span><span class="diff hard">Social · 180M MAU</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> A cross-screen arbitration engine for in-app messaging — app-rate prompts, permission asks, tooltips, onboarding nudges. The backend sends a prioritized ordered list; a single actor coroutine holds that list plus every visible screen's eligibility rules and, on each state change, shows the first candidate that's both eligible and has a resumed handler. One intervention active at a time app-wide, and no locks anywhere.</div>
         <p><b>Module structure — strict one-way dependency:</b></p>
@@ -196,7 +196,7 @@ Side effects exit through a SEPARATE channel
     </details>
 
     <details class="qa" data-tags="duplicate app international variant flavour release engineering CodePush Firebase CriQ RushLine">
-      <summary><span class="qix">P04</span><span class="qtext">Duplicate / international app setup (CriQ → RushLine)</span><span class="diff mid">Dream11</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <summary><span class="qix">P04</span><span class="qtext">Duplicate / international app setup (CriQ → RushLine)</span><span class="diff mid">Release eng</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Stood up a full second app instance — separate package/bundle IDs (<code>com.criq.cricket.predictions.stats</code> → <code>com.rushline.cricket.football.score.predictions.ai</code>), separate Apple/Play listings, and an entirely parallel set of third-party integrations. Not glamorous, but it's a genuine "I own release engineering" story.</div>
         <p><b>What that actually spans</b> — and why each is a real decision, not a checkbox:</p>
@@ -219,8 +219,8 @@ Side effects exit through a SEPARATE channel
     <h2><span class="ix">03</span> Performance &amp; build</h2>
     <p class="cat-sub">Measure, then optimize — and watch what the optimization breaks.</p>
 
-    <details class="qa" data-tags="jank recomposition Compose AndroidView interop 80% reduction ShareChat Moj">
-      <summary><span class="qix">P05</span><span class="qtext">Jank fixes — ~80% reduction via recomposition scoping</span><span class="diff hard">ShareChat / Moj</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="jank recomposition Compose AndroidView interop 80% reduction">
+      <summary><span class="qix">P05</span><span class="qtext">Jank fixes — ~80% reduction via recomposition scoping</span><span class="diff hard">Consumer apps</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Cut jank ~80% by fixing recomposition <em>scope</em>. State was prop-drilled from a legacy MVP presenter into Jetpack Compose across a custom <code>AndroidView</code> interop boundary — so every upstream state change invalidated far more of the composition tree than it needed to.</div>
         <p><b>The four steps:</b></p>
@@ -235,8 +235,8 @@ Side effects exit through a SEPARATE channel
       </div>
     </details>
 
-    <details class="qa" data-tags="build CI optimization Gradle Fastlane GitHub Actions caching 45% 52% Dream11 CriQ">
-      <summary><span class="qix">P06</span><span class="qtext">Build &amp; CI optimization — 45–52% faster</span><span class="diff hard">Dream11 · CriQ</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="build CI optimization Gradle Fastlane GitHub Actions caching 45% 52% CriQ">
+      <summary><span class="qix">P06</span><span class="qtext">Build &amp; CI optimization — 45–52% faster</span><span class="diff hard">Production</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Two related problems — slow Android release builds in CI, and long local Gradle cycles. Incremental APK/AAB build went from ~25–30 min to ~14–16 min (45%); the full Play Store upload workflow from ~38 min to ~18 min (52%); local incremental builds 40–60% faster. Landed across seven PRs — the core optimization plus runner memory, caching, CI cleanup and Slack APK delivery.</div>
         <p><b>Layer 3 — Gradle</b> (<code>android/gradle.properties</code>), benefits both local and CI:</p>
@@ -279,7 +279,7 @@ PR checks: shared composite action setup-and-prepare, node_modules
     </details>
 
     <details class="qa" data-tags="performance tracking native module TTI app start bundle load Firebase Play Console CriQ">
-      <summary><span class="qix">P07</span><span class="qtext">Performance tracking system — four metrics across the native/JS boundary</span><span class="diff mid">Dream11 · CriQ</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <summary><span class="qix">P07</span><span class="qtext">Performance tracking system — four metrics across the native/JS boundary</span><span class="diff mid">Production</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> Built a four-metric performance tracking system spanning native and JS, because React Native's app-start cost is split across a boundary neither side can see alone. JS simply can't observe when the process actually started.</div>
         <p><b>The four events:</b> app start, screen load, screen transition, and bundle load.</p>
@@ -309,7 +309,7 @@ JS stitches it together in a tracking singleton:
     <p class="cat-sub">On-device inference, speech, computer vision, and AI agents with deterministic verifiers.</p>
 
     <details class="qa" data-tags="speech to text STT dual engine GCP streaming Socket.IO WebView SpeechRecognizer CriQ">
-      <summary><span class="qix">P08</span><span class="qtext">Speech-to-Text — dual-engine, WebView-bridged</span><span class="diff hard">Dream11 · CriQ</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <summary><span class="qix">P08</span><span class="qtext">Speech-to-Text — dual-engine, WebView-bridged</span><span class="diff hard">Production</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> STT in CriQ isn't used from native RN screens at all — it's fully bridged through the app's WebView layer so embedded web content (the Sports AI mic UI) drives it. Two parallel engines: Android's native <code>SpeechRecognizer</code> on-device, and a GCP streaming path over Socket.IO that works on both platforms. iOS has <b>no</b> native STT module — GCP streaming only, remote-config gated.</div>
         <p><b>Path A — GCP streaming (primary, cross-platform):</b></p>
@@ -335,8 +335,8 @@ JS stitches it together in a tracking singleton:
       </div>
     </details>
 
-    <details class="qa" data-tags="ML on edge SDK ONNX model delivery service dynamic feature TypeScript benchmark Dream11">
-      <summary><span class="qix">P09</span><span class="qtext">ML on Edge — client SDK + model delivery service</span><span class="diff hard">Dream11</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+    <details class="qa" data-tags="ML on edge SDK ONNX model delivery service dynamic feature TypeScript benchmark">
+      <summary><span class="qix">P09</span><span class="qtext">ML on Edge — client SDK + model delivery service</span><span class="diff hard">ML platform</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> A platform for running ML models on-device — a TypeScript client SDK that manages model download, runtime inference, and an on-device event store, plus a backend service that decides which model version each device should be running. This is the strongest <em>platform design</em> story, distinct from CriQ's product work.</div>
         <p><b>SDK side — one public interface composed of four components:</b></p>
@@ -348,7 +348,7 @@ JS stitches it together in a tracking singleton:
         <p><b>Three details worth calling out:</b></p>
         <ul>
           <li><b>Settled results, not <code>Promise.all</code></b> — a partial model-download failure doesn't nuke the whole init. Deliberate choice.</li>
-          <li><b>Mock install hooks are part of the public interface.</b> The DFM install path is the hardest thing to test on a real device; baking mocks into the interface is testability designed in, not bolted on — the same DFM boundary problem solved with reflection at ShareChat, solved here with an explicit test seam.</li>
+          <li><b>Mock install hooks are part of the public interface.</b> The DFM install path is the hardest thing to test on a real device; baking mocks into the interface is testability designed in, not bolted on — the same DFM boundary problem solved with reflection in the chatroom live-audio work (P02), solved here with an explicit test seam.</li>
           <li>The download config carries concurrency, a download timeout, and a retry policy: linear, exponential, or jittered exponential. The jitter is there to stop every device retrying in lockstep after an outage — a thundering-herd answer.</li>
         </ul>
         <p><b>Service side:</b> the client sends the model info it currently has; the service returns anything newer — model ID, version, file size, package hash, a signed CDN download URL, and an event schema containing literal <code>CREATE TABLE IF NOT EXISTS ...</code> statements plus per-event column mappings with defaults and expiries. Request headers carry app, CodePush, build and platform versions — so model compatibility resolves server-side against the exact client build.</p>
@@ -368,7 +368,7 @@ JS stitches it together in a tracking singleton:
     </details>
 
     <details class="qa" data-tags="computer vision TrackNetV2 YOLO ByteTrack player tracking POC pipeline pickleball">
-      <summary><span class="qix">P10</span><span class="qtext">Computer vision POCs — ball tracking &amp; player detection</span><span class="diff hard">RC / DreamPlay</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <summary><span class="qix">P10</span><span class="qtext">Computer vision POCs — ball tracking &amp; player detection</span><span class="diff hard">Sports CV · POC</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> An engineering initiative to learn applied ML by shipping real systems rather than notebooks — four POCs across ball tracking, player detection, and match analytics, each with labeled data, a trained model, an inference pipeline, and honest evaluation metrics.</div>
         <p><b>The arc — a progression, because that is the whole value:</b></p>
@@ -400,7 +400,7 @@ Post-processing knobs that tune quality with NO retraining:
     </details>
 
     <details class="qa" data-tags="AI test generator agent Jest AST self heal validation PR reviewer LLM evaluation mutation testing CriQ">
-      <summary><span class="qix">P11</span><span class="qtext">AI Test Generator Agent + PR Reviewer — with a real eval strategy</span><span class="diff hard">Dream11 · CriQ</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <summary><span class="qix">P11</span><span class="qtext">AI Test Generator Agent + PR Reviewer — with a real eval strategy</span><span class="diff hard">Production</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
         <div class="plain"><b>The hook.</b> A diff-driven agent that writes Jest unit tests for changed TypeScript in a React Native codebase — runs locally via CLI, in Cursor via a rule file, and in CI when a PR gets the <code>generate_tests</code> label. It doesn't just generate; it validates through TypeScript, ESLint, and Jest, and self-heals up to 5 attempts before it's allowed to commit. Shipped as two PRs — the agent with its Cursor rules, then the first wave of generated tests.</div>
         <p><b>The pipeline, in order:</b></p>

@@ -4,7 +4,7 @@
    ========================================================= */
 
 :root{
-  --mx:50%; --my:0%;
+  --mx:50%; --my:0%; --mx2:50%; --my2:20%;
   /* Aliases — several later rules reference these names; without them the
      progress bar, chip indicator and nav underline silently render nothing. */
   --accent:#FFB257;
@@ -12,13 +12,17 @@
   --ink-3:#0C1120;
   --text:#EAEEF8;
 }
+/* Interactive ambient gradient: a warm glow that eases toward the cursor,
+   with a larger, slower cool glow trailing behind it for depth. Positions
+   are animated per-frame from JS (lerp), so no CSS background transition —
+   transitioning a gradient repaints the full layer and stutters. */
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(800px 600px at var(--mx) var(--my), rgba(255,178,87,.10), transparent 60%),
+    radial-gradient(900px 650px at var(--mx) var(--my), rgba(255,178,87,.12), transparent 60%),
+    radial-gradient(1300px 950px at var(--mx2) var(--my2), rgba(125,168,255,.07), transparent 65%),
     radial-gradient(1000px 700px at 85% -5%, rgba(255,178,87,.05), transparent 60%),
     radial-gradient(900px 600px at -10% 20%, rgba(125,168,255,.045), transparent 55%);
-  transition:background .25s ease;
 }
 .progress{
   position:fixed;top:0;left:0;height:2px;width:100%;z-index:60;

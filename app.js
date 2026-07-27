@@ -3,18 +3,32 @@
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- pointer-tracking ambient gradient (rAF-throttled) ---------- */
+  /* ---------- pointer-tracking ambient gradient ----------
+     Two glows lerp toward the cursor at different rates: the warm one
+     follows closely, the cool one drifts behind — trailing light instead
+     of a spotlight glued to the pointer. The rAF loop only runs while
+     there is distance left to cover, then goes idle. */
   if (!reduce) {
-    var pendingGlow = false, glowX = 0, glowY = 0;
+    var rootStyle = document.documentElement.style;
+    var tx = window.innerWidth / 2, ty = 0;
+    var gx = tx, gy = ty, hx = tx, hy = ty;
+    var glowAlive = false;
+    function glowStep() {
+      gx += (tx - gx) * 0.16; gy += (ty - gy) * 0.16;
+      hx += (tx - hx) * 0.05; hy += (ty - hy) * 0.05;
+      rootStyle.setProperty("--mx", gx.toFixed(1) + "px");
+      rootStyle.setProperty("--my", gy.toFixed(1) + "px");
+      rootStyle.setProperty("--mx2", hx.toFixed(1) + "px");
+      rootStyle.setProperty("--my2", hy.toFixed(1) + "px");
+      if (Math.abs(tx - gx) + Math.abs(ty - gy) + Math.abs(tx - hx) + Math.abs(ty - hy) > 1) {
+        requestAnimationFrame(glowStep);
+      } else {
+        glowAlive = false;
+      }
+    }
     window.addEventListener("pointermove", function (e) {
-      glowX = e.clientX; glowY = e.clientY;
-      if (pendingGlow) return;
-      pendingGlow = true;
-      requestAnimationFrame(function () {
-        document.documentElement.style.setProperty("--mx", glowX + "px");
-        document.documentElement.style.setProperty("--my", glowY + "px");
-        pendingGlow = false;
-      });
+      tx = e.clientX; ty = e.clientY;
+      if (!glowAlive) { glowAlive = true; requestAnimationFrame(glowStep); }
     }, { passive: true });
   }
 
