@@ -542,3 +542,165 @@ img{max-width:100%;display:block}
   font-style: italic;
 }
 .answer .analogy b{ font-style: normal; color: var(--text); }
+
+/* ============================================================
+   IMPROVEMENTS PASS
+   Accessibility, readability, responsive typography, polish
+   ============================================================ */
+
+/* --- 1. Skip link (keyboard/screen-reader accessibility) --- */
+.skip-link{
+  position:absolute; left:-9999px; top:0; z-index:200;
+  background:var(--amber); color:#0A0E1A;
+  padding:12px 20px; border-radius:0 0 8px 0;
+  font-weight:600; font-family:var(--font-display);
+}
+.skip-link:focus{ left:0; }
+
+/* --- 2. Stronger, consistent focus rings everywhere ---
+   Previously only one focus-visible rule existed. Keyboard users
+   need a visible ring on every interactive element. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible{
+  outline:2px solid var(--amber);
+  outline-offset:3px;
+  border-radius:4px;
+}
+summary:focus-visible{ outline-offset:-2px; }
+/* remove the default marker artifacts */
+summary::-webkit-details-marker{ display:none; }
+summary{ list-style:none; }
+
+/* --- 3. Fluid type scale — reduces layout jumps between breakpoints --- */
+h1{ font-size:clamp(2.1rem, 1.4rem + 3.1vw, 4.2rem); line-height:1.06; letter-spacing:-.02em; }
+h2{ font-size:clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem); line-height:1.15; letter-spacing:-.015em; }
+h3{ font-size:clamp(1.15rem, 1rem + .6vw, 1.4rem); line-height:1.25; }
+/* Prevent typographic orphans/ragged headings in supporting browsers */
+h1,h2,h3,h4,h5{ text-wrap:balance; }
+p,li{ text-wrap:pretty; }
+
+/* --- 4. Readable measure — long prose lines are hard to track --- */
+.answer p,
+.answer li{ max-width:74ch; }
+.answer{ line-height:1.68; }
+.answer p + p{ margin-top:12px; }
+.answer ul,.answer ol{ padding-left:20px; }
+.answer li{ margin:6px 0; }
+.answer li::marker{ color:var(--amber); }
+
+/* --- 5. Code blocks: better scroll affordance + wrapping control --- */
+.answer pre{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,178,87,.4) transparent;
+  position:relative;
+  tab-size:2;
+  /* fade the right edge to hint horizontal scroll */
+  background-image:linear-gradient(to left, rgba(10,15,29,.95), transparent 40px);
+  background-repeat:no-repeat;
+  background-position:right center;
+  background-size:40px 100%;
+  background-attachment:local;
+}
+.answer pre::-webkit-scrollbar{ height:8px; }
+.answer pre::-webkit-scrollbar-track{ background:transparent; }
+.answer pre::-webkit-scrollbar-thumb{
+  background:rgba(255,178,87,.35); border-radius:4px;
+}
+.answer pre::-webkit-scrollbar-thumb:hover{ background:rgba(255,178,87,.6); }
+/* inline code shouldn't break awkwardly mid-identifier */
+.answer code{ word-break:break-word; overflow-wrap:anywhere; }
+.answer pre code{ word-break:normal; overflow-wrap:normal; }
+
+/* --- 6. Page-wide custom scrollbar (Firefox + WebKit) --- */
+html{ scrollbar-width:thin; scrollbar-color:rgba(255,178,87,.35) var(--bg); }
+body::-webkit-scrollbar{ width:11px; }
+body::-webkit-scrollbar-track{ background:var(--bg); }
+body::-webkit-scrollbar-thumb{
+  background:rgba(255,178,87,.3); border-radius:6px;
+  border:3px solid var(--bg);
+}
+body::-webkit-scrollbar-thumb:hover{ background:rgba(255,178,87,.55); }
+
+/* --- 7. Selection colour matches the brand --- */
+::selection{ background:rgba(255,178,87,.28); color:#fff; }
+
+/* --- 8. Scroll margin so anchor links don't hide under sticky nav --- */
+:target{ scroll-margin-top:96px; }
+.cat,.qa,section[id]{ scroll-margin-top:96px; }
+
+/* --- 9. Tables: responsive + readable --- */
+.answer table{
+  width:100%; border-collapse:collapse; margin:14px 0;
+  font-size:.9rem; display:block; overflow-x:auto;
+  white-space:nowrap;
+}
+@media (min-width:700px){
+  .answer table{ display:table; white-space:normal; }
+}
+.answer th,.answer td{
+  padding:9px 12px; text-align:left;
+  border-bottom:1px solid var(--line);
+}
+.answer th{
+  font-family:var(--font-mono); font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.1em;
+  color:var(--amber); font-weight:600;
+  border-bottom:1px solid var(--line-strong);
+}
+.answer tr:last-child td{ border-bottom:none; }
+.answer tbody tr:hover{ background:rgba(255,255,255,.02); }
+
+/* --- 10. Rendering performance on very long prep pages ---
+   Skips layout/paint for off-screen accordions. */
+.qa{ content-visibility:auto; contain-intrinsic-size:auto 62px; }
+
+/* --- 11. Print styles — these pages get printed as study notes --- */
+@media print{
+  .nav,.toolbar,.toc,.progress,.footer,.nav-toggle,
+  .tool-btns,.chips-row,.search{ display:none !important; }
+  body{ background:#fff; color:#111; }
+  .wrap,.layout{ display:block; max-width:100%; padding:0; }
+  .qa{ content-visibility:visible; break-inside:avoid; }
+  .qa[open] .answer,.answer{ display:block !important; }
+  details{ break-inside:avoid; }
+  .answer pre{
+    background:#f4f4f6; border:1px solid #ddd; color:#111;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .answer pre code,.answer code{ color:#111; background:none; }
+  a{ color:#111; text-decoration:underline; }
+  a[href^="http"]::after{ content:" (" attr(href) ")"; font-size:.75em; color:#555; }
+  h1,h2,h3{ color:#111; break-after:avoid; }
+}
+
+/* --- 12. Touch targets — WCAG asks for ~44px minimum --- */
+@media (pointer:coarse){
+  .nav-links a,.fchip,.tbtn,.toc a{ min-height:44px; display:flex; align-items:center; }
+  .fchip,.tbtn{ padding-top:10px; padding-bottom:10px; }
+  summary{ min-height:52px; }
+}
+
+/* --- 13. Respect reduced-transparency & forced-colors modes --- */
+@media (prefers-reduced-transparency:reduce){
+  body::before{ display:none; }
+  .plain,.callout{ backdrop-filter:none; }
+}
+@media (forced-colors:active){
+  .qa,.pub,.note-card{ border:1px solid CanvasText; }
+  .chip-indicator,.progress{ background:Highlight; }
+}
+
+/* --- 14. Landscape phone fix — hero was eating the whole viewport --- */
+@media (max-height:520px) and (orientation:landscape){
+  .prep-hero{ padding-top:80px; padding-bottom:28px; }
+  .prep-hero h1{ font-size:1.8rem; }
+  .portrait{ display:none; }
+}
+
+/* --- 15. Wide-screen guard — stops text sprawling on ultrawide --- */
+@media (min-width:1600px){
+  :root{ --maxw:1240px; }
+}
