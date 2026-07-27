@@ -4,18 +4,21 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Android &amp; Kotlin — Tech Deep Dive · Shivam Tiwari</title>
-<meta name="description" content="Extensive Android & Kotlin questions with detailed answers and code — coroutines, Flow, Jetpack Compose, lifecycle, Hilt, memory, performance and architecture." />
+<meta name="description" content="Extensive Android & Kotlin interview questions with detailed answers and code — coroutines, Flow, Jetpack Compose, lifecycle, Hilt, memory, performance and architecture." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="nav">
   <div class="wrap nav-inner">
     <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
     <nav class="nav-links">
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
@@ -32,7 +35,7 @@
     <a class="backlink" href="index.html#notes">← All deep dives</a>
     <span class="eyebrow" style="margin-top:18px">01 — Android &amp; Kotlin</span>
     <h1>Android &amp; Kotlin,<br>start to finish.</h1>
-    <p>Everything you need to know in Android — language internals, structured concurrency, Compose, lifecycle, dependency injection, memory and build. Answers and code on one page. Use search, filter by topic, or expand all.</p>
+    <p>Everything I keep sharp before an Android interview — language internals, structured concurrency, Compose, lifecycle, dependency injection, memory and build. Answers and code on one page. Use search, filter by topic, or expand all.</p>
     <div class="prep-stats">
       <span><b>51</b> questions</span>
       <span><b>8</b> topics</span>
@@ -65,11 +68,12 @@
       <button class="fchip" data-target="perf">Memory &amp; Perf</button>
       <button class="fchip" data-target="build">Data &amp; Build</button>
       <button class="fchip" data-target="cicd">CI/CD</button>
+      <button class="fchip" data-target="scenarios">Real scenarios</button>
     </div>
   </div>
 </div>
 
-<div class="wrap section" style="padding-top:20px">
+<div class="wrap section" id="main" style="padding-top:20px">
 <div class="layout">
   <aside class="toc">
     <h5>On this page</h5>
@@ -82,6 +86,7 @@
     <a href="#perf">Memory &amp; Performance</a>
     <a href="#build">Data &amp; Build</a>
     <a href="#cicd">CI/CD</a>
+    <a href="#scenarios">Real scenarios</a>
   </aside>
 
   <div>
@@ -798,7 +803,7 @@ BitmapFactory.decodeFile(path, opts)          <span class="c">// read size only,
 opts.inSampleSize = calculateInSampleSize(opts, reqW, reqH)  <span class="c">// e.g. 4</span>
 opts.inJustDecodeBounds = <span class="k">false</span>
 <span class="k">val</span> bitmap = BitmapFactory.decodeFile(path, opts)  <span class="c">// decode downsampled</span></code></pre>
-        <p><b>In practice:</b> use Coil or Glide, which handle sampling, memory + disk caching, bitmap pooling, and lifecycle for you — and that's the right answer to give too.</p>
+        <p><b>In practice:</b> use Coil or Glide, which handle sampling, memory + disk caching, bitmap pooling, and lifecycle for you — and that's the right answer to give in an interview too.</p>
       </div>
     </details>
   </section>
@@ -1154,6 +1159,164 @@ end</code></pre>
     </details>
   </section>
 
+  <!-- ============ REAL SCENARIOS ============ -->
+  <section class="cat" id="scenarios" data-cat="scenarios">
+    <h2><span class="ix">10</span> Real scenarios</h2>
+    <p class="cat-sub">The "here's a situation, what do you do" questions — concurrency routing, notification debugging, and shared state.</p>
+
+    <details class="qa" data-tags="pagination pull to refresh collision race concurrent load cancel">
+      <summary><span class="qix">Q60</span><span class="qtext">Pagination and pull-to-refresh collide — what breaks and how do you fix it?</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The user scrolls to the bottom (page 3 loads) and simultaneously pulls to refresh (which resets to page 1). Both are in flight. If page 3 lands <em>after</em> the refresh, you append stale page-3 items onto a freshly reset list — duplicates, wrong order, and a cursor pointing nowhere.</div>
+        <pre><code><span class="c">// ✗ Broken — both writes hit the same list, last one wins arbitrarily</span>
+<span class="k">fun</span> loadMore() = viewModelScope.launch { _items.value += api.page(cursor) }
+<span class="k">fun</span> refresh()  = viewModelScope.launch { _items.value  = api.page(<span class="k">null</span>) }
+
+<span class="c">// ✓ Fix 1 — refresh cancels pagination, and a generation counter</span>
+<span class="c">//   rejects any result from a superseded generation</span>
+<span class="k">private var</span> pagingJob: Job? = <span class="k">null</span>
+<span class="k">private var</span> generation = 0
+
+<span class="k">fun</span> refresh() {
+    pagingJob?.cancel()              <span class="c">// kill in-flight append</span>
+    <span class="k">val</span> gen = ++generation           <span class="c">// invalidate anything older</span>
+    viewModelScope.launch {
+        <span class="k">val</span> page = api.page(<span class="k">null</span>)
+        <span class="k">if</span> (gen == generation) {     <span class="c">// still current?</span>
+            _items.value = page.items
+            cursor = page.next
+        }
+    }
+}
+
+<span class="k">fun</span> loadMore() {
+    <span class="k">if</span> (pagingJob?.isActive == <span class="k">true</span>) <span class="k">return</span>   <span class="c">// guard double-fire</span>
+    <span class="k">val</span> gen = generation
+    pagingJob = viewModelScope.launch {
+        <span class="k">val</span> page = api.page(cursor)
+        <span class="k">if</span> (gen == generation) { _items.value += page.items; cursor = page.next }
+    }
+}</code></pre>
+        <p><b>The better fix:</b> don't hand-roll it. Paging 3 with a <code>RemoteMediator</code> makes refresh a <code>LoadType.REFRESH</code> that invalidates the <code>PagingSource</code>, so in-flight appends are discarded by the library. The hand-rolled version is worth knowing because it shows you understand <em>why</em> the library exists.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="multi source state routing combine flow priority cache network">
+      <summary><span class="qix">Q61</span><span class="qtext">Multi-source state with a routing rule — cache, network and a live socket</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Three sources want to write the same screen state, and they don't agree. The mistake is letting each one call <code>_state.value =</code> — then whoever emits last wins, regardless of whether it's the freshest or most authoritative. You need one reducer that owns the routing rule.</div>
+        <pre><code><span class="c">// ✗ Broken — three writers, no arbitration</span>
+cacheFlow.onEach { _state.value = it }.launchIn(scope)
+networkFlow.onEach { _state.value = it }.launchIn(scope)
+socketFlow.onEach { _state.value = it }.launchIn(scope)
+
+<span class="c">// ✓ One merged stream, one rule, one writer</span>
+<span class="k">data class</span> Sourced&lt;T&gt;(<span class="k">val</span> data: T, <span class="k">val</span> source: Source, <span class="k">val</span> at: Long)
+
+<span class="k">val</span> state = merge(
+    cacheFlow.map   { Sourced(it, Source.CACHE,   it.updatedAt) },
+    networkFlow.map { Sourced(it, Source.NETWORK, it.updatedAt) },
+    socketFlow.map  { Sourced(it, Source.SOCKET,  it.updatedAt) }
+).scan(initial) { current, incoming -&gt;
+    <span class="c">// The routing rule, in ONE place:</span>
+    <span class="k">when</span> {
+        incoming.source == Source.SOCKET -&gt; incoming.data   <span class="c">// live wins</span>
+        incoming.at &gt; current.at         -&gt; incoming.data   <span class="c">// else freshest wins</span>
+        <span class="k">else</span> -&gt; current                                     <span class="c">// ignore stale</span>
+    }
+}.stateIn(viewModelScope, WhileSubscribed(5000), initial)</code></pre>
+        <p><b>Why <code>scan</code> rather than <code>combine</code>:</b> <code>combine</code> waits for every source to emit at least once and then re-emits on <em>any</em> change — wrong here, because cache and socket are independent, not co-dependent. <code>scan</code> folds each arrival into the current state through your rule, which is exactly the semantics you want.</p>
+        <p><b>Related shape — a dashboard of independent sources.</b> There <code>combine</code> <em>is</em> right, because the screen genuinely needs all of them, and you want partial failure isolated: wrap each source with <code>.catch { emit(Section.Error) }</code> so one failing widget renders an error card instead of blanking the dashboard.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="double tap submit debounce duplicate request idempotency button">
+      <summary><span class="qix">Q62</span><span class="qtext">Double-tap on a submit button creates two orders — the layered fix</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Two taps land before the first request finishes, so two orders are created. Disabling the button is necessary but <em>not sufficient</em> — a retry, a process restart mid-flight, or a flaky network can still produce a duplicate server-side.</div>
+        <p>Fix it at three layers, because each one alone has a hole:</p>
+        <pre><code><span class="c">// Layer 1 — UI: state-driven disable (not a boolean flag on the view)</span>
+<span class="k">val</span> submitting = uiState.map { it.isSubmitting }
+Button(enabled = !submitting, onClick = viewModel::submit)
+
+<span class="c">// Layer 2 — ViewModel: guard the coroutine itself</span>
+<span class="k">private var</span> submitJob: Job? = <span class="k">null</span>
+<span class="k">fun</span> submit() {
+    <span class="k">if</span> (submitJob?.isActive == <span class="k">true</span>) <span class="k">return</span>       <span class="c">// already running</span>
+    submitJob = viewModelScope.launch {
+        _state.update { it.copy(isSubmitting = <span class="k">true</span>) }
+        <span class="k">try</span> { repo.submit(order, idempotencyKey) }
+        <span class="k">finally</span> { _state.update { it.copy(isSubmitting = <span class="k">false</span>) } }
+    }
+}
+
+<span class="c">// Layer 3 — Network: idempotency key generated ONCE per logical order,</span>
+<span class="c">// so a retry (or a second tap that slips through) is deduped server-side</span>
+<span class="k">val</span> idempotencyKey = remember { UUID.randomUUID().toString() }</code></pre>
+        <div class="callout"><b>The layer people forget is 3.</b> Layers 1 and 2 protect against fast taps in one process. Only the idempotency key protects against a retry after a timeout, where the first request actually succeeded but the response was lost. That's the answer that separates a senior response here.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="notification not showing channel importance foreground service crash duplicate debug">
+      <summary><span class="qix">Q63</span><span class="qtext">A notification silently doesn't show on a real device — debug it</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+        <div class="answer">
+        <div class="plain"><b>In plain terms.</b> "Silently doesn't show" means no crash and no log — the system accepted the call and dropped it. There are about six places that happens, and they're all version-gated, which is why it reproduces on one device and not another.</div>
+        <p>Walk the checklist in this order:</p>
+        <ul>
+          <li><b>Runtime permission (API 33+)</b> — <code>POST_NOTIFICATIONS</code> must be granted. Without it, <code>notify()</code> is a silent no-op. This is the single most common cause on modern devices.</li>
+          <li><b>Channel not created, or created with the wrong importance (API 26+)</b> — posting to a non-existent channel drops silently. And importance is <b>immutable after creation</b>: if you shipped a channel at <code>IMPORTANCE_LOW</code> and later raise it in code, existing installs keep LOW forever. You need a new channel ID.</li>
+          <li><b>Channel muted by the user</b> — check <code>notificationManager.getNotificationChannel(id).importance == IMPORTANCE_NONE</code> and surface a settings deep link rather than failing quietly.</li>
+          <li><b>Notifications disabled app-wide</b> — <code>NotificationManagerCompat.from(ctx).areNotificationsEnabled()</code>.</li>
+          <li><b>Missing small icon</b> — a notification without <code>setSmallIcon</code> is dropped on some OEM builds.</li>
+          <li><b>OEM battery optimisation</b> — aggressive killers (Xiaomi, Oppo, Vivo) suppress background posts. Reproduces only on those devices.</li>
+        </ul>
+        <pre><code><span class="c">// Diagnostic helper worth having in debug builds</span>
+<span class="k">fun</span> diagnoseNotifications(ctx: Context, channelId: String) {
+    <span class="k">val</span> nm = NotificationManagerCompat.from(ctx)
+    Log.d(<span class="s">"NotifDiag"</span>, <span class="s">"app-enabled=${nm.areNotificationsEnabled()}"</span>)
+    <span class="k">if</span> (Build.VERSION.SDK_INT &gt;= 26) {
+        <span class="k">val</span> ch = nm.getNotificationChannel(channelId)
+        Log.d(<span class="s">"NotifDiag"</span>, <span class="k">when</span> {
+            ch == <span class="k">null</span> -&gt; <span class="s">"CHANNEL MISSING — notify() will be dropped"</span>
+            ch.importance == NotificationManager.IMPORTANCE_NONE -&gt; <span class="s">"channel MUTED by user"</span>
+            <span class="k">else</span> -&gt; <span class="s">"channel ok, importance=${ch.importance}"</span>
+        })
+    }
+}</code></pre>
+        <p><b>Two adjacent failures worth knowing:</b> a <b>foreground service crashing immediately on start</b> is almost always the 5-second rule — you must call <code>startForeground()</code> with a notification within 5s of <code>startForegroundService()</code>, or you get <code>ForegroundServiceDidNotStartInTimeException</code>; on API 34+ you also need a declared <code>foregroundServiceType</code> and its matching permission. And <b>the same alert showing twice</b> is usually a data push and a display push both arriving for one event — dedupe on a server-supplied event id, and use a stable <code>notify()</code> id so the second post <em>replaces</em> rather than stacks.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="shared viewmodel activityViewModels two viewmodels communicate scope">
+      <summary><span class="qix">Q64</span><span class="qtext">Two screens need to react to each other — and a shared ViewModel silently stops sharing</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Two ViewModels shouldn't talk to each other directly — that couples them and creates a lifecycle mess. Route the shared concern through a repository-level flow that both observe, so neither knows the other exists.</div>
+        <pre><code><span class="c">// ✗ Coupled — VM A holding a reference to VM B</span>
+<span class="k">class</span> CartViewModel(<span class="k">private val</span> productVm: ProductViewModel)   <span class="c">// don't</span>
+
+<span class="c">// ✓ Shared source of truth in the data layer; both observe it</span>
+<span class="k">class</span> CartRepository @Inject constructor() {
+    <span class="k">private val</span> _cart = MutableStateFlow(Cart.EMPTY)
+    <span class="k">val</span> cart: StateFlow&lt;Cart&gt; = _cart.asStateFlow()
+    <span class="k">fun</span> add(item: Item) { _cart.update { it + item } }
+}
+<span class="c">// ProductViewModel calls repo.add(...); CartViewModel collects repo.cart.</span>
+<span class="c">// Neither knows the other exists.</span></code></pre>
+        <p><b>The "silently stops sharing" bug</b> is a different problem with the same smell — scope mismatch:</p>
+        <pre><code><span class="c">// ✗ Each fragment gets its OWN instance — state silently diverges</span>
+<span class="k">private val</span> vm: CheckoutViewModel <span class="k">by</span> viewModels()
+
+<span class="c">// ✓ Scoped to the host Activity — genuinely shared</span>
+<span class="k">private val</span> vm: CheckoutViewModel <span class="k">by</span> activityViewModels()
+
+<span class="c">// ✓ Scoped to a navigation graph — shared by just that flow,</span>
+<span class="c">//   and cleared when the flow is popped (better than Activity scope)</span>
+<span class="k">private val</span> vm: CheckoutViewModel <span class="k">by</span> hiltNavGraphViewModels(R.id.checkout_graph)</code></pre>
+        <div class="callout"><b>Why it's silent:</b> both fragments compile, both run, both show state — they're just two different instances. Nothing errors. The tell is "I updated it on screen A and screen B didn't change." Prefer nav-graph scoping over Activity scoping so the shared state is cleared when the flow ends rather than living for the whole Activity.</div>
+      </div>
+    </details>
+  </section>
+
   <div class="no-results">No questions match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
@@ -1168,6 +1331,8 @@ end</code></pre>
     <div class="small">Tech deep dives · maintained by Shivam Tiwari · for study, not redistribution.</div>
     <nav class="links">
       <a href="index.html">Portfolio</a>
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interview Rounds — Strategy &amp; Stories · Shivam Tiwari</title>
+<meta name="description" content="Round-by-round interview strategy — DSA screens, machine coding, LLD, architecture depth and the behavioral/HM round, with the three prepared stories and the pass/reject bar for each round." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="progress"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
+    <nav class="nav-links">
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
+      <a class="nav-cta" href="index.html">← Portfolio</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<section class="prep-hero">
+  <div class="wrap">
+    <a class="backlink" href="index.html">← Portfolio</a>
+    <span class="eyebrow" style="margin-top:18px">06 — Interview rounds</span>
+    <h1>The rounds,<br>and the bar.</h1>
+    <p>What each round actually tests, what separates a pass from a reject, and the prepared stories. The technical pages cover <em>what to know</em> — this one covers <em>how the room is scored</em>.</p>
+    <div class="prep-stats">
+      <span><b>5</b> round types</span>
+      <span><b>3</b> anchor stories</span>
+      <span>Pass / reject bars</span>
+      <span>Senior · Staff</span>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="toolbar-inner">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q-search" type="text" placeholder="Search — e.g. DSA, machine coding, KMM, conflict, trade-off…" />
+      </div>
+      <div class="tool-btns">
+        <button class="tbtn" id="expand-all">Expand all</button>
+        <button class="tbtn" id="collapse-all">Collapse all</button>
+      </div>
+    </div>
+    <div class="chips-row">
+      <button class="fchip active" data-target="all">All</button>
+      <button class="fchip" data-target="dsa">DSA round</button>
+      <button class="fchip" data-target="machine">Machine coding</button>
+      <button class="fchip" data-target="depth">Depth &amp; LLD</button>
+      <button class="fchip" data-target="stories">Stories &amp; behavioral</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap section" id="main" style="padding-top:20px">
+<div class="layout">
+  <aside class="toc">
+    <h5>On this page</h5>
+    <a href="#dsa">DSA round</a>
+    <a href="#machine">Machine coding</a>
+    <a href="#depth">Depth &amp; LLD</a>
+    <a href="#stories">Stories &amp; behavioral</a>
+  </aside>
+
+  <div>
+
+  <!-- ============ DSA ============ -->
+  <section class="cat" id="dsa" data-cat="dsa">
+    <h2><span class="ix">01</span> The DSA round</h2>
+    <p class="cat-sub">Usually the first gate. The bar is blunt: solve at least one medium independently, and be able to explain every line.</p>
+
+    <details class="qa" data-tags="DSA round bar pass reject medium problem explain">
+      <summary><span class="qix">R01</span><span class="qtext">What actually gets scored in a DSA screen</span><span class="diff mid">Strategy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Two things are scored separately: did you reach a working solution, and can you explain it. Failing the second is worse than a partial solution on the first — an unexplainable correct answer reads as memorised.</div>
+        <table><tr><th>✅ Passes</th><th>❌ Rejects</th></tr>
+        <tr><td>Solve a medium independently</td><td>No solution even after hints and extended time</td></tr>
+        <tr><td>Think aloud — narrate the approach even when partial</td><td>Working code you can't explain line by line</td></tr>
+        <tr><td>State complexity before coding</td><td>Confidently brute-forcing when a better solution exists</td></tr>
+        <tr><td>Handle edge cases unprompted</td><td>Asking to code in something other than the role's language</td></tr>
+        <tr><td>Self-correct out loud when you spot a flaw</td><td>Going silent for minutes while stuck</td></tr></table>
+        <div class="callout"><b>The one rule that matters:</b> never go quiet. An interviewer can't score silent thinking. Narrate the dead ends too — "I considered a hashmap here but the ordering requirement kills it, so I'm going with a heap" is scored positively even if you then need a hint.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="DSA patterns sliding window two pointers heap graph BFS DFS DP topics">
+      <summary><span class="qix">R02</span><span class="qtext">The pattern list worth drilling (and the ones that actually appear)</span><span class="diff mid">Strategy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Mobile-role DSA screens skew heavily toward arrays, strings, hashmaps and trees. Graphs and DP appear but usually as the harder second question. Design-flavoured problems (LRU, rate limiter) show up disproportionately because they double as an Android/systems signal.</div>
+        <table><tr><th>Pattern</th><th>Why it appears</th></tr>
+        <tr><td>Hashmap + frequency counting</td><td>The most common medium shape by far</td></tr>
+        <tr><td>Two pointers / sliding window</td><td>Substring, subarray, and "longest/shortest X" problems</td></tr>
+        <tr><td>Trees — BFS/DFS, level order</td><td>Recursion fluency check</td></tr>
+        <tr><td>Heap / priority queue</td><td>Top-K, merge-K, scheduling</td></tr>
+        <tr><td>Graph BFS/DFS</td><td>Grid/island problems, dependency resolution</td></tr>
+        <tr><td><b>LRU cache</b></td><td>Appears constantly in mobile rounds — it's DSA <em>and</em> a caching-design signal</td></tr>
+        <tr><td>Dynamic programming</td><td>Less common, but a strict panel may fail you outright without it</td></tr></table>
+        <p><b>Why LRU deserves special drilling:</b> it's the one problem where a mobile interviewer can pivot straight from "implement it" to "now where would you use this in an app?" — and the answer connects to image caching, the memory tier of a repository, and bitmap eviction. Both implementations are worth knowing cold:</p>
+        <pre><code><span class="c">// Approach 1 — LinkedHashMap with accessOrder=true (simplest)</span>
+<span class="k">class</span> LRUCache(<span class="k">private val</span> capacity: Int) :
+    LinkedHashMap&lt;Int, Int&gt;(capacity, 0.75f, <span class="k">true</span>) {   <span class="c">// true = access order</span>
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry&lt;Int, Int&gt;) =
+        size &gt; capacity
+}
+
+<span class="c">// Approach 2 — manual HashMap + doubly linked list, O(1) get/put</span>
+<span class="k">class</span> LRUCache(<span class="k">private val</span> capacity: Int) {
+    <span class="k">private class</span> Node(<span class="k">val</span> key: Int, <span class="k">var</span> value: Int) {
+        <span class="k">var</span> prev: Node? = <span class="k">null</span>; <span class="k">var</span> next: Node? = <span class="k">null</span>
+    }
+    <span class="k">private val</span> map = HashMap&lt;Int, Node&gt;()
+    <span class="k">private val</span> head = Node(0, 0)   <span class="c">// dummy head = most recent</span>
+    <span class="k">private val</span> tail = Node(0, 0)   <span class="c">// dummy tail = least recent</span>
+    init { head.next = tail; tail.prev = head }
+
+    <span class="k">private fun</span> remove(n: Node) { n.prev?.next = n.next; n.next?.prev = n.prev }
+    <span class="k">private fun</span> addFirst(n: Node) {
+        n.next = head.next; n.prev = head
+        head.next?.prev = n; head.next = n
+    }
+
+    <span class="k">fun</span> get(key: Int): Int {
+        <span class="k">val</span> node = map[key] ?: <span class="k">return</span> -1
+        remove(node); addFirst(node)      <span class="c">// touch = move to front</span>
+        <span class="k">return</span> node.value
+    }
+
+    <span class="k">fun</span> put(key: Int, value: Int) {
+        map[key]?.let { remove(it) }
+        <span class="k">val</span> node = Node(key, value)
+        map[key] = node; addFirst(node)
+        <span class="k">if</span> (map.size &gt; capacity) {
+            <span class="k">val</span> lru = tail.prev!!
+            remove(lru); map.remove(lru.key)   <span class="c">// evict from the back</span>
+        }
+    }
+}</code></pre>
+        <p><b>Edge cases to walk through unprompted:</b> capacity of 1; re-inserting an existing key (must update value <em>and</em> move to front, not duplicate); get on a missing key; eviction when put causes overflow. Naming these before being asked is the differentiator.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ MACHINE CODING ============ -->
+  <section class="cat" id="machine" data-cat="machine">
+    <h2><span class="ix">02</span> Machine coding</h2>
+    <p class="cat-sub">60–120 minutes to build something functional from a design and an API spec. Scored on structure as much as completion.</p>
+
+    <details class="qa" data-tags="machine coding round 120 minutes framework approach phases">
+      <summary><span class="qix">R03</span><span class="qtext">How to run a 120-minute machine coding round</span><span class="diff hard">Strategy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> The trap is opening the editor immediately and coding for 120 minutes. The candidates who pass spend the first 15 minutes scoping and the last 15 defending — because a smaller, clean, complete thing beats a sprawling half-built thing every time.</div>
+        <p><b>Phase the time explicitly:</b></p>
+        <pre><code>Pre-coding   (15 min)  Clarify requirements, name edge cases,
+                       agree the scope you'll deliver.
+                       Say out loud: "I'll build A, B, C fully;
+                       D I'll stub and explain."
+
+Coding       (90 min)  Skeleton first, then fill in.
+                       Folder structure → types → state layer
+                       → components → wire up → polish.
+
+Post-coding  (15 min)  Demo against the acceptance criteria,
+                       defend structure, name what you'd do
+                       with more time.</code></pre>
+        <p><b>What's actually being scored:</b></p>
+        <ul>
+          <li><b>Functional completeness</b> of the scope <em>you agreed</em> — not the maximum possible scope.</li>
+          <li><b>Modular topology</b> — low coupling, clear file boundaries. A single 600-line component fails even if it works.</li>
+          <li><b>State resilience</b> — domain state isolated from UI views, so state survives re-render and could be tested headlessly.</li>
+          <li><b>Edge-case handling</b> — empty state, loading state, error state. Shipping only the happy path is the most common silent failure.</li>
+        </ul>
+        <div class="callout"><b>The five moves that separate a pass:</b> (1) clarify before writing a line; (2) announce the structure before coding it; (3) write the skeleton first and fill in details; (4) say "I'd normally reach for library X here" for anything you don't know by heart rather than stalling; (5) proactively raise trade-offs and what you'd optimise next. That last one is the volunteer-trade-offs habit — it applies here as much as in system design.</div>
+        <p><b>Typical prompts:</b> a mini expense-splitter with a settlement calculation engine; an image gallery grid with lazy loading and fluid updates; an infinite paginated list with search and filters; a multi-step form with validation. All of them reward the same skeleton.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="machine coding RN skeleton structure folders hooks state template">
+      <summary><span class="qix">R04</span><span class="qtext">The skeleton to start every React Native machine coding round with</span><span class="diff hard">Template</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Have a structure you can lay down in five minutes without thinking. That buys you the whole 90 minutes for the actual problem, and it demonstrates the modular topology being scored.</div>
+        <pre><code>src/
+  api/          client.ts, endpoints.ts     ← network only
+  types/        models.ts                   ← shared types first
+  store/        useFeedStore.ts             ← domain state, UI-free
+  hooks/        usePagination.ts, useDebounce.ts
+  components/   FeedItem.tsx, EmptyState.tsx, ErrorState.tsx
+  screens/      FeedScreen.tsx              ← composition only
+  utils/        format.ts</code></pre>
+        <p><b>Three hooks worth having memorised</b> — they cover most prompts:</p>
+        <pre><code><span class="c">// 1. Pagination — the backbone of any list prompt</span>
+<span class="k">function</span> <span class="f">usePagination</span>&lt;T&gt;(fetchPage: (cursor?: <span class="t">string</span>) =&gt; Promise&lt;{items: T[]; next?: <span class="t">string</span>}&gt;) {
+    <span class="k">const</span> [items, setItems] = <span class="f">useState</span>&lt;T[]&gt;([]);
+    <span class="k">const</span> [cursor, setCursor] = <span class="f">useState</span>&lt;<span class="t">string</span> | <span class="k">undefined</span>&gt;();
+    <span class="k">const</span> [loading, setLoading] = <span class="f">useState</span>(<span class="k">false</span>);
+    <span class="k">const</span> [done, setDone] = <span class="f">useState</span>(<span class="k">false</span>);
+
+    <span class="k">const</span> loadMore = <span class="f">useCallback</span>(<span class="k">async</span> () =&gt; {
+        <span class="k">if</span> (loading || done) <span class="k">return</span>;          <span class="c">// guard double-fire</span>
+        setLoading(<span class="k">true</span>);
+        <span class="k">try</span> {
+            <span class="k">const</span> page = <span class="k">await</span> <span class="f">fetchPage</span>(cursor);
+            setItems(prev =&gt; [...prev, ...page.items]);
+            setCursor(page.next);
+            <span class="k">if</span> (!page.next) setDone(<span class="k">true</span>);
+        } <span class="k">finally</span> { setLoading(<span class="k">false</span>); }
+    }, [cursor, loading, done, fetchPage]);
+
+    <span class="k">return</span> { items, loadMore, loading, done };
+}
+
+<span class="c">// 2. Optimistic mutation — likes, favourites, any toggle</span>
+<span class="k">function</span> <span class="f">useOptimisticToggle</span>(initial: <span class="t">boolean</span>, commit: (v: <span class="t">boolean</span>) =&gt; Promise&lt;<span class="t">void</span>&gt;) {
+    <span class="k">const</span> [value, setValue] = <span class="f">useState</span>(initial);
+    <span class="k">const</span> toggle = <span class="k">async</span> () =&gt; {
+        <span class="k">const</span> next = !value;
+        setValue(next);                       <span class="c">// optimistic</span>
+        <span class="k">try</span> { <span class="k">await</span> <span class="f">commit</span>(next); }
+        <span class="k">catch</span> { setValue(!next); }             <span class="c">// rollback on failure</span>
+    };
+    <span class="k">return</span> [value, toggle] <span class="k">as const</span>;
+}
+
+<span class="c">// 3. Viewability — which item is on screen (autoplay, analytics)</span>
+<span class="k">const</span> viewabilityConfig = { itemVisiblePercentThreshold: 60 };
+<span class="k">const</span> onViewableItemsChanged = <span class="f">useRef</span>(({ viewableItems }) =&gt; {
+    setActiveId(viewableItems[0]?.item?.id ?? <span class="k">null</span>);
+}).current;   <span class="c">// MUST be a stable ref — RN throws if this changes identity</span></code></pre>
+        <div class="callout"><b>The <code>useRef</code> on <code>onViewableItemsChanged</code> is a real gotcha</b> — React Native throws "Changing onViewableItemsChanged on the fly is not supported" if you pass a new function identity across renders. Knowing that without looking it up is a strong production signal.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEPTH & LLD ============ -->
+  <section class="cat" id="depth" data-cat="depth">
+    <h2><span class="ix">03</span> Depth &amp; LLD rounds</h2>
+    <p class="cat-sub">Where Android/RN knowledge is probed two layers past the textbook answer — and where LLD can offset a weak coding round.</p>
+
+    <details class="qa" data-tags="depth round two layers deep probe why how production experience">
+      <summary><span class="qix">R05</span><span class="qtext">Going two layers deep — the actual bar in a depth round</span><span class="diff hard">Strategy</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Every answer gets a follow-up. The first answer establishes you know the term; the second and third establish whether you've actually shipped it. Interviewers explicitly probe until you run out of depth — so the goal is to not run out at layer one.</div>
+        <p><b>What "two layers deep" looks like on one question:</b></p>
+        <pre><code>Q: "What happens if you block the main thread?"
+
+L1 (textbook, insufficient):
+   "It causes an ANR."
+
+L2 (mechanism — this is the real answer):
+   "The main thread runs a Looper pulling from a MessageQueue.
+    Blocking it means input, draw and lifecycle callbacks
+    stop being dispatched. After ~5s of undelivered input
+    the system raises an ANR; ~10s for a foreground broadcast."
+
+L3 (production — what separates senior):
+   "In practice I catch these with StrictMode in debug for
+    accidental main-thread disk/network I/O, and diagnose
+    real ones from /data/anr/traces.txt plus Play Console
+    ANR vitals, which give the stack at the freeze."</code></pre>
+        <div class="callout"><b>The pattern to internalise:</b> <em>what</em> → <em>how it works underneath</em> → <em>how I've dealt with it in production</em>. Prepare layer 3 for every topic you claim on your resume, because that's the layer that can't be memorised from a blog post — and interviewers know it.</div>
+        <p><b>Two behaviours that get rejected here:</b> giving textbook definitions without mapping them to a real scenario, and freezing when told "tell me more about that." If you genuinely don't know, reasoning aloud toward an answer scores far better than guessing confidently or going silent.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="KMM Kotlin Multiplatform shared logic boundary expect actual cross platform">
+      <summary><span class="qix">R06</span><span class="qtext">KMM — where the shared boundary actually sits</span><span class="diff hard">Android</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> KMM shares business logic, not UI. The interview failure mode is defining it as "shared Kotlin code" and stopping — the real question is always <em>where you draw the line</em> and why.</div>
+        <p><b>What goes where:</b></p>
+        <table><tr><th>Layer</th><th>Shared?</th><th>Why</th></tr>
+        <tr><td>UI (Compose / SwiftUI)</td><td>No</td><td>Platform idioms differ; sharing UI is where cross-platform gets a bad name</td></tr>
+        <tr><td>ViewModel / presentation</td><td>Sometimes</td><td>Shareable, but lifecycle differs — often a thin platform wrapper over shared state</td></tr>
+        <tr><td>UseCase / business rules</td><td><b>Yes</b></td><td>Pure Kotlin, no platform deps — the sweet spot</td></tr>
+        <tr><td>Repository</td><td><b>Yes</b></td><td>Interface shared; some impls need <code>expect/actual</code></td></tr>
+        <tr><td>Networking (Ktor)</td><td>Yes</td><td>Ktor has multiplatform engines</td></tr>
+        <tr><td>Persistence (SQLDelight)</td><td>Yes</td><td>Generates typed Kotlin for both platforms</td></tr>
+        <tr><td>Platform APIs (keychain, camera, push)</td><td>No</td><td><code>expect/actual</code> — declare shared, implement per platform</td></tr></table>
+        <pre><code><span class="c">// commonMain — the shared declaration</span>
+<span class="k">expect class</span> SecureStorage {
+    <span class="k">fun</span> save(key: String, value: String)
+    <span class="k">fun</span> read(key: String): String?
+}
+
+<span class="c">// androidMain — EncryptedSharedPreferences</span>
+<span class="k">actual class</span> SecureStorage(<span class="k">private val</span> ctx: Context) {
+    <span class="k">actual fun</span> save(key: String, value: String) { /* Keystore-backed prefs */ }
+    <span class="k">actual fun</span> read(key: String): String? = /* ... */
+}
+
+<span class="c">// iosMain — Keychain</span>
+<span class="k">actual class</span> SecureStorage {
+    <span class="k">actual fun</span> save(key: String, value: String) { /* Security framework */ }
+    <span class="k">actual fun</span> read(key: String): String? = /* ... */
+}</code></pre>
+        <p><b>Designing a shared profile screen — the answer shape:</b> share the <code>ProfileUseCase</code>, <code>ProfileRepository</code>, the DTO→domain mapping, validation rules, and the state model. Keep the rendering native on both sides, and expose shared state to iOS through a wrapper because Kotlin <code>Flow</code> doesn't consume idiomatically in Swift without one (SKIE or a callback wrapper).</p>
+        <p><b>The honest trade-off to volunteer:</b> KMM buys you one implementation of business rules and one place for bugs to be fixed — at the cost of a more complex build, a smaller hiring pool, and iOS engineers debugging Kotlin. It's a good fit when logic is heavy and UI is thin; a bad fit when the app is mostly UI with a thin logic layer.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="LLD design notification manager image cache SDK state machine component boundaries">
+      <summary><span class="qix">R07</span><span class="qtext">The LLD prompts that recur — and how to structure the answer</span><span class="diff hard">Android · RN</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> LLD is about ownership boundaries — which class owns what state, and how they talk. The recurring prompts are all variations of "design a component that manages a shared resource under concurrency and lifecycle pressure."</div>
+        <p><b>The prompts that keep appearing:</b></p>
+        <ul>
+          <li><b>Notification manager</b> — scheduling, deduplication, priority queueing, lifecycle awareness. (This is the Interventions Framework problem in disguise — same arbitration shape.)</li>
+          <li><b>Image caching layer</b> — memory tier, disk tier, eviction policy, concurrent access, request dedup, cancel-on-recycle.</li>
+          <li><b>An SDK used by multiple host apps</b> — initialization contract, threading guarantees, lifecycle binding, no assumptions about the host's DI.</li>
+          <li><b>State management for a real-time feature</b> — explicit state machine, event flow, error recovery, reconnection.</li>
+          <li><b>Multi-step form</b> — a finite state machine over steps, per-step validation, resumability.</li>
+        </ul>
+        <p><b>Structure every LLD answer the same way:</b></p>
+        <pre><code>1. Clarify   — scale, lifecycle, threading, offline, failure modes
+2. Entities  — name the classes and what each OWNS
+               (ownership is the actual subject of the round)
+3. Contracts — the public interface, method by method
+4. Data flow — one concrete request traced end to end
+5. Concurrency — what's shared, what serializes it
+6. Failure   — what happens on error, cancel, or kill
+7. Testing   — where the seams are, what you'd fake</code></pre>
+        <div class="callout"><b>The step most candidates skip is 7.</b> Naming the test seam — "this interface exists so I can fake the downloader in tests" — is a strong senior signal, and it's exactly the reasoning behind putting mock install hooks in the ML-on-Edge SDK's public interface.</div>
+        <p>Fully worked versions of the image loader, notification/push, analytics SDK and overlay-arbitration designs are on the <a href="prep-system-design.html">System Design page</a>.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ STORIES ============ -->
+  <section class="cat" id="stories" data-cat="stories">
+    <h2><span class="ix">04</span> Stories &amp; behavioral</h2>
+    <p class="cat-sub">The round that decides level. Prepared, specific, numbered stories — not improvised ones.</p>
+
+    <details class="qa" data-tags="three stories architecture decision performance zero to one prepare format">
+      <summary><span class="qix">R08</span><span class="qtext">The three stories to have ready — mapped to real projects</span><span class="diff hard">Essential</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Three stories cover almost every behavioral and senior-bar question asked. Prepare them as three-minute spoken answers, practised aloud, with numbers. Improvising here is the single most common reason strong engineers get down-levelled.</div>
+        <p><b>Story 1 — Architecture decision.</b> A trade-off you made, why, and what happened. Format: <b>constraint → options considered → choice made → engineering-metric outcome.</b> Explicitly <em>not</em> a feature-delivery story.</p>
+        <pre><code>Anchor: Interventions Framework (ShareChat)
+
+Constraint  Overlays from many teams collided; no shared frequency
+            cap; no single owner of "what shows when."
+Options     (a) a Mutex-protected shared queue
+            (b) per-feature local rules with a convention
+            (c) a single serialized actor owning all decisions
+Choice      (c) — because "is X eligible" and "should X show now"
+            both read full queue state. A mutex protects data;
+            an actor protects a SEQUENCE OF DECISIONS, making
+            read-then-decide-then-write atomic by construction.
+Outcome     One overlay at a time app-wide, no locks, adopted
+            across features; config-changeable without a release.
+Hindsight   Cross-screen priority should have been an explicit
+            field, not implied by server list order.</code></pre>
+        <p><b>Story 2 — Performance problem.</b> A real metric moved. Numbers are mandatory, and the diagnostic process matters more than the fix.</p>
+        <pre><code>Anchor: Build &amp; CI optimization (Dream11 / CriQ)
+
+Problem     Release builds ~25–30 min; full Play Store workflow
+            ~38 min. Nobody owned build time, so nobody fixed it.
+Diagnose    Measured where time actually went before changing
+            anything — dependency resolution, Ruby setup, and
+            repeated yarn installs dominated.
+Fix         Three layers: Gradle (parallel, caching, config cache,
+            Jetifier off), Fastlane (removed a redundant yarn
+            install, added --parallel --build-cache), and Actions
+            (Gradle + Yarn caches, ruby/setup-ruby).
+Result      Build 25–30 → 14–16 min (45%); workflow 38 → 18 min
+            (52%); local incremental 40–60% faster.
+Twist       The optimization CREATED a failure: 2–5 GB Gradle
+            transform caches made the cache-save step hang with
+            "No space left on device." Fixed by stripping
+            regenerable artifacts before save — kept dependency
+            caches, dropped transforms/daemon/build outputs.
+</code></pre>
+        <p><b>Story 3 — Something built 0→1.</b> Your architectural decisions, not the team's. Be able to defend every choice and name what you'd change.</p>
+        <pre><code>Anchor: CriQ (Dream11)
+
+Scope       0→1 across Android + iOS via React Native, backend
+            services, CI/CD and release pipelines — two markets
+            with separate builds and sign-in.
+Decisions   Native modules in Kotlin/Swift for on-device ML and a
+            dual-engine STT layer, so heavy work stays native and
+            only results cross to JS — keeping the JS thread free.
+Why two     Native Android STT is free, low-latency and offline-
+STT engines capable; GCP streaming gives server-side silence
+            detection and is the ONLY option on iOS. Remote-config
+            gated, so the split is a rollout lever not a hardcode.
+Hindsight   en-US is hardcoded in SpeechToText.kt — for an
+            India-first product that's the first thing to fix.</code></pre>
+        <div class="callout"><b>Why these three:</b> "most complex problem you've solved" must be an architecture or design decision, never a debugging war story — debugging reads as mid-level. Story 1 answers that. Story 2 answers anything about impact, metrics or ownership of shared pain. Story 3 answers scope, autonomy and end-to-end delivery.</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="behavioral conflict disagreement pushback ambiguity failure prioritization STAR">
+      <summary><span class="qix">R09</span><span class="qtext">The behavioral prompts, and how to answer without waffle</span><span class="diff hard">Behavioral</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Behavioral questions cluster into five themes. Have one specific, named incident per theme — with what you actually said or did, not a description of your general approach. "I usually try to..." is the tell that you don't have a real example.</div>
+        <table><tr><th>Theme</th><th>Prompt shape</th><th>Anchor to use</th></tr>
+        <tr><td>Conflict / disagreement</td><td>"Tell me about a technical disagreement"</td><td>Actor vs Mutex; the ≤20% test-failure threshold; Jetifier off</td></tr>
+        <tr><td>Ownership / initiative</td><td>"Something you did that nobody asked for"</td><td>CI build time — nobody owned it, which is why it stayed broken</td></tr>
+        <tr><td>Receiving pushback</td><td>"A time you were wrong / got hard feedback"</td><td>The YOLO ball-tracking false start; F1=0% turning out to be a data bug</td></tr>
+        <tr><td>Ambiguity / failure</td><td>"A project that didn't go as planned"</td><td>Cache-save hang — the fix that created a new failure mode</td></tr>
+        <tr><td>Prioritization</td><td>"Too much to do, not enough time"</td><td>Scoping the CV POCs; picking MobileNetV2 over larger models</td></tr></table>
+        <p><b>The structure that keeps answers tight:</b></p>
+        <pre><code>Situation   1–2 sentences. Enough context, no more.
+Tension     What made it hard or contested. THIS is the story.
+Action      What YOU specifically did — "I" not "we".
+Result      What changed, with a number where one exists.
+Reflection  What you'd do differently. Always include this.</code></pre>
+        <div class="callout"><b>On disagreement questions specifically:</b> the best answers end with a decision and a working relationship, not a victory. "We disagreed on the retry threshold, I laid out the failure math, we landed on a lower number than I wanted with a monitor to revisit it" scores higher than "I convinced them I was right." Interviewers are checking whether you can be overruled without being difficult.</div>
+        <p><b>Two traps:</b> claiming resume ownership you can't defend under discussion, and answering like a mid-level engineer when your years say senior — the bar scales with experience, so at 5+ years you're expected to have <em>opinions</em>, not just knowledge. Say "we tried X and here's what broke" rather than reciting best practice.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="staff level SDE4 scope quantify trade-offs migration cross functional failure modes">
+      <summary><span class="qix">R10</span><span class="qtext">What changes at Staff / SDE-4 scope</span><span class="diff hard">Staff</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Senior is judged on building the thing well. Staff is judged on the decision quality around the thing — quantified trade-offs, migration paths that don't freeze delivery, and modelling how it fails before it does.</div>
+        <p><b>The four shifts interviewers listen for:</b></p>
+        <ul>
+          <li><b>Quantify trade-offs instead of asserting them.</b> Not "FlashList is faster" but "FlashList recycles rather than mounting/unmounting; on our list that moved p90 frame time from X to Y at a cost of one more dependency and a migration for every custom row." Dimensions worth costing: frame time, memory, bundle/binary size, developer velocity, maintenance burden.</li>
+          <li><b>Cross-functional ownership.</b> The API payload shape, CDN caching policy, and client storage design are one decision, not three. A staff answer crosses the client/backend line — e.g. "we changed the feed payload so the client didn't need a second round trip per card."</li>
+          <li><b>Migration blueprints.</b> Any real codebase is brownfield. Have a concrete incremental path — bridge → JSI, FlatList → FlashList, Views → Compose — that ships continuously rather than a rewrite branch. Name the strangler pattern: new surfaces on the new thing, old surfaces migrated on touch, with both coexisting.</li>
+          <li><b>Failure-mode projection.</b> Model edge failures explicitly before shipping: OTA bundle corruption, signing-key rotation lockout, storage exhaustion, token-refresh stampede. Each with a mitigation and a business impact.</li>
+        </ul>
+        <div class="callout"><b>The clearest staff signal in my own work</b> is the cache-save hang: an optimization that created a second-order failure, diagnosed rather than reverted, with the fix distinguishing regenerable artifacts from expensive-to-rebuild ones. That's the shape of thinking the level is testing for — not "I made it faster" but "I made it faster, here's what that broke, and here's the reasoning that separated what to keep from what to drop."</div>
+      </div>
+    </details>
+  </section>
+
+  <div class="no-results">No topics match your search.</div>
+
+  <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
+    <a class="backlink" href="prep-android.html">Next: Android &amp; Kotlin →</a>
+  </div>
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div class="small">Tech deep dives · maintained by Shivam Tiwari · for study, not redistribution.</div>
+    <nav class="links">
+      <a href="index.html">Portfolio</a>
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
+      <a href="prep-android.html">Android</a>
+      <a href="prep-react.html">RN · JS · React</a>
+      <a href="prep-system-design.html">System Design</a>
+      <a href="prep-ai-engineering.html">AI Eng · FDE</a>
+      <a href="prep-extras.html">Extras</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

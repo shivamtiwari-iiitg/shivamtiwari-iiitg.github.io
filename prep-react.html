@@ -11,11 +11,14 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header class="nav">
   <div class="wrap nav-inner">
     <a class="brand" href="index.html"><span class="mark">ST</span> Shivam&nbsp;<b>Tiwari</b></a>
     <nav class="nav-links">
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
@@ -65,11 +68,12 @@
       <button class="fchip" data-target="css">CSS &amp; Layout</button>
       <button class="fchip" data-target="apiperf">API &amp; Performance</button>
       <button class="fchip" data-target="debug">Debugging</button>
+      <button class="fchip" data-target="rnarch">RN state &amp; storage</button>
     </div>
   </div>
 </div>
 
-<div class="wrap section" style="padding-top:20px">
+<div class="wrap section" id="main" style="padding-top:20px">
 <div class="layout">
   <aside class="toc">
     <h5>On this page</h5>
@@ -82,6 +86,7 @@
     <a href="#css">CSS &amp; Layout</a>
     <a href="#apiperf">API &amp; Performance</a>
     <a href="#debug">Debugging</a>
+    <a href="#rnarch">RN state &amp; storage</a>
   </aside>
 
   <div>
@@ -1660,6 +1665,90 @@ img {
     </details>
   </section>
 
+  <!-- ============ RN STATE & STORAGE ============ -->
+  <section class="cat" id="rnarch" data-cat="rnarch">
+    <h2><span class="ix">12</span> RN state &amp; storage</h2>
+    <p class="cat-sub">The architecture decisions an RN system-design round actually probes — state layering, storage choice, and keeping heavy work off the JS thread.</p>
+
+    <details class="qa" data-tags="state management layers server state client state RTK Query TanStack Zustand Redux">
+      <summary><span class="qix">Q66</span><span class="qtext">The four layers of state — and why conflating them causes most RN state pain</span><span class="diff hard">Hard</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> "State management" isn't one problem. Server data that can go stale, global UI flags, form input, and navigation position have completely different lifetimes and invalidation rules. Putting all four in one Redux store is why teams end up hand-writing cache logic they didn't need to.</div>
+        <table><tr><th>Layer</th><th>Examples</th><th>Tool</th><th>Why</th></tr>
+        <tr><td><b>Server state</b></td><td>feed, profile, orders</td><td>TanStack Query / RTK Query</td><td>Needs caching, invalidation, refetch-on-focus, dedup, optimistic mutation — all solved</td></tr>
+        <tr><td><b>Global client state</b></td><td>auth session, theme, feature flags</td><td>Zustand / Redux Toolkit</td><td>Small, synchronous, app-wide, no caching semantics</td></tr>
+        <tr><td><b>Local component state</b></td><td>form input, modal open</td><td><code>useState</code>/<code>useReducer</code></td><td>Dies with the component; global-ising it is pure overhead</td></tr>
+        <tr><td><b>Navigation state</b></td><td>current route, params</td><td>React Navigation</td><td>Already a state machine — don't mirror it into a store</td></tr></table>
+        <pre><code><span class="c">// Server state — the library owns cache + invalidation</span>
+<span class="k">const</span> { data: feed } = useQuery({
+    queryKey: [<span class="s">'feed'</span>, userId],
+    queryFn: () =&gt; api.feed(userId),
+    staleTime: 30_000,             <span class="c">// serve cached for 30s</span>
+    refetchOnWindowFocus: <span class="k">true</span>,   <span class="c">// app foregrounded → revalidate</span>
+});
+
+<span class="c">// Global client state — tiny, synchronous</span>
+<span class="k">const</span> useSession = create&lt;SessionStore&gt;(set =&gt; ({
+    user: <span class="k">null</span>,
+    setUser: (user) =&gt; set({ user }),
+    logout: () =&gt; set({ user: <span class="k">null</span> }),
+}));
+
+<span class="c">// Selector subscription — component re-renders ONLY when user.name changes,</span>
+<span class="c">// not on every store write (the Context pitfall from Q24)</span>
+<span class="k">const</span> name = useSession(s =&gt; s.user?.name);</code></pre>
+        <div class="callout"><b>The decision rule:</b> does the data live on a server and can it go stale? → server-state library. Does it need to be read by unrelated components? → global store. Otherwise → local state. Most "we need Redux" conversations are actually "we need a server-state library."</div>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="MMKV SQLite AsyncStorage WatermelonDB storage choice persistence RN">
+      <summary><span class="qix">Q67</span><span class="qtext">MMKV vs SQLite vs AsyncStorage — choosing client storage</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+        <div class="answer">
+        <div class="plain"><b>In plain terms.</b> Three different shapes of problem. Key-value lookups want MMKV. Relational data you need to query and filter wants SQLite. AsyncStorage is the old default that's slower than both and worth migrating off.</div>
+        <table><tr><th></th><th>MMKV</th><th>SQLite / WatermelonDB</th><th>AsyncStorage</th></tr>
+        <tr><td>Shape</td><td>key-value</td><td>relational, indexed</td><td>key-value</td></tr>
+        <tr><td>Access</td><td><b>synchronous</b> (memory-mapped)</td><td>async</td><td>async</td></tr>
+        <tr><td>Speed</td><td>~30× AsyncStorage</td><td>fast with indexes</td><td>slowest</td></tr>
+        <tr><td>Queries</td><td>none — get by key</td><td>full SQL, joins, WHERE</td><td>none</td></tr>
+        <tr><td>Encryption</td><td>built in</td><td>via SQLCipher</td><td>no</td></tr>
+        <tr><td>Use for</td><td>flags, tokens, prefs, small cache</td><td>messages, feed, offline entities</td><td>legacy only</td></tr></table>
+        <pre><code><span class="k">import</span> { MMKV } <span class="k">from</span> <span class="s">'react-native-mmkv'</span>;
+<span class="k">const</span> storage = <span class="k">new</span> MMKV({ id: <span class="s">'app'</span>, encryptionKey: <span class="s">'…'</span> });
+
+<span class="c">// Synchronous — no await, so it's safe to read during render</span>
+storage.set(<span class="s">'onboarded'</span>, <span class="k">true</span>);
+<span class="k">const</span> onboarded = storage.getBoolean(<span class="s">'onboarded'</span>);   <span class="c">// no Promise</span></code></pre>
+        <p><b>Why synchronous matters:</b> reading a flag during the first render without an <code>await</code> means no loading flash on startup — you can decide "onboarding or home" before the first paint. With AsyncStorage you render a spinner first, then swap, which is a visible flicker on cold start.</p>
+        <div class="callout"><b>Gotcha worth knowing:</b> MMKV v3 requires the New Architecture. On a legacy-architecture app, pin to v2 — otherwise you get a native build failure that looks unrelated to storage.</div>
+        <p><b>The usual combination in a real app:</b> MMKV for session tokens, feature flags and user prefs; SQLite (via WatermelonDB or op-sqlite) for the offline entity store that the feed and chat read from; the server-state library's in-memory cache on top of both.</p>
+      </div>
+    </details>
+
+    <details class="qa" data-tags="InteractionManager heavy work JS thread defer animation scheduling">
+      <summary><span class="qix">Q68</span><span class="qtext">Keeping heavy work off the JS thread — InteractionManager and the alternatives</span><span class="diff mid">Mid</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
+      <div class="answer">
+        <div class="plain"><b>In plain terms.</b> An expensive synchronous task during a screen transition makes the animation stutter, because both need the JS thread. <code>InteractionManager</code> lets you say "run this <em>after</em> the animation finishes" so the transition stays smooth and the work happens a beat later.</div>
+        <pre><code><span class="k">import</span> { InteractionManager } <span class="k">from</span> <span class="s">'react-native'</span>;
+
+<span class="f">useEffect</span>(() =&gt; {
+    <span class="c">// Defer until navigation animation completes</span>
+    <span class="k">const</span> task = InteractionManager.runAfterInteractions(() =&gt; {
+        buildExpensiveDerivedData();    <span class="c">// heavy sync work, now off the critical path</span>
+    });
+    <span class="k">return</span> () =&gt; task.cancel();          <span class="c">// cancel if we navigate away first</span>
+}, []);</code></pre>
+        <p><b>The escalation ladder</b> when the JS thread is the bottleneck, cheapest first:</p>
+        <ul>
+          <li><b>Defer it</b> — <code>InteractionManager</code> for work that can wait a frame or two.</li>
+          <li><b>Chunk it</b> — process a large array in slices across frames so no single task blocks longer than a frame budget.</li>
+          <li><b>Move the animation off JS</b> — Reanimated worklets run on the UI thread, so a busy JS thread no longer stutters the animation (Q32).</li>
+          <li><b>Move the work off JS entirely</b> — a native module in Kotlin/Swift, which is what I did for on-device ML inference and audio capture so only results crossed to JS.</li>
+        </ul>
+        <div class="callout"><b>What <code>InteractionManager</code> is not:</b> it doesn't add a thread. The work still runs on the JS thread — it's scheduling, not parallelism. If the task is genuinely expensive, deferring only moves the jank; you need chunking or a native module.</div>
+      </div>
+    </details>
+  </section>
+
   <div class="no-results">No questions match your search.</div>
 
   <div style="margin-top:48px;border-top:1px solid var(--line);padding-top:28px">
@@ -1674,6 +1763,8 @@ img {
     <div class="small">Tech deep dives · maintained by Shivam Tiwari · for study, not redistribution.</div>
     <nav class="links">
       <a href="index.html">Portfolio</a>
+      <a href="projects.html">Projects</a>
+      <a href="prep-rounds.html">Rounds</a>
       <a href="prep-android.html">Android</a>
       <a href="prep-react.html">RN · JS · React</a>
       <a href="prep-system-design.html">System Design</a>
