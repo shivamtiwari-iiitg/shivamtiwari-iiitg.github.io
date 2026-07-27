@@ -198,7 +198,7 @@ Side effects exit through a SEPARATE channel
     <details class="qa" data-tags="duplicate app international variant flavour release engineering CodePush Firebase CriQ RushLine">
       <summary><span class="qix">P04</span><span class="qtext">Duplicate / international app setup (CriQ → RushLine)</span><span class="diff mid">Release eng</span><svg class="caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></summary>
       <div class="answer">
-        <div class="plain"><b>The hook.</b> Stood up a full second app instance — separate package/bundle IDs (<code>com.criq.cricket.predictions.stats</code> → <code>com.rushline.cricket.football.score.predictions.ai</code>), separate Apple/Play listings, and an entirely parallel set of third-party integrations. Not glamorous, but it's a genuine "I own release engineering" story.</div>
+        <div class="plain"><b>The hook.</b> Stood up a full second app instance — separate package/bundle IDs, separate Apple/Play listings, and an entirely parallel set of third-party integrations. Not glamorous, but it's a genuine "I own release engineering" story.</div>
         <p><b>What that actually spans</b> — and why each is a real decision, not a checkbox:</p>
         <ul>
           <li>A new Firebase project (Analytics/Crashlytics/Remote Config) with Remote Config values <em>copied</em>, so the new app doesn't launch on defaults.</li>
