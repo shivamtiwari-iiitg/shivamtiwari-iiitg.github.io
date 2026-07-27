@@ -43,20 +43,34 @@
     }, { passive: true });
   }
 
-  /* ---------- subtle 3D tilt + cursor spotlight on [data-tilt] cards ---------- */
+  /* ---------- subtle 3D tilt + cursor spotlight ----------
+     Previously only elements with a data-tilt attribute got this, and the
+     portrait was the only one in the markup — every card on the site was
+     inert. Tag all card-like surfaces here so the effect is actually felt. */
   if (!reduce) {
-    document.querySelectorAll("[data-tilt]").forEach(function (card) {
+    var tiltEls = document.querySelectorAll(
+      "[data-tilt], .card, .stat, .skillset, .panelbox, .note-card, .pub"
+    );
+    tiltEls.forEach(function (card) {
+      card.setAttribute("data-tilt", "");
+      card.addEventListener("pointerenter", function () {
+        /* beat the slow reveal transition still attached to stagger children */
+        card.style.transition = "transform .18s cubic-bezier(.2,.7,.2,1)";
+      });
       card.addEventListener("pointermove", function (e) {
         var r = card.getBoundingClientRect();
         var px = e.clientX - r.left;
         var py = e.clientY - r.top;
         var x = px / r.width - 0.5;
         var y = py / r.height - 0.5;
-        card.style.transform = "perspective(900px) rotateX(" + (-y * 4) + "deg) rotateY(" + (x * 5) + "deg) translateY(-2px)";
+        card.style.transform = "perspective(900px) rotateX(" + (-y * 4).toFixed(2) + "deg) rotateY(" + (x * 5).toFixed(2) + "deg) translateY(-3px)";
         card.style.setProperty("--sx", px + "px");
         card.style.setProperty("--sy", py + "px");
       });
-      card.addEventListener("pointerleave", function () { card.style.transform = ""; });
+      card.addEventListener("pointerleave", function () {
+        card.style.transition = "transform .4s cubic-bezier(.2,.7,.2,1)";
+        card.style.transform = "";
+      });
     });
   }
 
