@@ -3,12 +3,19 @@
   "use strict";
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- pointer-tracking ambient gradient ---------- */
+  /* ---------- pointer-tracking ambient gradient (rAF-throttled) ---------- */
   if (!reduce) {
+    var pendingGlow = false, glowX = 0, glowY = 0;
     window.addEventListener("pointermove", function (e) {
-      document.documentElement.style.setProperty("--mx", e.clientX + "px");
-      document.documentElement.style.setProperty("--my", e.clientY + "px");
-    });
+      glowX = e.clientX; glowY = e.clientY;
+      if (pendingGlow) return;
+      pendingGlow = true;
+      requestAnimationFrame(function () {
+        document.documentElement.style.setProperty("--mx", glowX + "px");
+        document.documentElement.style.setProperty("--my", glowY + "px");
+        pendingGlow = false;
+      });
+    }, { passive: true });
   }
 
   /* ---------- scroll progress bar ---------- */
@@ -39,14 +46,16 @@
     });
   }
 
-  /* ---------- magnetic CTA buttons ---------- */
+  /* ---------- magnetic CTA buttons ----------
+     The inline transform overrides the CSS :hover lift, so the lift is
+     folded in here — otherwise the button visibly "drops" on first move. */
   if (!reduce) {
     document.querySelectorAll(".btn, .nav-cta").forEach(function (btn) {
       btn.addEventListener("pointermove", function (e) {
         var r = btn.getBoundingClientRect();
         var x = e.clientX - r.left - r.width / 2;
         var y = e.clientY - r.top - r.height / 2;
-        btn.style.transform = "translate(" + (x * 0.18) + "px, " + (y * 0.25) + "px)";
+        btn.style.transform = "translate(" + (x * 0.18) + "px, " + (y * 0.25 - 2) + "px)";
       });
       btn.addEventListener("pointerleave", function () { btn.style.transform = ""; });
     });
@@ -81,7 +90,10 @@
   if (cycler && !reduce) {
     var words = (cycler.getAttribute("data-words") || "").split("|").filter(Boolean);
     if (words.length > 1) {
-      var wi = 0, ci = 0, deleting = false;
+      /* The span ships with the first phrase as static text (for no-JS and
+         reduced-motion) — start fully typed and begin with the hold, so the
+         line never flashes empty on load. */
+      var wi = 0, ci = words[0].length, deleting = true;
       function tick() {
         var word = words[wi];
         cycler.textContent = word.slice(0, ci);
@@ -95,7 +107,7 @@
           deleting = false; wi = (wi + 1) % words.length; setTimeout(tick, 280);
         }
       }
-      tick();
+      setTimeout(tick, 1600);
     }
   }
 
@@ -104,35 +116,67 @@
   var toggle = document.querySelector(".nav-toggle");
   var links = document.querySelector(".nav-links");
   if (toggle && links) {
-    toggle.addEventListener("click", function () { links.classList.toggle("open"); });
+    function setNav(open) {
+      links.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.addEventListener("click", function () { setNav(!links.classList.contains("open")); });
     links.addEventListener("click", function (e) {
-      if (e.target.tagName === "A") links.classList.remove("open");
+      if (e.target.tagName === "A") setNav(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && links.classList.contains("open")) { setNav(false); toggle.focus(); }
     });
   }
 
   /* ---------- scroll reveals ---------- */
   var revealEls = document.querySelectorAll(".reveal,[data-stagger]");
-  if (reduce) {
+  function revealNow(el) {
+    if (el.classList.contains("in")) return;
+    if (el.hasAttribute("data-stagger")) {
+      var kids = el.children, i = 0, n = kids.length;
+      [].forEach.call(kids, function (k) {
+        k.style.transitionDelay = (i++ * 70) + "ms";
+      });
+      /* Clear the stagger delay once the entrance is done — leaving it in
+         place delays every later transition too (e.g. card hover lifts). */
+      setTimeout(function () {
+        [].forEach.call(kids, function (k) { k.style.transitionDelay = ""; });
+      }, 70 * n + 750);
+    }
+    el.classList.add("in");
+  }
+  if (reduce || !("IntersectionObserver" in window)) {
     revealEls.forEach(function (el) { el.classList.add("in"); });
-  } else if ("IntersectionObserver" in window) {
+  } else {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (en.isIntersecting) {
-          var el = en.target;
-          if (el.hasAttribute("data-stagger")) {
-            var kids = el.children, i = 0;
-            [].forEach.call(kids, function (k) {
-              k.style.transitionDelay = (i++ * 70) + "ms";
-            });
-          }
-          el.classList.add("in");
-          io.unobserve(el);
+          revealNow(en.target);
+          io.unobserve(en.target);
         }
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     revealEls.forEach(function (el) { io.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add("in"); });
+
+    /* Fallback: elements jumped past instantly (anchor links, opening a URL
+       with a #hash) never intersect, so the observer never fires and they
+       stay invisible. Catch anything fully above the viewport on scroll. */
+    var sweepPending = false;
+    function sweepPassed() {
+      sweepPending = false;
+      revealEls.forEach(function (el) {
+        if (!el.classList.contains("in") && el.getBoundingClientRect().bottom < 0) {
+          revealNow(el);
+          io.unobserve(el);
+        }
+      });
+    }
+    window.addEventListener("scroll", function () {
+      if (!sweepPending) { sweepPending = true; requestAnimationFrame(sweepPassed); }
+    }, { passive: true });
+    if (location.hash) requestAnimationFrame(sweepPassed);
   }
 
   /* ---------- count-up ---------- */
@@ -185,9 +229,19 @@
   var chips = document.querySelectorAll(".fchip");
   var activeCat = "all";
 
+  /* live result counter, injected next to the tool buttons */
+  var resultCount = null;
+  if (searchInput) {
+    resultCount = document.createElement("span");
+    resultCount.className = "result-count";
+    resultCount.setAttribute("aria-live", "polite");
+    var toolbarInner = document.querySelector(".toolbar-inner");
+    if (toolbarInner) toolbarInner.appendChild(resultCount);
+  }
+
   function applyFilter() {
     var term = (searchInput ? searchInput.value : "").trim().toLowerCase();
-    var anyVisible = false;
+    var shown = 0;
     cats.forEach(function (cat) {
       var catId = cat.getAttribute("data-cat");
       var catMatch = (activeCat === "all" || activeCat === catId);
@@ -198,14 +252,28 @@
         var textMatch = !term || text.indexOf(term) > -1 || tags.indexOf(term) > -1;
         var show = catMatch && textMatch;
         qa.style.display = show ? "" : "none";
-        if (show) { visibleInCat++; anyVisible = true; }
+        /* with a real search term, open the matches so the hit is visible
+           without a second click; closing again is left to the user */
+        if (show && term.length >= 3) qa.open = true;
+        if (show) { visibleInCat++; shown++; }
       });
       cat.style.display = visibleInCat ? "" : "none";
     });
-    if (noResults) noResults.style.display = anyVisible ? "none" : "block";
+    if (noResults) noResults.style.display = shown ? "none" : "block";
+    if (resultCount) resultCount.textContent = term ? shown + " result" + (shown === 1 ? "" : "s") : "";
   }
 
-  if (searchInput) searchInput.addEventListener("input", applyFilter);
+  if (searchInput) {
+    searchInput.addEventListener("input", applyFilter);
+    /* "/" focuses search from anywhere on the page */
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "/" && document.activeElement !== searchInput &&
+          !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+  }
 
   chips.forEach(function (chip) {
     chip.addEventListener("click", function () {
@@ -219,6 +287,26 @@
       }
     });
   });
+
+  /* ---------- deep links to individual questions ----------
+     Each .qa gets an id from its index label (P01, Q07, …); a URL hash
+     matching one opens it and scrolls there. */
+  qaItems.forEach(function (qa) {
+    if (qa.id) return;
+    var qix = qa.querySelector(".qix");
+    if (qix) qa.id = qix.textContent.trim().toLowerCase();
+  });
+  function openFromHash() {
+    var id = location.hash.slice(1).toLowerCase();
+    if (!id) return;
+    var qa = document.getElementById(id);
+    if (qa && qa.classList.contains("qa")) {
+      qa.open = true;
+      qa.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+  }
+  window.addEventListener("hashchange", openFromHash);
+  openFromHash();
 
   var expandBtn = document.getElementById("expand-all");
   var collapseBtn = document.getElementById("collapse-all");

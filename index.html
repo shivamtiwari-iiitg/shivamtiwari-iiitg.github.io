@@ -7,10 +7,39 @@
 <meta name="description" content="Senior Software Engineer (Mobile Lead) with 6+ years architecting native Android, React Native & iOS at 180M+ MAU. Framework-level systems, on-device ML, real-time speech, CI/CD ownership and engineering leadership." />
 <meta property="og:title" content="Shivam Tiwari — Senior Software Engineer — Android &amp; React Native" />
 <meta property="og:description" content="One engineer, every mobile surface. Native Android · React Native · iOS at consumer scale." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://shivamtiwari-iiitg.github.io/" />
+<meta property="og:image" content="https://shivamtiwari-iiitg.github.io/me.jpg" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Shivam Tiwari — Senior Software Engineer — Android &amp; React Native" />
+<meta name="twitter:description" content="One engineer, every mobile surface. Native Android · React Native · iOS at consumer scale." />
+<meta name="twitter:image" content="https://shivamtiwari-iiitg.github.io/me.jpg" />
+<link rel="canonical" href="https://shivamtiwari-iiitg.github.io/" />
+<meta name="theme-color" content="#0A0E1A" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Shivam Tiwari",
+  "jobTitle": "Senior Software Engineer — Mobile Lead",
+  "url": "https://shivamtiwari-iiitg.github.io/",
+  "image": "https://shivamtiwari-iiitg.github.io/me.jpg",
+  "email": "mailto:shivamneo33@gmail.com",
+  "address": { "@type": "PostalAddress", "addressLocality": "Noida", "addressCountry": "IN" },
+  "alumniOf": { "@type": "CollegeOrUniversity", "name": "IIIT Guwahati" },
+  "sameAs": [
+    "https://linkedin.com/in/shivamtiwari3",
+    "https://github.com/shivamtiwari-iiitg",
+    "https://scholar.google.com/citations?user=B6YhsA0AAAAJ"
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
+<noscript><style>.reveal,[data-stagger]>*{opacity:1!important;transform:none!important;filter:none!important}</style></noscript>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -45,7 +74,7 @@
         <span class="ln"><i>Tiwari</i></span>
       </h1>
       <div class="role">Native Android <span class="dot">·</span> React Native <span class="dot">·</span> iOS delivery</div>
-      <div class="role" style="margin-top:6px">Today <span class="dot">·</span> <span class="cycler" data-words="Architecting overlays at 180M MAU.|Cutting CI from 30m to 14m.|Shipping CriQ on Android, iOS &amp; RN.|Bridging Kotlin, Swift &amp; JSI.|Studying for staff-level rounds."></span></div>
+      <div class="role" style="margin-top:6px">Today <span class="dot">·</span> <span class="cycler" data-words="Architecting overlays at 180M MAU.|Cutting CI from 30m to 14m.|Shipping CriQ on Android, iOS &amp; RN.|Bridging Kotlin, Swift &amp; JSI.">Architecting overlays at 180M MAU.</span></div>
       <p class="thesis"><b>One engineer, every mobile surface.</b> I architect and ship native Android, React Native and iOS apps at consumer scale — with on-device ML, real-time speech, and framework-level systems behind them.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#projects">See selected work →</a>
@@ -57,8 +86,8 @@
     <div>
     <div class="portrait reveal" data-tilt style="margin-bottom:18px">
       <div class="frame">
-        <img src="me.jpg" alt="Shivam Tiwari" />
-        <span class="cap">Noida, India <b>·</b> Senior · Staff · Lead</span>
+        <img src="me.jpg" alt="Shivam Tiwari" width="560" height="700" fetchpriority="high" />
+        <span class="cap">Noida, India</span>
       </div>
     </div>
     <div class="cluster reveal" aria-label="Career metrics">
@@ -154,30 +183,34 @@
       <p>The work I reach for in design reviews and interviews — framework-level architecture, cross-platform delivery and measurable performance.</p>
     </div>
     <div class="cards" data-stagger>
-      <article class="card">
+      <a class="card" href="projects.html#platform">
         <span class="tag">Framework · Adopted company-wide</span>
         <h3>Intervention Framework</h3>
         <p>A lifecycle-aware orchestration layer that arbitrates every overlay across the app — priority queueing, remote-controlled display rules and conflict resolution so two surfaces never fight for the screen.</p>
         <div class="chips"><span class="chip">Coroutines Actor</span><span class="chip">MVI</span><span class="chip">Dagger-Hilt</span><span class="chip">Lifecycle</span></div>
-      </article>
-      <article class="card">
+        <span class="card-go">Read the deep dive →</span>
+      </a>
+      <a class="card" href="projects.html#platform">
         <span class="tag">0 → 1 · Cross-platform</span>
         <h3>CriQ</h3>
         <p>A full product built ground-up on React Native with native Kotlin/Swift modules, on-device ML recommendations and AI-powered test generation — shipped with CI/CD, OTA updates and multi-market release pipelines.</p>
         <div class="chips"><span class="chip az">React Native</span><span class="chip">JSI native modules</span><span class="chip">CodePush</span><span class="chip">On-device ML</span></div>
-      </article>
-      <article class="card">
+        <span class="card-go">Read the deep dive →</span>
+      </a>
+      <a class="card" href="projects.html#perf">
         <span class="tag">Performance · Build infra</span>
         <h3>Gradle build optimization</h3>
         <p>Took CI and local builds from 30 to 14 minutes — configuration-cache and caching strategy, dependency hygiene, and modularization that unblocked parallelism across the team.</p>
         <div class="chips"><span class="chip">Gradle</span><span class="chip">Modularization</span><span class="chip">GitHub Actions</span><span class="chip">Build cache</span></div>
-      </article>
-      <article class="card">
+        <span class="card-go">Read the deep dive →</span>
+      </a>
+      <a class="card" href="projects.html#ml">
         <span class="tag">Native bridge · Accessibility</span>
         <h3>Speech-to-Text / TTS engine</h3>
         <p>A dual-engine speech layer bridged through native modules on both platforms, powering conversational and accessibility features in CriQ and the Dream11 flagship app.</p>
         <div class="chips"><span class="chip">Kotlin</span><span class="chip">Swift</span><span class="chip az">RN bridge</span><span class="chip">Real-time audio</span></div>
-      </article>
+        <span class="card-go">Read the deep dive →</span>
+      </a>
     </div>
     <div class="reveal" style="margin-top:30px;text-align:center">
       <a class="btn btn-primary" href="projects.html">Read the full engineering deep dives →</a>
@@ -313,8 +346,6 @@
       <a href="https://scholar.google.com/citations?user=B6YhsA0AAAAJ" target="_blank" rel="noopener">Scholar</a>
       <a href="resume.pdf">Résumé</a>
       <a href="projects.html">Project deep dives</a>
-      <a href="prep-rounds.html">Interview rounds</a>
-      <a href="prep-android.html">Tech deep dives</a>
     </nav>
   </div>
 </footer>
